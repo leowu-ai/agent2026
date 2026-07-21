@@ -10,15 +10,32 @@
     "4096": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_freeR05_earlyfreeze_sharedgate_4096/G2P_ToolBank_Minimal"
   },
   "fusion_weights": {
-    "morphology": {"1024": 0.55, "2048": 0.30, "4096": 0.15},
-    "molecular": {"1024": 0.50, "2048": 0.35, "4096": 0.15},
-    "clinical": {"1024": 0.40, "2048": 0.30, "4096": 0.30},
-    "survival": {"1024": 0.40, "2048": 0.30, "4096": 0.30}
+    "morphology": {
+      "1024": 0.55,
+      "2048": 0.3,
+      "4096": 0.15
+    },
+    "molecular": {
+      "1024": 0.5,
+      "2048": 0.35,
+      "4096": 0.15
+    },
+    "clinical": {
+      "1024": 0.4,
+      "2048": 0.3,
+      "4096": 0.3
+    },
+    "survival": {
+      "1024": 0.4,
+      "2048": 0.3,
+      "4096": 0.3
+    }
   },
   "retrieval": {
     "top_programs": 3,
     "genes_per_program": 2,
     "top_patches_per_source": 4,
+    "all_phenotype_top_patches_per_prototype": 2,
     "max_evidence_groups": 4,
     "same_scale_iou": 0.5,
     "feature_cosine": 0.95,

@@ -115,7 +115,12 @@ class MultiScaleVQAPipeline:
             predictions.append(evidence["phenotype"])
             relations_by_field[field] = evidence["relations"]
 
-        if plan.target_phenotypes:
+        evidence_route = getattr(
+            plan,
+            "evidence_route",
+            "phenotype_direct" if plan.target_phenotypes else "nonvisual",
+        )
+        if evidence_route == "phenotype_direct" and plan.target_phenotypes:
             primary = plan.target_phenotypes[0]
             primary_evidence = evidence_cache[primary]
             pathology_key = f"__pathology__:{primary}"
@@ -141,13 +146,36 @@ class MultiScaleVQAPipeline:
             pathology = evidence_cache[pathology_key]
             pathology["primary_field"] = primary
             pathology["structured_fields_covered"] = list(plan.target_phenotypes)
+            pathology["retrieval_mode"] = "selected_phenotype"
+        elif evidence_route == "morphology_only":
+            groups_key = "__all_phenotype_groups__"
+            if groups_key not in evidence_cache:
+                groups = self.retrieval.retrieve_all_phenotypes(scale_results)
+                if crop_patches:
+                    groups = self.cropper.crop_groups(
+                        plan.case_id, "all_phenotypes", groups
+                    )
+                evidence_cache[groups_key] = groups
+            groups = evidence_cache[groups_key]
+            pathology_key = f"__pathology_all__:{plan.question}"
+            if pathology_key not in evidence_cache:
+                evidence_cache[pathology_key] = self.pathology.describe(
+                    plan.question,
+                    "all_phenotype_attention_fallback",
+                    groups,
+                )
+            pathology = evidence_cache[pathology_key]
+            pathology["primary_field"] = None
+            pathology["structured_fields_covered"] = []
+            pathology["retrieval_mode"] = "all_phenotype_attention"
         else:
             pathology = {
                 "backend": "unavailable",
-                "description": "No relevant trained phenotype field or field-specific visual evidence is available.",
+                "description": "The question requires non-visual information that WSI patches cannot establish.",
                 "image_count": 0,
                 "primary_field": None,
                 "structured_fields_covered": [],
+                "retrieval_mode": "nonvisual",
             }
 
         answer = self.fusion.answer(
@@ -164,6 +192,8 @@ class MultiScaleVQAPipeline:
             "reference_answer": item.get("Answer", item.get("answer")),
             "plan": plan.to_dict(),
             "task_match": structured["task_match"],
+            "evidence_route": structured["evidence_route"],
+            "selected_prototype_ids": structured["selected_prototype_ids"],
             "requested_fields": structured["requested_fields"],
             "executed_fields": structured["executed_fields"],
             "missing_fields": structured["missing_fields"],

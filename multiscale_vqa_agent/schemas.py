@@ -16,6 +16,8 @@ class ExecutionPlan:
     phenotype_relevance_score: float = 1.0
     scale_order: List[int] = field(default_factory=lambda: [4096, 2048, 1024])
     use_pathology_agent: bool = True
+    evidence_route: str = "phenotype_direct"
+    selected_prototype_ids: List[str] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

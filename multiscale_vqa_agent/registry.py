@@ -8,29 +8,11 @@ from .clients import OpenAICompatibleClient, parse_json_response
 from .schemas import ExecutionPlan
 
 
-TASK_RULES = [
-    ("HER2_status_label", ("her2", "erbb2")),
-    ("ER_status_label", ("estrogen receptor", "er status", "er positive", "er negative")),
-    ("PR_status_label", ("progesterone receptor", "pr status", "pr positive", "pr negative")),
-    ("histologic_grade_label", ("histologic grade", "histological grade", "tumor grade", "nuclear grade", "分级")),
-    ("nottingham_total_score", ("nottingham",)),
-    ("mitotic_score", ("mitotic", "mitosis", "有丝分裂")),
-    ("ajcc_pathologic_stage", ("ajcc", "pathologic stage", "pathological stage", "tumor stage", "分期")),
-    ("lymphovascular_invasion_label", ("lymphovascular", "vascular invasion", "脉管侵犯")),
-    ("comedonecrosis_binary", ("comedonecrosis", "comedo necrosis", "粉刺样坏死")),
-    ("necrosis_binary", ("necrosis", "necrotic", "坏死")),
-    ("microcalcification_binary", ("microcalcification", "calcification", "钙化")),
-    ("dcis_binary", ("dcis", "ductal carcinoma in situ", "in-situ component", "in situ component")),
-    ("lcis_binary", ("lcis", "lobular carcinoma in situ")),
-    ("lobular_binary", ("lobular", "小叶")),
-    ("ductal_binary", ("ductal", "导管")),
-    ("OS", ("survival", "prognosis", "vital status", "death", "alive", "生存", "预后")),
-    ("histological_type_label", ("diagnosis", "histological type", "histologic type", "histological_type", "histologic_type", "carcinoma type", "type of breast cancer", "诊断")),
-]
-
-UNSUPPORTED_HINTS = (
+NONVISUAL_HINTS = (
     "tumor size", "surgical margin", "margin status", "treatment", "chemotherapy",
     "radiotherapy", "radiation therapy", "exact survival", "survival time", "how many days",
+    "patient age", "medical history", "clinical history", "mention", "documented",
+    "report", "record",
 )
 
 
@@ -52,6 +34,14 @@ class ToolBankRegistry:
         self.phenotype_fields = first["phenotype_fields"]
         self.field_to_index = {name: i for i, name in enumerate(self.phenotype_fields)}
         self.field_to_name = dict(zip(self.phenotype_fields, self.phenotype_names))
+        self.field_to_prototype_id = {
+            field: f"P{index:03d}"
+            for index, field in enumerate(self.phenotype_fields, 1)
+        }
+        self.prototype_id_to_field = {
+            prototype_id: field
+            for field, prototype_id in self.field_to_prototype_id.items()
+        }
         self.label_encoders = first.get("label_encoders", {})
 
     @staticmethod
@@ -81,15 +71,21 @@ class ToolBankRegistry:
         vocab = self.vocabs[min(self.vocabs)]
         task_types = vocab.get("phenotype_task_types", {})
         groups = vocab.get("phenotype_groups", {})
-        return [
-            {
+        catalog = []
+        for field, name in zip(self.phenotype_fields, self.phenotype_names):
+            semantics = self.label_semantics(field)
+            catalog.append({
+                "prototype_id": self.field_to_prototype_id[field],
                 "field": field,
                 "name": name,
                 "task_type": task_types.get(name, "unknown"),
                 "group": groups.get(name, "unknown"),
-            }
-            for field, name in zip(self.phenotype_fields, self.phenotype_names)
-        ]
+                "labels": semantics.get("clinical_meaning", {}),
+                "limitation": (
+                    "WSI-derived prediction, not a measured clinical assay or report fact."
+                ),
+            })
+        return catalog
 
     def task_metrics(self, field: str) -> Dict[str, Any]:
         values = {}
@@ -136,89 +132,91 @@ class PrototypeAwarePlanner:
         if not self.qwen.enabled:
             return None
         system = (
-            "You are the prototype-aware planner for a breast pathology VQA system. "
-            "Select only fields in the supplied catalog. Return one JSON object with keys "
-            "target_phenotypes, task_type, metrics, supported, support_reason, task_match, phenotype_relevance_score, use_pathology_agent. "
-            "WSI cannot reliably provide treatment, surgical margin, exact tumor size, or exact survival days."
+            "You route breast pathology multiple-choice questions to a numbered phenotype prototype catalog. "
+            "Return JSON with route, prototype_ids, task_match, phenotype_relevance_score, reason, and use_pathology_agent. "
+            "route must be phenotype_direct, morphology_only, or nonvisual. "
+            "For phenotype_direct, choose one to four exact prototype_ids from the catalog. "
+            "Use morphology_only when the question is visually answerable but no catalog prototype directly matches. "
+            "Use nonvisual for report/documentation, treatment, age, exact size/time, or other facts not answerable from WSI. "
+            "Do not invent IDs and do not answer the MCQ."
         )
         user = json.dumps({
             "question": question,
             "choices": list(choices),
-            "available_phenotypes": self.registry.compact_catalog(),
+            "prototype_catalog": self.registry.compact_catalog(),
+            "output_schema": {
+                "route": "phenotype_direct|morphology_only|nonvisual",
+                "prototype_ids": ["P001"],
+                "task_match": "direct|partial|none",
+                "phenotype_relevance_score": 0.0,
+                "reason": "one sentence",
+                "use_pathology_agent": True,
+            },
         }, ensure_ascii=False)
         try:
-            parsed = parse_json_response(self.qwen.chat(system, user, max_tokens=512))
+            parsed = parse_json_response(self.qwen.chat(
+                system,
+                user,
+                max_tokens=384,
+                response_format={"type": "json_object"},
+                retries=2,
+            ))
         except Exception as error:
-            print(f"Planner Qwen unavailable, using rules: {error}", flush=True)
+            print(f"Planner Qwen unavailable, using visual fallback: {error}", flush=True)
             return None
-        if not parsed:
+        if not isinstance(parsed, dict):
             return None
-        raw_fields = parsed.get("target_phenotypes", [])
-        if isinstance(raw_fields, (str, dict)):
-            raw_fields = [raw_fields]
-        fields = []
-        for value in raw_fields if isinstance(raw_fields, list) else []:
-            if isinstance(value, dict):
-                value = value.get("field", value.get("phenotype_field", value.get("name")))
-            if isinstance(value, str) and value in self.registry.field_to_index:
-                fields.append(value)
-        fields = list(dict.fromkeys(fields))
-        if not fields and parsed.get("supported", False):
-            rule_plan = self._rule_plan(case_id, question, choices)
-            fields = rule_plan.target_phenotypes
 
-        supported_value = parsed.get("supported", bool(fields))
-        if isinstance(supported_value, str):
-            supported_value = supported_value.strip().lower() in {"true", "1", "yes"}
-        supported = bool(supported_value) and bool(fields)
-        task_match = str(parsed.get("task_match", "direct" if supported else "none")).lower()
-        if task_match not in {"direct", "partial", "indirect", "none"}:
+        raw_ids = parsed.get("prototype_ids", [])
+        if isinstance(raw_ids, (str, dict)):
+            raw_ids = [raw_ids]
+        prototype_ids = []
+        for value in raw_ids if isinstance(raw_ids, list) else []:
+            if isinstance(value, dict):
+                value = value.get("prototype_id", value.get("id"))
+            if isinstance(value, str):
+                normalized = value.strip().upper()
+                if normalized in self.registry.prototype_id_to_field:
+                    prototype_ids.append(normalized)
+        prototype_ids = list(dict.fromkeys(prototype_ids))[:4]
+
+        route = str(parsed.get(
+            "route", "phenotype_direct" if prototype_ids else "morphology_only"
+        )).strip().lower()
+        if route not in {"phenotype_direct", "morphology_only", "nonvisual"}:
+            route = "phenotype_direct" if prototype_ids else "morphology_only"
+        if route == "phenotype_direct" and not prototype_ids:
+            route = "morphology_only"
+        if route != "phenotype_direct":
+            prototype_ids = []
+
+        fields = [
+            self.registry.prototype_id_to_field[prototype_id]
+            for prototype_id in prototype_ids
+        ]
+        supported = route == "phenotype_direct"
+        task_match = str(parsed.get(
+            "task_match", "direct" if supported else "none"
+        )).strip().lower()
+        if task_match not in {"direct", "partial", "none"}:
             task_match = "direct" if supported else "none"
         if not supported:
             task_match = "none"
 
-        default_metrics = self._metrics_for(fields[0]) if fields else []
-        metrics = parsed.get("metrics", default_metrics)
-        if isinstance(metrics, str):
-            metrics = [metrics]
-        elif not isinstance(metrics, list):
-            metrics = default_metrics
-        default_relevance = {"direct": 1.0, "partial": 0.6, "indirect": 0.3, "none": 0.0}[task_match]
+        default_relevance = {"direct": 1.0, "partial": 0.6, "none": 0.0}[task_match]
         try:
             relevance = float(parsed.get("phenotype_relevance_score", default_relevance))
         except (TypeError, ValueError):
             relevance = default_relevance
-        relevance = max(0.0, min(relevance, 1.0))
+        relevance = max(0.0, min(relevance, 1.0)) if supported else 0.0
 
-        return ExecutionPlan(
-            case_id=case_id,
-            question=question,
-            target_phenotypes=fields,
-            task_type=str(parsed.get("task_type", "unknown")),
-            metrics=metrics,
-            answer_mode="multiple_choice" if choices else "open",
-            supported=supported,
-            support_reason=str(parsed.get("support_reason", "")),
-            task_match=task_match,
-            phenotype_relevance_score=relevance,
-            use_pathology_agent=bool(parsed.get("use_pathology_agent", True)),
-        )
-
-    def _rule_plan(self, case_id: str, question: str, choices: Iterable[str]) -> ExecutionPlan:
-        lowered = question.lower()
-        unsupported = any(term in lowered for term in UNSUPPORTED_HINTS)
-        fields = [field for field, terms in TASK_RULES if any(term in lowered for term in terms)]
-        generic_in_situ = ("any" in lowered and ("in situ" in lowered or "in-situ" in lowered)) or "in situ component" in lowered or "in-situ component" in lowered
-        if generic_in_situ:
-            fields.extend(["dcis_binary", "lcis_binary"])
-        fields = list(dict.fromkeys(fields))
-        unsupported = unsupported or not fields
         vocab = self.registry.vocabs[min(self.registry.vocabs)]
         if fields:
             name = self.registry.field_to_name[fields[0]]
             task_type = vocab.get("phenotype_task_types", {}).get(name, "unknown")
         else:
-            task_type = "unsupported"
+            task_type = "morphology" if route == "morphology_only" else "nonvisual"
+
         return ExecutionPlan(
             case_id=case_id,
             question=question,
@@ -226,12 +224,43 @@ class PrototypeAwarePlanner:
             task_type=task_type,
             metrics=self._metrics_for(fields[0]) if fields else [],
             answer_mode="multiple_choice" if list(choices) else "open",
-            supported=not unsupported,
-            support_reason=("Question is covered by a trained phenotype head." if not unsupported else
-                            "No relevant trained phenotype head is available; structured evidence is unavailable."),
-            task_match="direct" if not unsupported else "none",
-            phenotype_relevance_score=1.0 if not unsupported else 0.0,
-            use_pathology_agent=True,
+            supported=supported,
+            support_reason=str(parsed.get("reason", "")),
+            task_match=task_match,
+            phenotype_relevance_score=relevance,
+            use_pathology_agent=(
+                bool(parsed.get("use_pathology_agent", True))
+                if route != "nonvisual" else False
+            ),
+            evidence_route=route,
+            selected_prototype_ids=prototype_ids,
+        )
+
+    def _rule_plan(self, case_id: str, question: str, choices: Iterable[str]) -> ExecutionPlan:
+        lowered = question.lower()
+        route = (
+            "nonvisual"
+            if any(term in lowered for term in NONVISUAL_HINTS)
+            else "morphology_only"
+        )
+        return ExecutionPlan(
+            case_id=case_id,
+            question=question,
+            target_phenotypes=[],
+            task_type="nonvisual" if route == "nonvisual" else "morphology",
+            metrics=[],
+            answer_mode="multiple_choice" if list(choices) else "open",
+            supported=False,
+            support_reason=(
+                "The question requires non-visual information unavailable from WSI."
+                if route == "nonvisual"
+                else "No numbered phenotype prototype was selected; use diverse all-phenotype visual evidence."
+            ),
+            task_match="none",
+            phenotype_relevance_score=0.0,
+            use_pathology_agent=route == "morphology_only",
+            evidence_route=route,
+            selected_prototype_ids=[],
         )
 
     @staticmethod

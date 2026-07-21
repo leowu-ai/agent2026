@@ -136,8 +136,14 @@ class FusionVerificationAgent:
                 "question": plan.question,
                 "choices": indexed_choices(choices),
                 "task_match": "none",
+                "evidence_route": getattr(plan, "evidence_route", "nonvisual"),
+                "selected_prototype_ids": list(getattr(plan, "selected_prototype_ids", [])),
                 "available_visual_summary": visual,
-                "evidence_availability": "insufficient",
+                "evidence_availability": (
+                    "visual_only"
+                    if getattr(plan, "evidence_route", "nonvisual") == "morphology_only"
+                    else "insufficient"
+                ),
                 "documentation_rule": "Images cannot prove whether a report or record mentions a fact.",
             }
         primary_fields = set(structured.get("primary_fields", []))
@@ -168,6 +174,8 @@ class FusionVerificationAgent:
             "question": plan.question,
             "choices": indexed_choices(choices),
             "task_match": structured.get("task_match"),
+            "evidence_route": structured.get("evidence_route"),
+            "selected_prototype_ids": structured.get("selected_prototype_ids", []),
             "answer_unit": structured.get("answer_unit"),
             "structured_candidate": {
                 "choice_id": structured.get("structured_candidate_id"),
@@ -192,6 +200,7 @@ class FusionVerificationAgent:
     @staticmethod
     def _compact_prediction(row: Dict[str, Any]) -> Dict[str, Any]:
         return {
+            "prototype_id": row.get("prototype_id"),
             "field": row.get("field"),
             "label": row.get("predicted_label"),
             "probability": row.get("fused_probability_for_predicted_class"),

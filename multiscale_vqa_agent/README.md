@@ -2,14 +2,16 @@
 
 This package implements the six-stage TCGA-BRCA pipeline:
 
-1. Prototype-aware planner (Qwen or deterministic fallback)
-2. Patient-level phenotype prediction with G2P-1024/2048/4096
-3. Prior-versus-learned relation reasoning
-4. Coarse-to-fine phenotype/program/gene patch retrieval
+1. Numbered phenotype prototype Router (Qwen selects stable P001-style IDs)
+2. Patient-level selected-phenotype prediction with G2P-1024/2048/4096
+3. Prior-versus-learned relation reasoning for selected phenotypes
+4. Coarse-to-fine multi-scale patch retrieval and deduplication
 5. Multi-image pathology description with Patho-R1
-6. Qwen answer fusion and verification
+6. Qwen semantic evidence fusion with canonical A/B/C output IDs
 
-The three G2P models run once per patient. Questions targeting the same phenotype reuse relation and pathology evidence. Same-scale candidates are deduplicated; cross-scale matches are retained as evidence pyramids. The 2048/1024 global bypass prevents a weak 4096 candidate from suppressing focal evidence.
+The Router emits one of three evidence routes. phenotype_direct invokes only selected numbered prototypes. morphology_only pools a small top-patch set from every phenotype attention map, deduplicates consensus regions, and sends the resulting multi-scale pyramids to Patho-R1. nonvisual skips visual inference for report, treatment, age, exact size/time, and similar questions that WSI cannot establish.
+
+The three G2P models run once per patient. Same-scale candidates are deduplicated; cross-scale matches are retained as evidence pyramids. The 2048/1024 global bypass prevents a weak 4096 candidate from suppressing focal evidence. Final option semantics are decided by Qwen from explicit labels and definitions; code validates only prototype IDs and answer IDs.
 
 ## Configurations
 

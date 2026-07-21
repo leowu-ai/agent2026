@@ -36,6 +36,9 @@ class MultiScaleRetrievalAgent:
     def __init__(self, registry: ToolBankRegistry, config: Dict[str, Any]):
         self.registry = registry
         self.top_per_source = int(config.get("top_patches_per_source", 4))
+        self.all_phenotype_top_per_prototype = int(
+            config.get("all_phenotype_top_patches_per_prototype", 2)
+        )
         self.max_groups = int(config.get("max_evidence_groups", 4))
         self.iou_threshold = float(config.get("same_scale_iou", 0.5))
         self.cosine_threshold = float(config.get("feature_cosine", 0.95))
@@ -71,6 +74,32 @@ class MultiScaleRetrievalAgent:
             by_scale[scale] = self._deduplicate(candidates)
         return self._build_pyramids(by_scale)
 
+    def retrieve_all_phenotypes(
+        self,
+        scale_results: Dict[int, Dict[str, Any]],
+    ) -> List[EvidenceGroup]:
+        indices = list(range(len(self.registry.phenotype_fields)))
+        names = [
+            f"{self.registry.field_to_prototype_id[field]}:{field}"
+            for field in self.registry.phenotype_fields
+        ]
+        by_scale: Dict[int, List[PatchCandidate]] = {}
+        for scale, result in scale_results.items():
+            candidates = []
+            for slide in result["slides"]:
+                candidates.extend(self._from_attention(
+                    scale,
+                    slide,
+                    "phenotype",
+                    indices,
+                    names,
+                    1.0,
+                    top_per_prototype=self.all_phenotype_top_per_prototype,
+                ))
+            # Consensus regions accumulate multiple prototype sources during deduplication.
+            by_scale[scale] = self._deduplicate(candidates)
+        return self._build_pyramids(by_scale)
+
     def _from_attention(
         self,
         scale: int,
@@ -79,6 +108,7 @@ class MultiScaleRetrievalAgent:
         indices: List[int],
         names: List[str],
         source_weight: float,
+        top_per_prototype: Optional[int] = None,
     ) -> List[PatchCandidate]:
         if not indices:
             return []
@@ -88,7 +118,10 @@ class MultiScaleRetrievalAgent:
             values = np.asarray(attention[prototype_index], dtype=np.float32)
             if not len(values):
                 continue
-            count = min(self.top_per_source, len(values))
+            count = min(
+                self.top_per_source if top_per_prototype is None else top_per_prototype,
+                len(values),
+            )
             top = np.argpartition(values, -count)[-count:]
             top = top[np.argsort(values[top])[::-1]]
             selected = values[top]
