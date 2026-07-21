@@ -1,0 +1,33 @@
+# Generated experiments and runtime artifacts
+outputs/
+*.log
+*.pid
+
+# Python caches and environments
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Model checkpoints and large array artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.npy
+*.npz
+*.h5
+*.hdf5
+
+# Local editor and OS metadata
+.vscode/
+.idea/
+.DS_Store
+
+# Local secrets
+.env
+.env.*
+!.env.example

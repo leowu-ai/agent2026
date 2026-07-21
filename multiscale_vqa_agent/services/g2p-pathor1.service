@@ -1,0 +1,18 @@
+[Unit]
+Description=G2P Agent Patho-R1-7B API
+After=network.target g2p-qwen.service
+
+[Service]
+Type=simple
+Environment=CUDA_VISIBLE_DEVICES=7
+Environment=VLLM_USE_FLASHINFER_SAMPLER=0
+ExecStart=/home/wl/agent_2026/.venvs/qwen_pathor1_vllm/bin/vllm serve /data_nas3/ycz/00_SHARE_WITH_COLLEAGUE_QWEN_PATHOR1_20260716/Patho-R1-7B --served-model-name Patho-R1-7B --dtype bfloat16 --max-model-len 16384 --gpu-memory-utilization 0.35 --limit-mm-per-prompt.image 12 --host 127.0.0.1 --port 8001 --enforce-eager --no-enable-flashinfer-autotune
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+KillMode=mixed
+StandardOutput=append:/home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/services/pathor1.log
+StandardError=append:/home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/services/pathor1.log
+
+[Install]
+WantedBy=default.target

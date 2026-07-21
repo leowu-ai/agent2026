@@ -1,0 +1,319 @@
+import json
+import re
+from typing import Any, Dict, List, Optional
+
+from .clients import OpenAICompatibleClient, parse_json_response
+from .fusion_evidence import UNAVAILABLE_PATTERNS, build_structured_summary, load_fusion_prompt
+from .schemas import ExecutionPlan
+
+
+MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions with limited evidence.
+Select exactly one supplied choice. Do not return null, refuse, or invent measurements.
+Use only the question, choices, and directly available visual summary.
+For report/documentation questions, images cannot prove whether something was mentioned.
+If evidence is insufficient, choose the most defensible supplied option with low confidence and say it is not confirmed.
+Output only JSON: {\"answer\":\"<exact supplied choice>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
+
+
+REPAIR_SYSTEM = """Repair a breast pathology MCQ answer. Output only short valid JSON.
+The answer must exactly equal one supplied choice. Do not return null or markdown.
+Schema: {\"answer\":\"<exact supplied choice>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
+
+
+class FusionVerificationAgent:
+    def __init__(self, client: OpenAICompatibleClient):
+        self.client = client
+
+    def answer(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        phenotype_results: Any,
+        relations: Any,
+        pathology: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        structured = build_structured_summary(plan, choices, phenotype_results)
+        evidence = self._build_evidence_packet(plan, choices, structured, relations, pathology)
+        system_prompt = MINIMAL_NONE_SYSTEM if structured.get("task_match") == "none" else load_fusion_prompt()
+        if not self.client.enabled:
+            return self._fallback(plan, choices, structured, None, "mock_fallback", 0)
+
+        raw = None
+        retry_count = 0
+        try:
+            raw = self.client.chat(
+                system_prompt,
+                json.dumps(evidence, ensure_ascii=False),
+                max_tokens=700 if structured.get("task_match") == "none" else 900,
+                response_format={"type": "json_object"},
+                retries=2,
+            )
+            parsed = parse_json_response(raw)
+            result = self._validate(parsed, choices, structured, raw, "parsed", retry_count)
+            if result is not None:
+                return result
+
+            recovered = self._recover_answer(raw, choices)
+            if recovered is not None:
+                parsed = {
+                    "answer": recovered,
+                    "confidence": min(float(structured.get("structured_candidate_confidence") or 0.25), 0.55),
+                    "explanation": "Answer recovered from a malformed model response.",
+                    "limitations": "The original response was not valid JSON.",
+                }
+                return self._validate(parsed, choices, structured, raw, "recovered_answer", retry_count)
+
+            retry_count = 1
+            retry_prompt = json.dumps({
+                "instruction": "Return only the required JSON object. Re-decide from this compact original context, not from the malformed answer.",
+                "question": plan.question,
+                "choices": choices,
+                "task_match": structured.get("task_match"),
+                "structured_candidate": evidence.get("structured_candidate"),
+                "structured_evidence_summary": {
+                    "answer_unit": evidence.get("answer_unit"),
+                    "primary_predictions": evidence.get("primary_predictions", []),
+                    "supporting_predictions": evidence.get("supporting_predictions", []),
+                    "option_compatibility": evidence.get("option_compatibility", []),
+                    "conflicts": evidence.get("conflicts", []),
+                },
+                "visual_evidence_summary": evidence.get("visual_observations", evidence.get("available_visual_summary", "")),
+                "output_schema": {
+                    "answer": "<one exact supplied choice>",
+                    "confidence": 0.0,
+                    "explanation": "<one sentence>",
+                    "limitations": "<one sentence>",
+                },
+            }, ensure_ascii=False)
+            retry_raw = self.client.chat(
+                REPAIR_SYSTEM,
+                retry_prompt,
+                max_tokens=260,
+                response_format={"type": "json_object"},
+                retries=2,
+            )
+            parsed = parse_json_response(retry_raw)
+            result = self._validate(
+                parsed,
+                choices,
+                structured,
+                retry_raw,
+                "retry_parsed",
+                retry_count,
+                initial_raw=raw,
+            )
+            if result is not None:
+                return result
+            raw = retry_raw or raw
+        except Exception as error:
+            fallback = self._fallback(plan, choices, structured, raw, "request_error", retry_count)
+            fallback["limitations"] = self._limit(
+                f"{fallback['limitations']} Qwen request failed: {type(error).__name__}.", 350
+            )
+            return fallback
+
+        return self._fallback(
+            plan, choices, structured, raw, "fallback_after_parse_failure", retry_count
+        )
+
+    def _build_evidence_packet(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        structured: Dict[str, Any],
+        relations: Any,
+        pathology: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        visual = self._visual_summary(pathology.get("description"))
+        if structured.get("task_match") == "none":
+            return {
+                "question": plan.question,
+                "choices": choices,
+                "task_match": "none",
+                "available_visual_summary": visual,
+                "evidence_availability": "insufficient",
+                "documentation_rule": "Images cannot prove whether a report or record mentions a fact.",
+            }
+        primary_fields = set(structured.get("primary_fields", []))
+        supporting_fields = set(structured.get("supporting_fields", []))
+        predictions = structured.get("predictions", [])
+        primary_predictions = [self._compact_prediction(row) for row in predictions if row.get("field") in primary_fields]
+        supporting_predictions = [self._compact_prediction(row) for row in predictions if row.get("field") in supporting_fields]
+        if not primary_predictions and predictions:
+            primary_predictions = [self._compact_prediction(predictions[0])]
+        option_rows = []
+        for row in structured.get("option_compatibility", []):
+            option_rows.append({
+                "choice": row.get("choice"),
+                "requirements": row.get("requirements", {}),
+                "primary_requirements": row.get("primary_requirements", {}),
+                "supporting_requirements": row.get("supporting_requirements", {}),
+                "supported_fields": row.get("supported_fields", []),
+                "missing_primary_fields": row.get("missing_primary_fields", []),
+                "missing_supporting_fields": row.get("missing_supporting_fields", []),
+                "contradicted_primary_fields": row.get("contradicted_primary_fields", []),
+                "contradicted_supporting_fields": row.get("contradicted_supporting_fields", []),
+                "uncertain_fields": row.get("uncertain_fields", []),
+                "field_coverage": row.get("field_coverage", 0.0),
+                "evidence_coverage": row.get("evidence_coverage", 0.0),
+            })
+        return {
+            "question": plan.question,
+            "choices": choices,
+            "task_match": structured.get("task_match"),
+            "answer_unit": structured.get("answer_unit"),
+            "structured_candidate": {
+                "answer": structured.get("structured_candidate_answer"),
+                "confidence": structured.get("structured_candidate_confidence"),
+                "mapping_complete": structured.get("mapping_complete"),
+            },
+            "primary_predictions": primary_predictions,
+            "supporting_predictions": supporting_predictions,
+            "option_compatibility": option_rows[:8],
+            "visual_observations": visual,
+            "conflicts": [],
+            "relation_summary": self._relation_summary(relations),
+            "rules": [
+                "Use supplied predicted_label and label definitions, never class index or option position.",
+                "Patho-R1 can overturn structured evidence only with direct visible counterevidence.",
+                "WSI-inferred gene/pathway scores are not measured RNA, IHC, FISH, mutation, or protein.",
+            ],
+            "code_generated_base_confidence": structured.get("structured_candidate_confidence"),
+        }
+
+    @staticmethod
+    def _compact_prediction(row: Dict[str, Any]) -> Dict[str, Any]:
+        return {
+            "field": row.get("field"),
+            "label": row.get("predicted_label"),
+            "probability": row.get("fused_probability_for_predicted_class"),
+            "scale_agreement": row.get("cross_scale_agreement"),
+            "validation_quality": row.get("validation_quality"),
+            "label_definition": row.get("clinical_label_semantics", {}),
+        }
+
+    @staticmethod
+    def _visual_summary(description: Any) -> str:
+        text = str(description or "")
+        text = re.sub(r"<think>.*?</think>", " ", text, flags=re.I | re.S)
+        text = re.sub(r"\s+", " ", text).strip()
+        return text[:1200]
+
+    @staticmethod
+    def _relation_summary(relations: Any) -> str:
+        if not relations:
+            return "No relation evidence is independently diagnostic."
+        if isinstance(relations, dict):
+            keys = list(relations.keys())[:4]
+            return f"Relation tables are available for consistency only, not independently diagnostic; fields: {keys}."
+        return "Relation evidence is available for consistency only, not independently diagnostic."
+
+    def _validate(
+        self,
+        parsed: Optional[Dict[str, Any]],
+        choices: List[str],
+        structured: Dict[str, Any],
+        raw: Optional[str],
+        status: str,
+        retry_count: int,
+        initial_raw: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("answer"), str):
+            return None
+        answer = parsed["answer"].strip()
+        if answer not in choices:
+            return None
+        base = float(structured.get("structured_candidate_confidence") or 0.0)
+        try:
+            confidence = float(parsed.get("confidence", base))
+        except (TypeError, ValueError):
+            confidence = base
+        confidence = max(0.0, min(confidence, 1.0))
+        if structured.get("task_match") == "none":
+            confidence = min(confidence, 0.35)
+        elif base > 0:
+            confidence = max(max(0.0, base - 0.2), min(confidence, min(1.0, base + 0.2)))
+        candidate = structured.get("structured_candidate_answer")
+        override = bool(candidate and answer != candidate)
+        limitations = parsed.get("limitations", "")
+        if isinstance(limitations, list):
+            limitations = " ".join(str(value) for value in limitations)
+        result = {
+            "answer": answer,
+            "confidence": round(confidence, 6),
+            "explanation": self._limit(parsed.get("explanation", ""), 600),
+            "limitations": self._limit(limitations, 350),
+            "raw_response": raw,
+            "parse_status": status,
+            "json_parse_success": status in {"parsed", "retry_parsed"},
+            "retry_count": retry_count,
+            "answer_in_choices": True,
+            "override_occurred": override,
+            "override_reason": (
+                self._limit(parsed.get("explanation", ""), 240) if override else None
+            ),
+            "structured_visual_conflict": override,
+        }
+        if initial_raw is not None:
+            result["initial_raw_response"] = initial_raw
+        return result
+
+    def _fallback(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        structured: Dict[str, Any],
+        raw: Optional[str],
+        status: str,
+        retry_count: int,
+    ) -> Dict[str, Any]:
+        answer = structured.get("structured_candidate_answer")
+        if answer not in choices:
+            answer = self._unsupported_choice(plan.question, choices)
+        return {
+            "answer": answer,
+            "confidence": round(min(float(structured.get("structured_candidate_confidence") or 0.0), 0.35), 6),
+            "explanation": "Used a deterministic fallback after fusion JSON validation failed.",
+            "limitations": self._limit(plan.support_reason or "Evidence was incomplete; fallback is low confidence.", 350),
+            "raw_response": raw,
+            "parse_status": status,
+            "json_parse_success": False,
+            "retry_count": retry_count,
+            "answer_in_choices": answer in choices,
+            "override_occurred": False,
+            "override_reason": None,
+            "structured_visual_conflict": False,
+        }
+
+    @staticmethod
+    def _unsupported_choice(question: str, choices: List[str]) -> str:
+        lowered = question.lower()
+        for choice in choices:
+            normalized = choice.lower().strip()
+            if any(pattern in normalized for pattern in UNAVAILABLE_PATTERNS):
+                return choice
+        if any(term in lowered for term in ("mentioned", "report", "record", "documented")):
+            for choice in choices:
+                if "not mentioned" in choice.lower():
+                    return choice
+        normalized = {choice.lower().strip(): choice for choice in choices}
+        if "no" in normalized and any(term in lowered for term in ("is there", "are there", "present", "positive", "identified")):
+            return normalized["no"]
+        if choices:
+            return choices[-1]
+        return ""
+
+    @staticmethod
+    def _recover_answer(raw: Optional[str], choices: List[str]) -> Optional[str]:
+        if not raw:
+            return None
+        match = re.search(r'["\\\']answer["\\\']\s*:\s*["\\\']([^"\\\']+)', raw, re.I)
+        if match and match.group(1).strip() in choices:
+            return match.group(1).strip()
+        contained = [choice for choice in choices if choice and choice in raw]
+        return contained[0] if len(contained) == 1 else None
+
+    @staticmethod
+    def _limit(value: Any, length: int) -> str:
+        text = " ".join(str(value or "").split())
+        return text[:length]

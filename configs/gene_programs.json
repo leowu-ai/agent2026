@@ -1,0 +1,640 @@
+[
+    {
+        "program_name": "ESR-mediated signaling (Reactome R-HSA-8939211)",
+        "member_genes": [
+            "ESR1",
+            "ESR2",
+            "HSP90AA1",
+            "HSP90AB1",
+            "HSP90B1",
+            "NCOA1",
+            "NCOA2",
+            "NCOA3",
+            "NCOR1",
+            "NCOR2",
+            "MED1",
+            "EP300",
+            "CREBBP",
+            "MAPK1",
+            "MAPK3",
+            "FOXA1",
+            "GATA3"
+        ],
+        "related_phenotypes": [
+            "ER_status_label",
+            "ER_positive_binary",
+            "ER_percent",
+            "PR_status_label",
+            "PR_positive_binary",
+            "PR_percent",
+            "hormone_receptor_combo",
+            "histological_type_label"
+        ]
+    },
+    {
+        "program_name": "Nuclear Receptor transcription pathway (Reactome R-HSA-383280)",
+        "member_genes": [
+            "PGR",
+            "ESR1",
+            "ESR2",
+            "NCOA1",
+            "NCOA2",
+            "NCOA3",
+            "NCOR1",
+            "NCOR2",
+            "MED1",
+            "EP300",
+            "CREBBP",
+            "HDAC3",
+            "RXRA"
+        ],
+        "related_phenotypes": [
+            "PR_status_label",
+            "PR_positive_binary",
+            "PR_percent",
+            "ER_status_label",
+            "ER_positive_binary",
+            "ER_percent",
+            "hormone_receptor_combo"
+        ]
+    },
+    {
+        "program_name": "Signaling by ERBB2 (Reactome R-HSA-1227986)",
+        "member_genes": [
+            "ERBB2",
+            "ERBB3",
+            "ERBB4",
+            "EGFR",
+            "GRB2",
+            "GRB7",
+            "SHC1",
+            "GAB1",
+            "PIK3CA",
+            "PIK3R1",
+            "PLCG1",
+            "SRC",
+            "PTK6",
+            "HSP90AA1",
+            "CDC37"
+        ],
+        "related_phenotypes": [
+            "HER2_status_label",
+            "HER2_positive_binary",
+            "HER2_ihc_score",
+            "HER2_amplification_label",
+            "histological_type_label",
+            "histologic_grade_label",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Signaling by EGFR (Reactome R-HSA-177929)",
+        "member_genes": [
+            "EGFR",
+            "EGF",
+            "TGFA",
+            "GRB2",
+            "SHC1",
+            "GAB1",
+            "SOS1",
+            "SOS2",
+            "KRAS",
+            "NRAS",
+            "HRAS",
+            "RAF1",
+            "MAP2K1",
+            "MAP2K2",
+            "MAPK1",
+            "MAPK3",
+            "PLCG1"
+        ],
+        "related_phenotypes": [
+            "histological_type_label",
+            "ductal_binary",
+            "invasive_carcinoma_binary",
+            "histologic_grade_label",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "PIP3 activates AKT signaling (Reactome R-HSA-1257604)",
+        "member_genes": [
+            "PIK3CA",
+            "PIK3CB",
+            "PIK3CD",
+            "PIK3CG",
+            "PIK3R1",
+            "PIK3R2",
+            "PIK3R3",
+            "AKT1",
+            "AKT2",
+            "AKT3",
+            "PDPK1",
+            "MTOR",
+            "RICTOR",
+            "PTEN",
+            "SGK1",
+            "FOXO1",
+            "FOXO3"
+        ],
+        "related_phenotypes": [
+            "histologic_grade_label",
+            "nottingham_total_score",
+            "nuclear_pleomorphism_score",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "G2/M Transition (Reactome R-HSA-69275)",
+        "member_genes": [
+            "CCNB1",
+            "CCNB2",
+            "CDK1",
+            "CDC25A",
+            "CDC25B",
+            "CDC25C",
+            "PLK1",
+            "AURKA",
+            "AURKB",
+            "TPX2",
+            "WEE1",
+            "CDC20",
+            "TOP2A",
+            "CENPF"
+        ],
+        "related_phenotypes": [
+            "Ki67_percent",
+            "histologic_grade_label",
+            "nottingham_total_score",
+            "mitotic_score",
+            "nuclear_pleomorphism_score",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Mitotic Spindle Checkpoint (Reactome R-HSA-69618)",
+        "member_genes": [
+            "BUB1",
+            "BUB1B",
+            "MAD1L1",
+            "MAD2L1",
+            "TTK",
+            "CDC20",
+            "CENPE",
+            "CENPF",
+            "NDC80",
+            "CASC5",
+            "AURKB",
+            "PLK1"
+        ],
+        "related_phenotypes": [
+            "Ki67_percent",
+            "histologic_grade_label",
+            "nottingham_total_score",
+            "mitotic_score",
+            "nuclear_pleomorphism_score",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "p53-Dependent G1 DNA Damage Response (Reactome R-HSA-69563)",
+        "member_genes": [
+            "TP53",
+            "ATM",
+            "CHEK2",
+            "MDM2",
+            "CDKN1A",
+            "CDKN1B",
+            "CCNE1",
+            "CDK2",
+            "GADD45A",
+            "BBC3",
+            "BAX"
+        ],
+        "related_phenotypes": [
+            "histologic_grade_label",
+            "nottingham_total_score",
+            "nuclear_pleomorphism_score",
+            "mitotic_score",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "DNA Double-Strand Break Repair (Reactome R-HSA-5693532)",
+        "member_genes": [
+            "BRCA1",
+            "BRCA2",
+            "ATM",
+            "ATR",
+            "CHEK1",
+            "CHEK2",
+            "RAD50",
+            "MRE11A",
+            "NBN",
+            "RAD51",
+            "PALB2",
+            "BARD1",
+            "XRCC5",
+            "XRCC6",
+            "PRKDC"
+        ],
+        "related_phenotypes": [
+            "histologic_grade_label",
+            "nuclear_pleomorphism_score",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Adherens junctions interactions (Reactome R-HSA-418990)",
+        "member_genes": [
+            "CDH1",
+            "CTNNA1",
+            "CTNNB1",
+            "CTNND1",
+            "JUP",
+            "PVRL1",
+            "PVRL2",
+            "PVRL3",
+            "MLLT4",
+            "ACTB",
+            "ACTN1"
+        ],
+        "related_phenotypes": [
+            "histological_type_label",
+            "lobular_binary",
+            "lcis_binary",
+            "ductal_binary",
+            "dcis_binary",
+            "invasive_carcinoma_binary",
+            "tubule_score"
+        ]
+    },
+    {
+        "program_name": "Tight junction interactions (Reactome R-HSA-420029)",
+        "member_genes": [
+            "TJP1",
+            "TJP2",
+            "OCLN",
+            "CLDN1",
+            "CLDN3",
+            "CLDN4",
+            "CLDN7",
+            "PARD3",
+            "PARD6A",
+            "PRKCI",
+            "CRB3",
+            "EPCAM"
+        ],
+        "related_phenotypes": [
+            "histological_type_label",
+            "ductal_binary",
+            "dcis_binary",
+            "lobular_binary",
+            "lcis_binary",
+            "invasive_carcinoma_binary",
+            "tubule_score"
+        ]
+    },
+    {
+        "program_name": "Signaling by TGF-beta Receptor Complex (Reactome R-HSA-170834)",
+        "member_genes": [
+            "TGFB1",
+            "TGFB2",
+            "TGFB3",
+            "TGFBR1",
+            "TGFBR2",
+            "SMAD2",
+            "SMAD3",
+            "SMAD4",
+            "SMURF1",
+            "SMURF2",
+            "PARD6A",
+            "RHOA",
+            "SKIL",
+            "SNAI1"
+        ],
+        "related_phenotypes": [
+            "invasive_carcinoma_binary",
+            "lymphovascular_invasion_label",
+            "perineural_invasion_label",
+            "extracapsular_extension_label",
+            "histological_type_label",
+            "histologic_grade_label",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Degradation of the extracellular matrix (Reactome R-HSA-1474228)",
+        "member_genes": [
+            "MMP1",
+            "MMP2",
+            "MMP3",
+            "MMP7",
+            "MMP8",
+            "MMP9",
+            "MMP10",
+            "MMP11",
+            "MMP12",
+            "MMP13",
+            "MMP14",
+            "MMP15",
+            "MMP19",
+            "ADAMTS4",
+            "ADAMTS5",
+            "CTSK",
+            "CTSS"
+        ],
+        "related_phenotypes": [
+            "invasive_carcinoma_binary",
+            "lymphovascular_invasion_label",
+            "perineural_invasion_label",
+            "extracapsular_extension_label",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Integrin cell surface interactions (Reactome R-HSA-216083)",
+        "member_genes": [
+            "ITGA1",
+            "ITGA2",
+            "ITGA3",
+            "ITGA4",
+            "ITGA5",
+            "ITGA6",
+            "ITGA8",
+            "ITGA9",
+            "ITGA10",
+            "ITGA11",
+            "ITGAV",
+            "ITGB1",
+            "ITGB3",
+            "ITGB4",
+            "ITGB5",
+            "ITGB6",
+            "ITGB8",
+            "FN1",
+            "VTN",
+            "LAMA3",
+            "LAMB3",
+            "LAMC2",
+            "COL1A1",
+            "COL3A1"
+        ],
+        "related_phenotypes": [
+            "invasive_carcinoma_binary",
+            "lymphovascular_invasion_label",
+            "perineural_invasion_label",
+            "extracapsular_extension_label",
+            "tubule_score",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Collagen formation (Reactome R-HSA-1474290)",
+        "member_genes": [
+            "COL1A1",
+            "COL1A2",
+            "COL3A1",
+            "COL4A1",
+            "COL4A2",
+            "COL5A1",
+            "COL5A2",
+            "P4HA1",
+            "P4HA2",
+            "P4HB",
+            "PLOD1",
+            "PLOD2",
+            "LOX",
+            "SERPINH1"
+        ],
+        "related_phenotypes": [
+            "histological_type_label",
+            "invasive_carcinoma_binary",
+            "tubule_score",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "TCR signaling (Reactome R-HSA-202403)",
+        "member_genes": [
+            "CD3D",
+            "CD3E",
+            "CD3G",
+            "CD247",
+            "LCK",
+            "FYN",
+            "ZAP70",
+            "LAT",
+            "LCP2",
+            "PLCG1",
+            "ITK",
+            "PTPRC",
+            "TRAT1",
+            "CARD11",
+            "PRKCQ"
+        ],
+        "related_phenotypes": [
+            "stroma_lymphocytes_binary",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Signaling by the B Cell Receptor (BCR) (Reactome R-HSA-983705)",
+        "member_genes": [
+            "MS4A1",
+            "CD79A",
+            "CD79B",
+            "SYK",
+            "BLNK",
+            "BTK",
+            "PLCG2",
+            "PRKCB",
+            "CARD11",
+            "BCL10",
+            "MALT1",
+            "CD19",
+            "CR2",
+            "LYN",
+            "PAX5"
+        ],
+        "related_phenotypes": [
+            "stroma_lymphocytes_binary",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Interferon gamma signaling (Reactome R-HSA-877300)",
+        "member_genes": [
+            "IFNG",
+            "IFNGR1",
+            "IFNGR2",
+            "JAK1",
+            "JAK2",
+            "STAT1",
+            "IRF1",
+            "SOCS1",
+            "CXCL9",
+            "CXCL10",
+            "GBP1",
+            "IDO1",
+            "HLA-DRA"
+        ],
+        "related_phenotypes": [
+            "stroma_lymphocytes_binary",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Co-inhibition by PD-1 (Reactome R-HSA-389948)",
+        "member_genes": [
+            "PDCD1",
+            "CD274",
+            "PDCD1LG2",
+            "PTPN6",
+            "PTPN11",
+            "CD3D",
+            "CD3E",
+            "CD3G",
+            "CD247",
+            "LCK",
+            "ZAP70"
+        ],
+        "related_phenotypes": [
+            "stroma_lymphocytes_binary",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Cellular response to hypoxia (Reactome R-HSA-1234174)",
+        "member_genes": [
+            "HIF1A",
+            "EPAS1",
+            "ARNT",
+            "EGLN1",
+            "EGLN2",
+            "EGLN3",
+            "VHL",
+            "HIF1AN",
+            "CA9",
+            "SLC2A1",
+            "PDK1",
+            "LDHA",
+            "BNIP3",
+            "NDRG1"
+        ],
+        "related_phenotypes": [
+            "necrosis_binary",
+            "comedonecrosis_binary",
+            "histologic_grade_label",
+            "nottingham_total_score",
+            "ajcc_pathologic_stage",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "RIPK1-mediated regulated necrosis (Reactome R-HSA-5213460)",
+        "member_genes": [
+            "RIPK1",
+            "RIPK3",
+            "MLKL",
+            "CASP8",
+            "FADD",
+            "TNFRSF1A",
+            "TNF",
+            "CFLAR",
+            "TRADD",
+            "TRAF2"
+        ],
+        "related_phenotypes": [
+            "necrosis_binary",
+            "comedonecrosis_binary",
+            "histologic_grade_label",
+            "OS",
+            "DSS",
+            "DFI",
+            "PFI"
+        ]
+    },
+    {
+        "program_name": "Signaling by BMP (Reactome R-HSA-201451)",
+        "member_genes": [
+            "BMP2",
+            "BMP4",
+            "BMP6",
+            "BMP7",
+            "BMPR1A",
+            "BMPR1B",
+            "BMPR2",
+            "ACVR1",
+            "SMAD1",
+            "SMAD5",
+            "SMAD9",
+            "SMAD4",
+            "RUNX2",
+            "ID1",
+            "ID2"
+        ],
+        "related_phenotypes": [
+            "microcalcification_binary",
+            "histological_type_label",
+            "tubule_score"
+        ]
+    }
+]

@@ -1,0 +1,17 @@
+[Unit]
+Description=G2P VQA final fusion-only rerun
+After=g2p-qwen.service
+Requires=g2p-qwen.service
+
+[Service]
+Type=simple
+ExecStart=/home/wl/anaconda3/envs/mil/bin/python /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/run_refusion.py --config /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/config.servers.json --source /home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/multiple_choice/mc_answers.jsonl --output /home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/refusion_v2/mc_answers_refusion.jsonl --metrics /home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/refusion_v2/mc_live_metrics.json
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=30
+KillMode=mixed
+StandardOutput=append:/home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/refusion_v2/run.log
+StandardError=append:/home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/refusion_v2/run.log
+
+[Install]
+WantedBy=default.target
