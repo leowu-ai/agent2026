@@ -3,21 +3,27 @@ import re
 from typing import Any, Dict, List, Optional
 
 from .clients import OpenAICompatibleClient, parse_json_response
-from .fusion_evidence import UNAVAILABLE_PATTERNS, build_structured_summary, load_fusion_prompt
+from .fusion_evidence import (
+    UNAVAILABLE_PATTERNS,
+    build_structured_summary,
+    choice_id_for_answer,
+    indexed_choices,
+    load_fusion_prompt,
+)
 from .schemas import ExecutionPlan
 
 
 MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions with limited evidence.
-Select exactly one supplied choice. Do not return null, refuse, or invent measurements.
-Use only the question, choices, and directly available visual summary.
+Select exactly one supplied option ID. Do not return null, refuse, or invent measurements.
+Use only the question, indexed choices, and directly available visual summary.
 For report/documentation questions, images cannot prove whether something was mentioned.
-If evidence is insufficient, choose the most defensible supplied option with low confidence and say it is not confirmed.
-Output only JSON: {\"answer\":\"<exact supplied choice>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
+If evidence is insufficient, choose the most defensible supplied option ID with low confidence and say it is not confirmed.
+Output only JSON: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
 
 
 REPAIR_SYSTEM = """Repair a breast pathology MCQ answer. Output only short valid JSON.
-The answer must exactly equal one supplied choice. Do not return null or markdown.
-Schema: {\"answer\":\"<exact supplied choice>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
+The answer_id must exactly equal one supplied option ID. Do not return null or markdown.
+Schema: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
 
 
 class FusionVerificationAgent:
@@ -53,10 +59,10 @@ class FusionVerificationAgent:
             if result is not None:
                 return result
 
-            recovered = self._recover_answer(raw, choices)
+            recovered = self._recover_answer_id(raw, choices)
             if recovered is not None:
                 parsed = {
-                    "answer": recovered,
+                    "answer_id": recovered,
                     "confidence": min(float(structured.get("structured_candidate_confidence") or 0.25), 0.55),
                     "explanation": "Answer recovered from a malformed model response.",
                     "limitations": "The original response was not valid JSON.",
@@ -67,7 +73,7 @@ class FusionVerificationAgent:
             retry_prompt = json.dumps({
                 "instruction": "Return only the required JSON object. Re-decide from this compact original context, not from the malformed answer.",
                 "question": plan.question,
-                "choices": choices,
+                "choices": indexed_choices(choices),
                 "task_match": structured.get("task_match"),
                 "structured_candidate": evidence.get("structured_candidate"),
                 "structured_evidence_summary": {
@@ -79,7 +85,7 @@ class FusionVerificationAgent:
                 },
                 "visual_evidence_summary": evidence.get("visual_observations", evidence.get("available_visual_summary", "")),
                 "output_schema": {
-                    "answer": "<one exact supplied choice>",
+                    "answer_id": "<one supplied option ID>",
                     "confidence": 0.0,
                     "explanation": "<one sentence>",
                     "limitations": "<one sentence>",
@@ -128,7 +134,7 @@ class FusionVerificationAgent:
         if structured.get("task_match") == "none":
             return {
                 "question": plan.question,
-                "choices": choices,
+                "choices": indexed_choices(choices),
                 "task_match": "none",
                 "available_visual_summary": visual,
                 "evidence_availability": "insufficient",
@@ -144,7 +150,8 @@ class FusionVerificationAgent:
         option_rows = []
         for row in structured.get("option_compatibility", []):
             option_rows.append({
-                "choice": row.get("choice"),
+                "choice_id": row.get("choice_id"),
+                "choice_text": row.get("choice"),
                 "requirements": row.get("requirements", {}),
                 "primary_requirements": row.get("primary_requirements", {}),
                 "supporting_requirements": row.get("supporting_requirements", {}),
@@ -159,11 +166,12 @@ class FusionVerificationAgent:
             })
         return {
             "question": plan.question,
-            "choices": choices,
+            "choices": indexed_choices(choices),
             "task_match": structured.get("task_match"),
             "answer_unit": structured.get("answer_unit"),
             "structured_candidate": {
-                "answer": structured.get("structured_candidate_answer"),
+                "choice_id": structured.get("structured_candidate_id"),
+                "choice_text": structured.get("structured_candidate_answer"),
                 "confidence": structured.get("structured_candidate_confidence"),
                 "mapping_complete": structured.get("mapping_complete"),
             },
@@ -218,11 +226,13 @@ class FusionVerificationAgent:
         retry_count: int,
         initial_raw: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
-        if not isinstance(parsed, dict) or not isinstance(parsed.get("answer"), str):
+        if not isinstance(parsed, dict) or not isinstance(parsed.get("answer_id"), str):
             return None
-        answer = parsed["answer"].strip()
-        if answer not in choices:
+        answer_id = parsed["answer_id"].strip().upper()
+        options = {option["id"]: option["text"] for option in indexed_choices(choices)}
+        if answer_id not in options:
             return None
+        answer = options[answer_id]
         base = float(structured.get("structured_candidate_confidence") or 0.0)
         try:
             confidence = float(parsed.get("confidence", base))
@@ -233,12 +243,13 @@ class FusionVerificationAgent:
             confidence = min(confidence, 0.35)
         elif base > 0:
             confidence = max(max(0.0, base - 0.2), min(confidence, min(1.0, base + 0.2)))
-        candidate = structured.get("structured_candidate_answer")
-        override = bool(candidate and answer != candidate)
+        candidate_id = structured.get("structured_candidate_id")
+        override = bool(candidate_id and answer_id != candidate_id)
         limitations = parsed.get("limitations", "")
         if isinstance(limitations, list):
             limitations = " ".join(str(value) for value in limitations)
         result = {
+            "answer_id": answer_id,
             "answer": answer,
             "confidence": round(confidence, 6),
             "explanation": self._limit(parsed.get("explanation", ""), 600),
@@ -270,7 +281,9 @@ class FusionVerificationAgent:
         answer = structured.get("structured_candidate_answer")
         if answer not in choices:
             answer = self._unsupported_choice(plan.question, choices)
+        answer_id = choice_id_for_answer(choices, answer)
         return {
+            "answer_id": answer_id,
             "answer": answer,
             "confidence": round(min(float(structured.get("structured_candidate_confidence") or 0.0), 0.35), 6),
             "explanation": "Used a deterministic fallback after fusion JSON validation failed.",
@@ -304,14 +317,15 @@ class FusionVerificationAgent:
         return ""
 
     @staticmethod
-    def _recover_answer(raw: Optional[str], choices: List[str]) -> Optional[str]:
+    def _recover_answer_id(raw: Optional[str], choices: List[str]) -> Optional[str]:
         if not raw:
             return None
-        match = re.search(r'["\\\']answer["\\\']\s*:\s*["\\\']([^"\\\']+)', raw, re.I)
-        if match and match.group(1).strip() in choices:
-            return match.group(1).strip()
-        contained = [choice for choice in choices if choice and choice in raw]
-        return contained[0] if len(contained) == 1 else None
+        valid_ids = {option["id"] for option in indexed_choices(choices)}
+        match = re.search(r'["\\\']answer_id["\\\']\s*:\s*["\\\']([A-Z]+)', raw, re.I)
+        if match and match.group(1).upper() in valid_ids:
+            return match.group(1).upper()
+        stripped = raw.strip().upper()
+        return stripped if stripped in valid_ids else None
 
     @staticmethod
     def _limit(value: Any, length: int) -> str:

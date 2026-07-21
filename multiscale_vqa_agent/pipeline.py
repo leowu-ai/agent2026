@@ -8,7 +8,7 @@ import torch
 
 from .clients import OpenAICompatibleClient
 from .fusion import FusionVerificationAgent
-from .fusion_evidence import build_structured_summary
+from .fusion_evidence import build_structured_summary, indexed_choices
 from .g2p_runtime import MultiScaleG2PAgent
 from .pathology import PathologyAgent
 from .registry import PrototypeAwarePlanner, ToolBankRegistry
@@ -160,6 +160,7 @@ class MultiScaleVQAPipeline:
             "case_id": plan.case_id,
             "question": plan.question,
             "choices": choices,
+            "choice_options": indexed_choices(choices),
             "reference_answer": item.get("Answer", item.get("answer")),
             "plan": plan.to_dict(),
             "task_match": structured["task_match"],
@@ -167,6 +168,7 @@ class MultiScaleVQAPipeline:
             "executed_fields": structured["executed_fields"],
             "missing_fields": structured["missing_fields"],
             "structured_candidate_answer": structured["structured_candidate_answer"],
+            "structured_candidate_id": structured["structured_candidate_id"],
             "structured_candidate_confidence": structured["structured_candidate_confidence"],
             "structured_evidence": structured,
             "phenotype_prediction": first_prediction,

@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import torch
 
+from .fusion_evidence import indexed_choices
 from .live_metrics import LiveAccuracyTracker
 from .pipeline import MultiScaleVQAPipeline
 
@@ -95,10 +96,12 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
 
     @staticmethod
     def _error_result(item: Dict[str, Any], plan: Any, error: Exception) -> Dict[str, Any]:
+        choices = list(item.get("Choice", item.get("choices", [])) or [])
         return {
             "case_id": plan.case_id,
             "question": plan.question,
-            "choices": list(item.get("Choice", item.get("choices", [])) or []),
+            "choices": choices,
+            "choice_options": indexed_choices(choices),
             "reference_answer": item.get("Answer", item.get("answer")),
             "input": item,
             "plan": plan.to_dict(),

@@ -18,6 +18,30 @@ UNAVAILABLE_PATTERNS = (
 BINARY_UNCERTAIN_CONFIDENCE = 0.55
 
 
+def choice_id(index: int) -> str:
+    """Return spreadsheet-style option IDs: A..Z, AA..AZ, ..."""
+    value = int(index) + 1
+    result = ""
+    while value:
+        value, remainder = divmod(value - 1, 26)
+        result = chr(ord("A") + remainder) + result
+    return result
+
+
+def indexed_choices(choices: Sequence[str]) -> List[Dict[str, str]]:
+    return [
+        {"id": choice_id(index), "text": str(text)}
+        for index, text in enumerate(choices)
+    ]
+
+
+def choice_id_for_answer(choices: Sequence[str], answer: Any) -> Optional[str]:
+    for option in indexed_choices(choices):
+        if answer == option["text"]:
+            return option["id"]
+    return None
+
+
 def load_fusion_prompt() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8").strip()
 
@@ -262,7 +286,7 @@ def _option_compatibility(
     fields = [row.get("field") for row in predictions if row.get("field")]
     labels, uncertain_fields = _predicted_labels(predictions)
     rows = []
-    for choice in choices:
+    for index, choice in enumerate(choices):
         parsed = _choice_requirements(choice, question, choices, fields)
         supported = []
         missing = []
@@ -311,6 +335,7 @@ def _option_compatibility(
         evidence_coverage = len(supported) / max(len(parsed["requirements"]), 1) if parsed["requirements"] else 0.0
         rows.append({
             **parsed,
+            "choice_id": choice_id(index),
             "primary_requirements": primary_requirements,
             "supporting_requirements": supporting_requirements,
             "supported_fields": supported,
@@ -366,6 +391,7 @@ def _candidate_answer(
 
     return {
         "structured_candidate_answer": answer,
+        "structured_candidate_id": choice_id_for_answer(choices, answer),
         "fields_used": used,
         "missing_fields": missing_fields,
         "mapping_complete": bool(answer is not None and complete),
@@ -507,4 +533,5 @@ def build_structured_summary(
             "predicted_label and clinical_label_semantics; never infer it from option position."
         ),
         "supplied_choices_verbatim": choices,
+        "supplied_choice_options": indexed_choices(choices),
     }

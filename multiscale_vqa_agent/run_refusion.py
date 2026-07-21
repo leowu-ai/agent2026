@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from multiscale_vqa_agent.clients import OpenAICompatibleClient
 from multiscale_vqa_agent.fusion import FusionVerificationAgent
-from multiscale_vqa_agent.fusion_evidence import build_structured_summary
+from multiscale_vqa_agent.fusion_evidence import build_structured_summary, indexed_choices
 from multiscale_vqa_agent.live_metrics import LiveAccuracyTracker
 from multiscale_vqa_agent.schemas import ExecutionPlan
 
@@ -89,11 +89,13 @@ def main():
                     plan, list(row.get("choices", [])), row.get("phenotype_predictions", row.get("phenotype_prediction", {}))
                 )
                 row.update({
+                    "choice_options": indexed_choices(list(row.get("choices", []))),
                     "task_match": structured["task_match"],
                     "requested_fields": structured["requested_fields"],
                     "executed_fields": structured["executed_fields"],
                     "missing_fields": structured["missing_fields"],
                     "structured_candidate_answer": structured["structured_candidate_answer"],
+                    "structured_candidate_id": structured["structured_candidate_id"],
                     "structured_candidate_confidence": structured["structured_candidate_confidence"],
                     "structured_evidence": structured,
                     "answer_in_choices": new_answer.get("answer") in row.get("choices", []),
@@ -107,7 +109,7 @@ def main():
                 })
                 row.pop("error", None)
                 row["refusion"] = {
-                    "version": "multi_expert_arbiter_v3",
+                    "version": "multi_expert_arbiter_option_id_v1",
                     "timestamp": datetime.now().astimezone().isoformat(timespec="seconds"),
                     "reused_g2p": True,
                     "reused_relations": True,
