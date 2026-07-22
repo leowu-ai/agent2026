@@ -39,6 +39,12 @@ class MultiScaleRetrievalAgent:
         self.all_phenotype_top_per_prototype = int(
             config.get("all_phenotype_top_patches_per_prototype", 2)
         )
+        self.morphology_context_per_slide = int(
+            config.get("morphology_context_patches_per_slide", 2)
+        )
+        self.morphology_diverse_per_slide = int(
+            config.get("morphology_diverse_patches_per_slide", 2)
+        )
         self.max_groups = int(config.get("max_evidence_groups", 4))
         self.iou_threshold = float(config.get("same_scale_iou", 0.5))
         self.cosine_threshold = float(config.get("feature_cosine", 0.95))
@@ -85,9 +91,11 @@ class MultiScaleRetrievalAgent:
         ]
         by_scale: Dict[int, List[PatchCandidate]] = {}
         for scale, result in scale_results.items():
-            candidates = []
+            high_attention = []
+            context = []
+            diversity = []
             for slide in result["slides"]:
-                candidates.extend(self._from_attention(
+                high_attention.extend(self._from_attention(
                     scale,
                     slide,
                     "phenotype",
@@ -96,9 +104,152 @@ class MultiScaleRetrievalAgent:
                     1.0,
                     top_per_prototype=self.all_phenotype_top_per_prototype,
                 ))
-            # Consensus regions accumulate multiple prototype sources during deduplication.
-            by_scale[scale] = self._deduplicate(candidates)
+                context.extend(self._context_candidates(scale, slide))
+                diversity.extend(self._feature_diversity_candidates(scale, slide))
+            by_scale[scale] = self._balanced_morphology_candidates(
+                high_attention,
+                context,
+                diversity,
+            )
         return self._build_pyramids(by_scale)
+
+    def _context_candidates(
+        self,
+        scale: int,
+        slide: Dict[str, Any],
+    ) -> List[PatchCandidate]:
+        count = self.morphology_context_per_slide
+        attention = np.asarray(slide["phenotype_attention"], dtype=np.float32)
+        features = np.asarray(slide["features"], dtype=np.float32)
+        if count <= 0 or attention.ndim != 2 or not len(features):
+            return []
+
+        row_min = attention.min(axis=1, keepdims=True)
+        row_range = attention.max(axis=1, keepdims=True) - row_min
+        normalized = (attention - row_min) / (row_range + 1e-8)
+        aggregate = normalized.max(axis=0)
+        norms = np.linalg.norm(features, axis=1)
+        valid = np.flatnonzero(
+            np.isfinite(norms) & (norms > 1e-8) & np.isfinite(aggregate)
+        )
+        if not len(valid):
+            return []
+        selected = valid[np.argsort(aggregate[valid])[: min(count, len(valid))]]
+        candidates = []
+        for rank, patch_index in enumerate(selected.tolist()):
+            x, y, size = slide["coords"][patch_index]
+            candidates.append(PatchCandidate(
+                scale=scale,
+                slide_id=slide["slide_id"],
+                patch_index=int(patch_index),
+                x=x,
+                y=y,
+                size=size,
+                score=float(0.90 - 0.03 * rank),
+                sources=[{
+                    "type": "context",
+                    "name": "low_aggregate_phenotype_attention",
+                    "attention": float(aggregate[patch_index]),
+                }],
+                feature=features[patch_index],
+            ))
+        return candidates
+
+    def _feature_diversity_candidates(
+        self,
+        scale: int,
+        slide: Dict[str, Any],
+    ) -> List[PatchCandidate]:
+        count = self.morphology_diverse_per_slide
+        features = np.asarray(slide["features"], dtype=np.float32)
+        if count <= 0 or not len(features):
+            return []
+
+        norms = np.linalg.norm(features, axis=1)
+        valid = np.flatnonzero(np.isfinite(norms) & (norms > 1e-8))
+        if not len(valid):
+            return []
+        unit = features[valid] / norms[valid, None]
+        center = unit.mean(axis=0)
+        center_norm = np.linalg.norm(center)
+        if center_norm > 1e-8:
+            center = center / center_norm
+            first = int(np.argmax(1.0 - unit @ center))
+        else:
+            first = 0
+
+        selected_local = [first]
+        min_distance = 1.0 - unit @ unit[first]
+        min_distance[first] = -np.inf
+        while len(selected_local) < min(count, len(valid)):
+            next_local = int(np.argmax(min_distance))
+            selected_local.append(next_local)
+            distance = 1.0 - unit @ unit[next_local]
+            min_distance = np.minimum(min_distance, distance)
+            min_distance[selected_local] = -np.inf
+
+        candidates = []
+        for rank, local_index in enumerate(selected_local):
+            patch_index = int(valid[local_index])
+            x, y, size = slide["coords"][patch_index]
+            candidates.append(PatchCandidate(
+                scale=scale,
+                slide_id=slide["slide_id"],
+                patch_index=patch_index,
+                x=x,
+                y=y,
+                size=size,
+                score=float(0.86 - 0.03 * rank),
+                sources=[{
+                    "type": "diversity",
+                    "name": "feature_farthest_point",
+                    "attention": None,
+                }],
+                feature=features[patch_index],
+            ))
+        return candidates
+
+    def _balanced_morphology_candidates(
+        self,
+        high_attention: List[PatchCandidate],
+        context: List[PatchCandidate],
+        diversity: List[PatchCandidate],
+    ) -> List[PatchCandidate]:
+        pools = {
+            "high": self._deduplicate(high_attention),
+            "context": self._deduplicate(context),
+            "diversity": self._deduplicate(diversity),
+        }
+        positions = {name: 0 for name in pools}
+        selected: List[PatchCandidate] = []
+        target = max(self.max_groups * 3, 8)
+        order = ("high", "context", "diversity", "high")
+
+        while len(selected) < target:
+            progress = False
+            for name in order:
+                pool = pools[name]
+                while positions[name] < len(pool):
+                    candidate = pool[positions[name]]
+                    positions[name] += 1
+                    duplicate = any(
+                        item.slide_id == candidate.slide_id and (
+                            box_iou(item, candidate) >= self.iou_threshold
+                            or cosine(item.feature, candidate.feature) >= self.cosine_threshold
+                        )
+                        for item in selected
+                    )
+                    if duplicate:
+                        continue
+                    candidate.score = float(1.25 - 0.02 * len(selected))
+                    selected.append(candidate)
+                    progress = True
+                    break
+                if len(selected) >= target:
+                    break
+            if not progress:
+                break
+        return selected
 
     def _from_attention(
         self,

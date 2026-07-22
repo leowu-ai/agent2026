@@ -36,6 +36,8 @@
     "genes_per_program": 2,
     "top_patches_per_source": 4,
     "all_phenotype_top_patches_per_prototype": 2,
+    "morphology_context_patches_per_slide": 2,
+    "morphology_diverse_patches_per_slide": 2,
     "max_evidence_groups": 4,
     "same_scale_iou": 0.5,
     "feature_cosine": 0.95,
