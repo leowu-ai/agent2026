@@ -1,4 +1,5 @@
 import math
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
@@ -41,6 +42,47 @@ def choice_id_for_answer(choices: Sequence[str], answer: Any) -> Optional[str]:
 
 def load_fusion_prompt() -> str:
     return PROMPT_PATH.read_text(encoding="utf-8").strip()
+
+
+def _literal_normalize(value: Any) -> str:
+    return " ".join(re.findall(r"[a-z0-9]+", str(value or "").lower()))
+
+
+def _literal_choice_matches(
+    prediction_rows: List[Dict[str, Any]],
+    choices: Sequence[str],
+) -> Dict[str, Any]:
+    options = indexed_choices(choices)
+    matches = []
+    for prediction in prediction_rows:
+        label = prediction.get("predicted_label")
+        normalized_label = _literal_normalize(label)
+        if not normalized_label:
+            continue
+        matched_options = [
+            option
+            for option in options
+            if _literal_normalize(option["text"]) == normalized_label
+        ]
+        if len(matched_options) != 1:
+            continue
+        option = matched_options[0]
+        matches.append({
+            "prototype_id": prediction.get("prototype_id"),
+            "field": prediction.get("field"),
+            "predicted_label": label,
+            "choice_id": option["id"],
+            "choice_text": option["text"],
+        })
+    unique_ids = {match["choice_id"] for match in matches}
+    return {
+        "literal_match_id": next(iter(unique_ids)) if len(unique_ids) == 1 else None,
+        "literal_matches": matches,
+        "literal_match_rule": (
+            "Case, whitespace, and punctuation normalized equality only; "
+            "no aliases, synonyms, or clinical transformations."
+        ),
+    }
 
 
 def _confidence(prediction: Dict[str, Any]) -> Optional[float]:
@@ -158,6 +200,7 @@ def build_structured_summary(
             "validation_quality": validation,
         })
 
+    literal_match = _literal_choice_matches(rows, choices)
     base_confidence = _structured_confidence(predictions, relevance, task_match)
     answerability = relevance * coverage if predictions and task_match != "none" else 0.0
     primary_fields = executed[:1]
@@ -181,6 +224,7 @@ def build_structured_summary(
         "mapping_complete": False,
         "answer_unit": "llm_semantic_option_mapping",
         "option_compatibility": [],
+        **literal_match,
         "primary_fields": primary_fields,
         "supporting_fields": supporting_fields,
         "modifier_fields": missing,

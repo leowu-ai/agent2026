@@ -7,6 +7,7 @@ Evidence roles:
 
 Arbitration:
 - Semantically compare each structured predicted_label and label_definition with the supplied option texts, then select one supplied option ID. Option IDs are handles only and carry no clinical meaning.
+- literal_match.choice_id is present only when a predicted_label and exactly one option are identical after case, whitespace, and punctuation normalization. Treat it as a strong advisory hint when task_match is direct, but not as an absolute answer; scope mismatch or decisive visual counterevidence may override it.
 - Prefer high-confidence, scale-consistent, directly matched structured predictions unless Patho-R1 gives direct, unambiguous, question-specific visual counterevidence.
 - Words such as possible, suggestive, consistent with, or implied by are insufficient to overturn strong structured evidence. If counterevidence is insufficient, retain the structured interpretation, lower confidence, and mention the conflict.
 - To overturn strong structured evidence, name the visible counter-feature, why it is decisive, and why G2P may have failed.
