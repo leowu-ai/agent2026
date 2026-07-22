@@ -123,8 +123,8 @@ class MultiScaleVQAPipeline:
         if evidence_route == "phenotype_direct" and plan.target_phenotypes:
             primary = plan.target_phenotypes[0]
             primary_evidence = evidence_cache[primary]
-            pathology_key = f"__pathology__:{primary}"
-            if pathology_key not in evidence_cache:
+            groups_key = f"__pathology_groups__:{primary}"
+            if groups_key not in evidence_cache:
                 name = self.registry.field_to_name[primary]
                 vocab = self.registry.vocabs[min(self.registry.vocabs)]
                 group = vocab.get("phenotype_groups", {}).get(name, "morphology")
@@ -133,6 +133,10 @@ class MultiScaleVQAPipeline:
                 )
                 if crop_patches:
                     groups = self.cropper.crop_groups(plan.case_id, primary, groups)
+                evidence_cache[groups_key] = groups
+            groups = evidence_cache[groups_key]
+            pathology_key = f"__pathology__:{primary}:{plan.question}"
+            if pathology_key not in evidence_cache:
                 evidence_cache[pathology_key] = (
                     self.pathology.describe(plan.question, primary, groups)
                     if plan.use_pathology_agent

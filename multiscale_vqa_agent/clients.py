@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import mimetypes
 import time
@@ -31,6 +32,7 @@ class OpenAICompatibleClient:
         max_tokens: int = 1024,
         response_format: Optional[Dict[str, Any]] = None,
         retries: int = 2,
+        image_max_size: Optional[int] = None,
     ) -> Optional[str]:
         if not self.enabled:
             return None
@@ -40,7 +42,22 @@ class OpenAICompatibleClient:
             for image_path in images:
                 path = Path(image_path)
                 mime = mimetypes.guess_type(path.name)[0] or "image/jpeg"
-                encoded = base64.b64encode(path.read_bytes()).decode("ascii")
+                image_bytes = path.read_bytes()
+                if image_max_size:
+                    try:
+                        from PIL import Image
+
+                        with Image.open(io.BytesIO(image_bytes)) as image:
+                            if max(image.size) > image_max_size:
+                                image = image.convert("RGB")
+                                image.thumbnail((image_max_size, image_max_size))
+                                buffer = io.BytesIO()
+                                image.save(buffer, format="JPEG", quality=90)
+                                image_bytes = buffer.getvalue()
+                                mime = "image/jpeg"
+                    except Exception:
+                        pass
+                encoded = base64.b64encode(image_bytes).decode("ascii")
                 content.append({
                     "type": "image_url",
                     "image_url": {"url": f"data:{mime};base64,{encoded}"},
