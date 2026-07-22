@@ -1,12 +1,12 @@
 [Unit]
-Description=G2P Agent Qwen3.5-4B API
+Description=G2P Agent Qwen3.5-9B API
 After=network.target
 
 [Service]
 Type=simple
 Environment=CUDA_VISIBLE_DEVICES=7
 Environment=VLLM_USE_FLASHINFER_SAMPLER=0
-ExecStart=/home/wl/agent_2026/.venvs/qwen_pathor1_vllm/bin/vllm serve /data_nas3/ycz/00_SHARE_WITH_COLLEAGUE_QWEN_PATHOR1_20260716/Qwen3.5-4B --served-model-name Qwen3.5 --dtype bfloat16 --max-model-len 32768 --gpu-memory-utilization 0.25 --language-model-only --reasoning-parser qwen3 --host 127.0.0.1 --port 8000 --enforce-eager --no-enable-flashinfer-autotune
+ExecStart=/home/wl/agent_2026/.venvs/qwen_pathor1_vllm/bin/vllm serve /data_nas3/ycz/00_SHARE_WITH_COLLEAGUE_QWEN_PATHOR1_20260716/Qwen3.5-9B --served-model-name Qwen3.5 --dtype bfloat16 --max-model-len 32768 --gpu-memory-utilization 0.35 --language-model-only --reasoning-parser qwen3 --host 127.0.0.1 --port 8000 --enforce-eager --no-enable-flashinfer-autotune
 Restart=on-failure
 RestartSec=10
 TimeoutStopSec=30

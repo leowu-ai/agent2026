@@ -38,11 +38,11 @@ start_service() {
 }
 
 start_service qwen 8000 \
-  "$MODEL_ROOT/Qwen3.5-4B" \
+  "$MODEL_ROOT/Qwen3.5-9B" \
   --served-model-name Qwen3.5 \
   --dtype bfloat16 \
   --max-model-len 32768 \
-  --gpu-memory-utilization 0.25 \
+  --gpu-memory-utilization 0.35 \
   --language-model-only \
   --reasoning-parser qwen3
 
