@@ -8,7 +8,7 @@ import torch
 
 from .clients import OpenAICompatibleClient
 from .fusion import FusionVerificationAgent
-from .fusion_evidence import build_structured_summary, indexed_choices
+from .fusion_evidence import indexed_choices
 from .g2p_runtime import MultiScaleG2PAgent
 from .pathology import PathologyAgent
 from .registry import PrototypeAwarePlanner, ToolBankRegistry
@@ -182,10 +182,9 @@ class MultiScaleVQAPipeline:
                 "retrieval_mode": "nonvisual",
             }
 
-        answer = self.fusion.answer(
+        answer, structured = self.fusion.answer_with_summary(
             plan, choices, predictions, relations_by_field, pathology
         )
-        structured = build_structured_summary(plan, choices, predictions)
         first_prediction = predictions[0] if predictions else {}
         first_relation = relations_by_field.get(plan.target_phenotypes[0], {}) if plan.target_phenotypes else {}
         return {
@@ -216,7 +215,10 @@ class MultiScaleVQAPipeline:
             "parse_status": answer.get("parse_status"),
             "json_parse_success": answer.get("json_parse_success", False),
             "retry_count": answer.get("retry_count", 0),
+            "option_alignment": structured.get("option_alignment", {}),
             "override_occurred": answer.get("override_occurred", False),
+            "override_proposed": answer.get("override_proposed", False),
+            "override_rejected": answer.get("override_rejected", False),
             "override_reason": answer.get("override_reason"),
             "structured_visual_conflict": answer.get("structured_visual_conflict", False),
         }

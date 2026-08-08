@@ -48,6 +48,14 @@ def _literal_normalize(value: Any) -> str:
     return " ".join(re.findall(r"[a-z0-9]+", str(value or "").lower()))
 
 
+def clinical_display_label(field: Any, label: Any) -> str:
+    """Render a predicted label as a clinical value, never an internal class ID."""
+    value = str(label or "").strip()
+    if str(field) == "histologic_grade_label" and value in {"1", "2", "3"}:
+        return f"grade {value}"
+    return value
+
+
 def _literal_choice_matches(
     prediction_rows: List[Dict[str, Any]],
     choices: Sequence[str],

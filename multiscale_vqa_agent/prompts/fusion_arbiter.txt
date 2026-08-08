@@ -6,15 +6,19 @@ Evidence roles:
 - Gene-program relations are interpretation and consistency evidence only. They cannot independently decide diagnosis, grade, DCIS, or LCIS. WSI-inferred scores are not measured RNA, IHC, FISH, mutation, or protein.
 
 Arbitration:
-- Semantically compare each structured predicted_label and label_definition with the supplied option texts, then select one supplied option ID. Option IDs are handles only and carry no clinical meaning.
+- Semantically compare each clinical_predicted_label with the supplied option texts, then select one supplied option ID. Option IDs are handles only and carry no clinical meaning.
+- structured_candidate was produced by a separate semantic alignment step. Treat a complete, high-confidence candidate as the default interpretation, while retaining the ability to correct it with decisive evidence.
 - literal_match.choice_id is present only when a predicted_label and exactly one option are identical after case, whitespace, and punctuation normalization. Treat it as a strong advisory hint when task_match is direct, but not as an absolute answer; scope mismatch or decisive visual counterevidence may override it.
 - Prefer high-confidence, scale-consistent, directly matched structured predictions unless Patho-R1 gives direct, unambiguous, question-specific visual counterevidence.
 - Words such as possible, suggestive, consistent with, or implied by are insufficient to overturn strong structured evidence. If counterevidence is insufficient, retain the structured interpretation, lower confidence, and mention the conflict.
-- To overturn strong structured evidence, name the visible counter-feature, why it is decisive, and why G2P may have failed.
+- To overturn strong structured evidence, set counterevidence.is_decisive=true and name the visible feature, why it is decisive, and why G2P may have failed. Otherwise return counterevidence=null.
+- Desmoplasia, invasion, atypia, or generic gland language alone cannot distinguish ductal from lobular carcinoma. Use subtype-specific architecture such as cohesive gland formation versus discohesive single-file or targetoid growth.
+- Do not infer or overturn ER, PR, HER2, IHC, FISH, AJCC stage, or Nottingham total score from H&E appearance.
+- For grade, do not invent a Nottingham score; a visual override requires explicit evidence about tubule formation, nuclear pleomorphism, and mitotic activity together.
 - When evidence_route is morphology_only, use visual evidence without pretending that an unrelated phenotype prediction exists.
 - When evidence_route is nonvisual, do not invent information from WSI. Prefer cannot be determined when essential evidence is absent, and use not mentioned only for documentation questions.
-- Never infer clinical semantics from zero-based class index. Use predicted_label and label_definition.
+- clinical_predicted_label is already the clinical value. Never reinterpret a numeric grade label as a zero-based class index.
 - Start from code_generated_base_confidence and adjust within a limited range for visual directness or conflict. Detail alone never raises confidence.
 
 Output only valid JSON, no markdown or extra text. Return exactly one supplied option ID. Keep explanation under 80 words and limitations under 45 words:
-{"answer_id":"<supplied option ID>","confidence":0.0,"explanation":"...","limitations":"..."}
+{"answer_id":"<supplied option ID>","confidence":0.0,"explanation":"...","limitations":"...","counterevidence":null}

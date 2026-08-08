@@ -12,7 +12,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 from multiscale_vqa_agent.clients import OpenAICompatibleClient
 from multiscale_vqa_agent.fusion import FusionVerificationAgent
-from multiscale_vqa_agent.fusion_evidence import build_structured_summary, indexed_choices
+from multiscale_vqa_agent.fusion_evidence import indexed_choices
 from multiscale_vqa_agent.live_metrics import LiveAccuracyTracker
 from multiscale_vqa_agent.schemas import ExecutionPlan
 
@@ -76,7 +76,7 @@ def main():
             old_answer = row.get("agent_answer")
             try:
                 plan = ExecutionPlan(**row["plan"])
-                new_answer = fusion.answer(
+                new_answer, structured = fusion.answer_with_summary(
                     plan,
                     list(row.get("choices", [])),
                     row.get("phenotype_predictions", row.get("phenotype_prediction", {})),
@@ -85,9 +85,6 @@ def main():
                 )
                 row["previous_agent_answer"] = old_answer
                 row["agent_answer"] = new_answer
-                structured = build_structured_summary(
-                    plan, list(row.get("choices", [])), row.get("phenotype_predictions", row.get("phenotype_prediction", {}))
-                )
                 row.update({
                     "choice_options": indexed_choices(list(row.get("choices", []))),
                     "task_match": structured["task_match"],
@@ -103,13 +100,16 @@ def main():
                     "parse_status": new_answer.get("parse_status"),
                     "json_parse_success": new_answer.get("json_parse_success", False),
                     "retry_count": new_answer.get("retry_count", 0),
+                    "option_alignment": structured.get("option_alignment", {}),
                     "override_occurred": new_answer.get("override_occurred", False),
+                    "override_proposed": new_answer.get("override_proposed", False),
+                    "override_rejected": new_answer.get("override_rejected", False),
                     "override_reason": new_answer.get("override_reason"),
                     "structured_visual_conflict": new_answer.get("structured_visual_conflict", False),
                 })
                 row.pop("error", None)
                 row["refusion"] = {
-                    "version": "multi_expert_arbiter_option_id_v1",
+                    "version": "semantic_alignment_arbiter_v2",
                     "timestamp": datetime.now().astimezone().isoformat(timespec="seconds"),
                     "reused_g2p": True,
                     "reused_relations": True,

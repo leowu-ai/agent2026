@@ -1,11 +1,12 @@
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from .clients import OpenAICompatibleClient, parse_json_response
 from .fusion_evidence import (
     UNAVAILABLE_PATTERNS,
     build_structured_summary,
+    clinical_display_label,
     choice_id_for_answer,
     indexed_choices,
     load_fusion_prompt,
@@ -17,6 +18,7 @@ MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions w
 Select exactly one supplied option ID. Do not return null, refuse, or invent measurements.
 Use only the question, indexed choices, and directly available visual summary.
 For report/documentation questions, images cannot prove whether something was mentioned.
+Do not default to not mentioned, not specified, or cannot be determined merely because evidence is absent; those choices make distinct claims and are not generic fallbacks.
 If evidence is insufficient, choose the most defensible supplied option ID with low confidence and say it is not confirmed.
 Output only JSON: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
 
@@ -24,6 +26,14 @@ Output only JSON: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"e
 REPAIR_SYSTEM = """Repair a breast pathology MCQ answer. Output only short valid JSON.
 The answer_id must exactly equal one supplied option ID. Do not return null or markdown.
 Schema: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
+
+
+ALIGNMENT_SYSTEM = """You align structured breast pathology predictions to multiple-choice options.
+This is semantic option alignment, not diagnosis. Use only the question, clinical predicted labels, field meanings, and supplied choices.
+Predicted labels are clinical values, never zero-based class indices. A primary field can establish a candidate by itself; missing supporting fields only lower mapping confidence.
+Allow established clinical synonyms such as infiltrating=invasive. Never equate invasive with in situ, carcinoma with hyperplasia, or negative with no unless the question asks presence/status.
+Return null when the prediction does not answer the question or an option requires unsupported extra facts.
+Output only JSON with choice_id, mapping_complete, confidence, and a one-sentence reason."""
 
 
 class FusionVerificationAgent:
@@ -38,7 +48,34 @@ class FusionVerificationAgent:
         relations: Any,
         pathology: Dict[str, Any],
     ) -> Dict[str, Any]:
+        answer, _ = self.answer_with_summary(
+            plan, choices, phenotype_results, relations, pathology
+        )
+        return answer
+
+    def answer_with_summary(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        phenotype_results: Any,
+        relations: Any,
+        pathology: Dict[str, Any],
+    ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         structured = build_structured_summary(plan, choices, phenotype_results)
+        self._attach_option_alignment(plan, choices, structured)
+        answer = self._answer_prepared(
+            plan, choices, structured, relations, pathology
+        )
+        return answer, structured
+
+    def _answer_prepared(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        structured: Dict[str, Any],
+        relations: Any,
+        pathology: Dict[str, Any],
+    ) -> Dict[str, Any]:
         evidence = self._build_evidence_packet(plan, choices, structured, relations, pathology)
         system_prompt = MINIMAL_NONE_SYSTEM if structured.get("task_match") == "none" else load_fusion_prompt()
         if not self.client.enabled:
@@ -183,6 +220,7 @@ class FusionVerificationAgent:
                 "choice_text": structured.get("structured_candidate_answer"),
                 "confidence": structured.get("structured_candidate_confidence"),
                 "mapping_complete": structured.get("mapping_complete"),
+                "alignment": structured.get("option_alignment", {}),
             },
             "primary_predictions": primary_predictions,
             "supporting_predictions": supporting_predictions,
@@ -197,7 +235,7 @@ class FusionVerificationAgent:
             "conflicts": [],
             "relation_summary": self._relation_summary(relations),
             "rules": [
-                "Use supplied predicted_label and label definitions, never class index or option position.",
+                "clinical_predicted_label is a clinical value; never reinterpret it as a class index.",
                 "A unique literal_match choice is a strong advisory hint, not an absolute answer.",
                 "Patho-R1 can overturn structured evidence only with direct visible counterevidence.",
                 "WSI-inferred gene/pathway scores are not measured RNA, IHC, FISH, mutation, or protein.",
@@ -207,14 +245,20 @@ class FusionVerificationAgent:
 
     @staticmethod
     def _compact_prediction(row: Dict[str, Any]) -> Dict[str, Any]:
+        field = row.get("field")
+        label = clinical_display_label(field, row.get("predicted_label"))
         return {
             "prototype_id": row.get("prototype_id"),
-            "field": row.get("field"),
-            "label": row.get("predicted_label"),
+            "field": field,
+            "clinical_predicted_label": label,
             "probability": row.get("fused_probability_for_predicted_class"),
             "scale_agreement": row.get("cross_scale_agreement"),
             "validation_quality": row.get("validation_quality"),
-            "label_definition": row.get("clinical_label_semantics", {}),
+            "selected_label_definition": {
+                "field": field,
+                "clinical_value": label,
+                "is_internal_class_index": False,
+            },
         }
 
     @staticmethod
@@ -261,15 +305,30 @@ class FusionVerificationAgent:
         elif base > 0:
             confidence = max(max(0.0, base - 0.2), min(confidence, min(1.0, base + 0.2)))
         candidate_id = structured.get("structured_candidate_id")
-        override = bool(candidate_id and answer_id != candidate_id)
+        proposed_override = bool(candidate_id and answer_id != candidate_id)
+        override_rejected = False
+        if (
+            proposed_override
+            and self._high_trust_candidate(structured)
+            and not self._valid_counterevidence(parsed, structured)
+        ):
+            answer_id = candidate_id
+            answer = options[candidate_id]
+            confidence = max(confidence, max(0.0, base - 0.1))
+            override_rejected = True
+        override = proposed_override and not override_rejected
         limitations = parsed.get("limitations", "")
         if isinstance(limitations, list):
             limitations = " ".join(str(value) for value in limitations)
+        explanation = self._limit(parsed.get("explanation", ""), 600)
+        if override_rejected:
+            explanation = "Retained the high-confidence structured candidate because the proposed visual override lacked validated decisive counterevidence."
+            limitations = f"Visual conflict was reported but did not satisfy override evidence requirements. {limitations}"
         result = {
             "answer_id": answer_id,
             "answer": answer,
             "confidence": round(confidence, 6),
-            "explanation": self._limit(parsed.get("explanation", ""), 600),
+            "explanation": explanation,
             "limitations": self._limit(limitations, 350),
             "raw_response": raw,
             "parse_status": status,
@@ -277,6 +336,10 @@ class FusionVerificationAgent:
             "retry_count": retry_count,
             "answer_in_choices": True,
             "override_occurred": override,
+            "override_proposed": proposed_override,
+            "override_rejected": override_rejected,
+            "counterevidence": parsed.get("counterevidence"),
+            "option_alignment": structured.get("option_alignment", {}),
             "override_reason": (
                 self._limit(parsed.get("explanation", ""), 240) if override else None
             ),
@@ -348,3 +411,173 @@ class FusionVerificationAgent:
     def _limit(value: Any, length: int) -> str:
         text = " ".join(str(value or "").split())
         return text[:length]
+
+    def _attach_option_alignment(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        structured: Dict[str, Any],
+    ) -> None:
+        if structured.get("task_match") == "none" or not structured.get("predictions"):
+            structured["option_alignment"] = {
+                "source": "not_applicable",
+                "choice_id": None,
+                "mapping_complete": False,
+                "confidence": 0.0,
+            }
+            return
+
+        literal_id = structured.get("literal_match_id")
+        options = {row["id"]: row["text"] for row in indexed_choices(choices)}
+        if literal_id in options:
+            alignment = {
+                "source": "literal_exact",
+                "choice_id": literal_id,
+                "mapping_complete": True,
+                "confidence": 1.0,
+                "reason": "The clinical predicted label exactly matches one supplied choice.",
+            }
+        elif self.client.enabled:
+            predictions = structured.get("predictions", [])
+            primary_fields = set(structured.get("primary_fields", []))
+            primary = [
+                self._compact_prediction(row)
+                for row in predictions
+                if row.get("field") in primary_fields
+            ]
+            supporting = [
+                self._compact_prediction(row)
+                for row in predictions
+                if row.get("field") not in primary_fields
+            ]
+            payload = {
+                "question": plan.question,
+                "choices": indexed_choices(choices),
+                "primary_predictions": primary or [
+                    self._compact_prediction(predictions[0])
+                ],
+                "supporting_predictions": supporting,
+            }
+            try:
+                raw = self.client.chat(
+                    ALIGNMENT_SYSTEM,
+                    json.dumps(payload, ensure_ascii=False),
+                    max_tokens=220,
+                    response_format={"type": "json_object"},
+                    retries=2,
+                )
+                parsed = parse_json_response(raw) or {}
+                choice_id = parsed.get("choice_id")
+                if isinstance(choice_id, str):
+                    choice_id = choice_id.strip().upper()
+                else:
+                    choice_id = None
+                try:
+                    confidence = max(
+                        0.0, min(float(parsed.get("confidence", 0.0)), 1.0)
+                    )
+                except (TypeError, ValueError):
+                    confidence = 0.0
+                complete = bool(parsed.get("mapping_complete")) and choice_id in options
+                alignment = {
+                    "source": "llm_semantic_alignment",
+                    "choice_id": choice_id if complete else None,
+                    "mapping_complete": complete,
+                    "confidence": round(confidence, 6),
+                    "reason": self._limit(parsed.get("reason", ""), 240),
+                    "raw_response": raw,
+                }
+            except Exception as error:
+                alignment = {
+                    "source": "alignment_error",
+                    "choice_id": None,
+                    "mapping_complete": False,
+                    "confidence": 0.0,
+                    "reason": f"{type(error).__name__}: option alignment failed.",
+                }
+        else:
+            alignment = {
+                "source": "client_disabled",
+                "choice_id": None,
+                "mapping_complete": False,
+                "confidence": 0.0,
+            }
+
+        structured["option_alignment"] = alignment
+        choice_id = alignment.get("choice_id")
+        if alignment.get("mapping_complete") and choice_id in options:
+            structured["structured_candidate_id"] = choice_id
+            structured["structured_candidate_answer"] = options[choice_id]
+            structured["mapping_complete"] = True
+            structured["answer_unit"] = "choice_id"
+
+    @staticmethod
+    def _high_trust_candidate(structured: Dict[str, Any]) -> bool:
+        if structured.get("task_match") != "direct":
+            return False
+        if not structured.get("structured_candidate_id"):
+            return False
+        alignment = structured.get("option_alignment", {})
+        if float(alignment.get("confidence") or 0.0) < 0.65:
+            return False
+        if float(structured.get("structured_candidate_confidence") or 0.0) < 0.72:
+            return False
+        predictions = structured.get("predictions", [])
+        if not predictions:
+            return False
+        primary = predictions[0]
+        return (
+            float(primary.get("fused_probability_for_predicted_class") or 0.0) >= 0.65
+            and float(primary.get("cross_scale_agreement") or 0.0) >= (2.0 / 3.0)
+            and float(primary.get("validation_quality") or 0.0) >= 0.5
+        )
+
+    @staticmethod
+    def _valid_counterevidence(
+        parsed: Dict[str, Any],
+        structured: Dict[str, Any],
+    ) -> bool:
+        evidence = parsed.get("counterevidence")
+        if not isinstance(evidence, dict) or evidence.get("is_decisive") is not True:
+            return False
+        required = ("visible_feature", "decisive_reason", "structured_failure")
+        if any(len(str(evidence.get(key) or "").strip()) < 8 for key in required):
+            return False
+
+        predictions = structured.get("predictions", [])
+        field = str(predictions[0].get("field") if predictions else "")
+        if field in {
+            "ER_status_label",
+            "PR_status_label",
+            "HER2_status_label",
+            "ajcc_pathologic_stage",
+            "nottingham_total_score",
+        }:
+            return False
+
+        text = " ".join(str(evidence.get(key) or "").lower() for key in required)
+        if field == "histological_type_label":
+            subtype_features = (
+                "single-file", "single file", "discohesive", "targetoid",
+                "cohesive gland", "gland formation", "tubule formation",
+                "cribriform", "mucin", "spindle cell", "squamous",
+            )
+            return any(term in text for term in subtype_features)
+        if field == "histologic_grade_label":
+            return (
+                any(term in text for term in ("tubule", "gland formation"))
+                and any(term in text for term in ("pleomorphism", "nuclear atypia"))
+                and any(term in text for term in ("mitotic", "mitosis"))
+            )
+        if field == "lymphovascular_invasion_label":
+            return (
+                any(term in text for term in ("vessel", "vascular", "endothelial"))
+                and any(term in text for term in ("tumor embol", "tumor cells"))
+            )
+
+        visible_terms = (
+            "gland", "tubule", "single-file", "single file", "discohesive",
+            "targetoid", "cribriform", "mucin", "necrosis", "calcification",
+            "pleomorphism", "mitotic", "vessel", "endothelial", "tumor cells",
+        )
+        return any(term in text for term in visible_terms)
