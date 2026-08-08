@@ -11,7 +11,9 @@ Arbitration:
 - literal_match.choice_id is present only when a predicted_label and exactly one option are identical after case, whitespace, and punctuation normalization. Treat it as a strong advisory hint when task_match is direct, but not as an absolute answer; scope mismatch or decisive visual counterevidence may override it.
 - Prefer high-confidence, scale-consistent, directly matched structured predictions unless Patho-R1 gives direct, unambiguous, question-specific visual counterevidence.
 - Words such as possible, suggestive, consistent with, or implied by are insufficient to overturn strong structured evidence. If counterevidence is insufficient, retain the structured interpretation, lower confidence, and mention the conflict.
-- To overturn strong structured evidence, set counterevidence.is_decisive=true and name the visible feature, why it is decisive, and why G2P may have failed. Otherwise return counterevidence=null.
+- Always classify visual evidence direction as exactly one of: supports_structured, supports_proposed, mixed, neutral, insufficient. Related morphology is not automatically counterevidence; judge which answer it actually supports.
+- Set counterevidence.is_decisive=true only when visual evidence both supports the proposed answer and clearly contradicts the structured candidate. In that case set evidence_direction=supports_proposed, supports_proposed=true, and contradicts_structured=true, then name the visible feature, why it is decisive, and why G2P may have failed.
+- If visual evidence supports the structured candidate, is mixed, ambiguous, neutral, or insufficient, set is_decisive=false and report the corresponding evidence_direction. Do not present evidence supporting the structured candidate as a reason to override it.
 - Desmoplasia, invasion, atypia, or generic gland language alone cannot distinguish ductal from lobular carcinoma. Use subtype-specific architecture such as cohesive gland formation versus discohesive single-file or targetoid growth.
 - Do not infer or overturn ER, PR, HER2, IHC, FISH, AJCC stage, or Nottingham total score from H&E appearance.
 - For grade, do not invent a Nottingham score; a visual override requires explicit evidence about tubule formation, nuclear pleomorphism, and mitotic activity together.
@@ -21,4 +23,4 @@ Arbitration:
 - Start from code_generated_base_confidence and adjust within a limited range for visual directness or conflict. Detail alone never raises confidence.
 
 Output only valid JSON, no markdown or extra text. Return exactly one supplied option ID. Keep explanation under 80 words and limitations under 45 words:
-{"answer_id":"<supplied option ID>","confidence":0.0,"explanation":"...","limitations":"...","counterevidence":null}
+{"answer_id":"<supplied option ID>","confidence":0.0,"explanation":"...","limitations":"...","counterevidence":{"is_decisive":false,"evidence_direction":"supports_structured|supports_proposed|mixed|neutral|insufficient","supports_proposed":false,"contradicts_structured":false,"confidence":0.0,"visible_feature":"...","decisive_reason":"...","structured_failure":"..."}}

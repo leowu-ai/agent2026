@@ -36,6 +36,13 @@ Return null when the prediction does not answer the question or an option requir
 Output only JSON with choice_id, mapping_complete, confidence, and a one-sentence reason."""
 
 
+MORPHOLOGY_OVERRIDE_FIELDS = {
+    "histological_type_label",
+    "histologic_grade_label",
+    "lymphovascular_invasion_label",
+}
+
+
 class FusionVerificationAgent:
     def __init__(self, client: OpenAICompatibleClient):
         self.client = client
@@ -538,46 +545,29 @@ class FusionVerificationAgent:
         structured: Dict[str, Any],
     ) -> bool:
         evidence = parsed.get("counterevidence")
-        if not isinstance(evidence, dict) or evidence.get("is_decisive") is not True:
+        if not isinstance(evidence, dict):
             return False
+
+        if evidence.get("is_decisive") is not True:
+            return False
+        if evidence.get("evidence_direction") != "supports_proposed":
+            return False
+        if evidence.get("supports_proposed") is not True:
+            return False
+        if evidence.get("contradicts_structured") is not True:
+            return False
+
+        try:
+            confidence = float(evidence.get("confidence"))
+        except (TypeError, ValueError):
+            return False
+        if not 0.75 <= confidence <= 1.0:
+            return False
+
         required = ("visible_feature", "decisive_reason", "structured_failure")
-        if any(len(str(evidence.get(key) or "").strip()) < 8 for key in required):
+        if any(not str(evidence.get(key) or "").strip() for key in required):
             return False
 
         predictions = structured.get("predictions", [])
         field = str(predictions[0].get("field") if predictions else "")
-        if field in {
-            "ER_status_label",
-            "PR_status_label",
-            "HER2_status_label",
-            "ajcc_pathologic_stage",
-            "nottingham_total_score",
-        }:
-            return False
-
-        text = " ".join(str(evidence.get(key) or "").lower() for key in required)
-        if field == "histological_type_label":
-            subtype_features = (
-                "single-file", "single file", "discohesive", "targetoid",
-                "cohesive gland", "gland formation", "tubule formation",
-                "cribriform", "mucin", "spindle cell", "squamous",
-            )
-            return any(term in text for term in subtype_features)
-        if field == "histologic_grade_label":
-            return (
-                any(term in text for term in ("tubule", "gland formation"))
-                and any(term in text for term in ("pleomorphism", "nuclear atypia"))
-                and any(term in text for term in ("mitotic", "mitosis"))
-            )
-        if field == "lymphovascular_invasion_label":
-            return (
-                any(term in text for term in ("vessel", "vascular", "endothelial"))
-                and any(term in text for term in ("tumor embol", "tumor cells"))
-            )
-
-        visible_terms = (
-            "gland", "tubule", "single-file", "single file", "discohesive",
-            "targetoid", "cribriform", "mucin", "necrosis", "calcification",
-            "pleomorphism", "mitotic", "vessel", "endothelial", "tumor cells",
-        )
-        return any(term in text for term in visible_terms)
+        return field in MORPHOLOGY_OVERRIDE_FIELDS
