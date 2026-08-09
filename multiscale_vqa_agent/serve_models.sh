@@ -6,7 +6,7 @@ AGENT_DIR="$ROOT/multiscale_vqa_agent"
 VLLM=/home/wl/agent_2026/.venvs/qwen_pathor1_vllm/bin/vllm
 MODEL_ROOT=/data_nas3/ycz/00_SHARE_WITH_COLLEAGUE_QWEN_PATHOR1_20260716
 STATE_DIR="$ROOT/outputs/multiscale_vqa_agent/services"
-GPU="${AGENT_GPU:-7}"
+GPU="${AGENT_GPU:-1}"
 
 mkdir -p "$STATE_DIR"
 
