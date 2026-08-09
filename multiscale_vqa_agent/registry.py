@@ -131,15 +131,25 @@ class PrototypeAwarePlanner:
     def _llm_plan(self, case_id: str, question: str, choices: Iterable[str]) -> Optional[ExecutionPlan]:
         if not self.qwen.enabled:
             return None
-        system = (
-            "You route breast pathology multiple-choice questions to a numbered phenotype prototype catalog. "
-            "Return JSON with route, prototype_ids, task_match, phenotype_relevance_score, reason, and use_pathology_agent. "
-            "route must be phenotype_direct, morphology_only, or nonvisual. "
-            "For phenotype_direct, choose one to four exact prototype_ids from the catalog. "
-            "Use morphology_only when the question is visually answerable but no catalog prototype directly matches. "
-            "Use nonvisual for report/documentation, treatment, age, exact size/time, or other facts not answerable from WSI. "
-            "Do not invent IDs and do not answer the MCQ."
-        )
+        system = """You are the Router for a breast pathology multiple-choice VQA system. Decide which evidence tools to call; never answer or guess the MCQ.
+
+First infer the question's target semantics from both the question and choices. Choices may reveal a grade, histologic type, receptor, or yes/no feature task, but must never be used to choose the correct answer.
+
+Decision priority:
+1. phenotype_direct/direct: one to four catalog prototypes cover the core target.
+2. phenotype_direct/partial: catalog prototypes cover a substantively useful part of the target.
+3. morphology_only: no suitable prototype, but the answer concerns morphology directly visible on H&E.
+4. nonvisual: neither prototypes nor H&E can provide substantive evidence. Use this only after excluding the first three routes.
+
+For phenotype_direct, select one to four exact catalog IDs. Keep useful prototypes even when modifiers, subtype, site, specimen context, or another requested field is uncovered. Multi-field questions may select multiple prototypes. Use partial instead of discarding useful phenotype evidence when coverage is incomplete. Examples include grade of a named carcinoma; combined microcalcification and lymphovascular invasion; or histologic type plus an in-situ component.
+
+Use morphology_only with task_match=none, no IDs, and use_pathology_agent=true for H&E-visible features without a catalog prototype: architecture or growth pattern, glandular/acinar/papillary/cribriform pattern, nuclear atypia, stromal or inflammatory morphology, benign/non-neoplastic changes, hyperplasia pattern, surrounding tissue, or other visible histologic findings. Generic wording such as finding, diagnosis, surrounding tissue, or additional finding does not make a question nonvisual.
+
+Use nonvisual with task_match=none, no IDs, and use_pathology_agent=false for exact macroscopic size, report-dependent margins, treatment, age/history, survival time or exact days, medication, reproductive history, performance status, specimen preparation, metadata-only laterality, or what a report/record mentioned or documented.
+
+Preserve assay/report boundaries. A general ER, PR, or HER2 status question may use its WSI-derived phenotype prototype. A question explicitly asking what FISH, IHC, a molecular assay, or a pathology report actually showed is nonvisual. WSI predictions are not measured assay or report facts. If a mixed question contains useful phenotype and unavailable clinical content, choose phenotype_direct/partial.
+
+Return JSON with route, prototype_ids, task_match, phenotype_relevance_score, reason, and use_pathology_agent. route must be phenotype_direct, morphology_only, or nonvisual; task_match must be direct, partial, or none. Do not invent prototype IDs."""
         user = json.dumps({
             "question": question,
             "choices": list(choices),
@@ -166,6 +176,17 @@ class PrototypeAwarePlanner:
             return None
         if not isinstance(parsed, dict):
             return None
+
+        return self._normalize_llm_plan(case_id, question, choices, parsed)
+
+    def _normalize_llm_plan(
+        self,
+        case_id: str,
+        question: str,
+        choices: Iterable[str],
+        parsed: Dict[str, Any],
+    ) -> ExecutionPlan:
+        """Validate Router structure without interpreting question semantics."""
 
         raw_ids = parsed.get("prototype_ids", [])
         if isinstance(raw_ids, (str, dict)):
@@ -229,8 +250,11 @@ class PrototypeAwarePlanner:
             task_match=task_match,
             phenotype_relevance_score=relevance,
             use_pathology_agent=(
-                bool(parsed.get("use_pathology_agent", True))
-                if route != "nonvisual" else False
+                True
+                if route == "morphology_only"
+                else False
+                if route == "nonvisual"
+                else bool(parsed.get("use_pathology_agent", True))
             ),
             evidence_route=route,
             selected_prototype_ids=prototype_ids,

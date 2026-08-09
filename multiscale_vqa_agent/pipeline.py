@@ -14,6 +14,7 @@ from .pathology import PathologyAgent
 from .registry import PrototypeAwarePlanner, ToolBankRegistry
 from .relation import RelationReasoningAgent
 from .retrieval import MultiScaleRetrievalAgent, WSICropper
+from .router_audit import write_router_audit
 
 
 class MultiScaleVQAPipeline:
@@ -44,10 +45,16 @@ class MultiScaleVQAPipeline:
         limit: Optional[int] = None,
         crop_patches: bool = True,
         resume: bool = True,
+        multiple_choice_only: bool = False,
     ) -> Path:
         source = Path(vqa_path or self.config["vqa_json"])
         with source.open(encoding="utf-8") as handle:
             items = json.load(handle)
+        if multiple_choice_only:
+            items = [
+                item for item in items
+                if item.get("Choice", item.get("choices"))
+            ]
         if limit is not None:
             items = items[:limit]
         plans = [(item, self.planner.plan(item)) for item in items]
@@ -62,6 +69,8 @@ class MultiScaleVQAPipeline:
                     if key in completed:
                         continue
                     handle.write(json.dumps({"input": item, "plan": plan.to_dict()}, ensure_ascii=False) + "\n")
+            summary = write_router_audit(plans, destination)
+            print(f"Router audit: {json.dumps(summary, ensure_ascii=False)}", flush=True)
             return destination
         grouped: Dict[str, List[Any]] = defaultdict(list)
         for item, plan in plans:

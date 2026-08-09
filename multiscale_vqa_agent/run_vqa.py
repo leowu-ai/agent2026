@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--output", default=None)
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--planner_only", action="store_true")
+    parser.add_argument("--mc_only", action="store_true")
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     args = parser.parse_args()
@@ -28,6 +29,7 @@ def main():
         limit=args.limit,
         crop_patches=not args.no_crop,
         resume=not args.no_resume,
+        multiple_choice_only=args.mc_only,
     )
     print(f"Saved: {output}")
 
