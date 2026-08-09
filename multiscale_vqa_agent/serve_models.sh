@@ -43,7 +43,7 @@ start_service qwen 8000 \
   --dtype bfloat16 \
   --max-model-len 32768 \
   --gpu-memory-utilization 0.35 \
-  --language-model-only \
+  --limit-mm-per-prompt '{"image": 12}' \
   --reasoning-parser qwen3
 
 start_service pathor1 8001 \
