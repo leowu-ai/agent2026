@@ -1,0 +1,58 @@
+{
+  "updated_at": "2026-08-09T19:21:23+08:00",
+  "selected_total": 390,
+  "processed": 390,
+  "remaining": 0,
+  "completion": 1.0,
+  "scorable": 390,
+  "correct": 156,
+  "errors": 0,
+  "accuracy": 0.4,
+  "accuracy_scorable": 0.4,
+  "supported_processed": 0,
+  "supported_correct": 0,
+  "supported_accuracy": null,
+  "unsupported_processed": 390,
+  "unsupported_correct": 156,
+  "unsupported_accuracy": 0.4,
+  "json_parse_failures": 0,
+  "answers_outside_choices": 0,
+  "multifield_incomplete": 0,
+  "structured_overrides": 0,
+  "override_structured_accuracy": null,
+  "override_agent_accuracy": null,
+  "per_task_match": {
+    "direct_qwen_wsi": {
+      "processed": 390,
+      "scorable": 390,
+      "correct": 156,
+      "errors": 0,
+      "accuracy": 0.4,
+      "accuracy_scorable": 0.4
+    }
+  },
+  "per_task": {
+    "unrouted": {
+      "processed": 390,
+      "scorable": 390,
+      "correct": 156,
+      "errors": 0,
+      "accuracy": 0.4,
+      "accuracy_scorable": 0.4
+    }
+  },
+  "last": {
+    "case_id": "TCGA-AN-A0XW",
+    "question": "what is the specimen format for the normal sample?",
+    "task": "unrouted",
+    "task_match": "direct_qwen_wsi",
+    "supported": false,
+    "correct": false,
+    "error": null,
+    "predicted": "paraffin-embedded",
+    "reference": "frozen",
+    "answer_in_choices": true,
+    "json_parse_success": true,
+    "override_occurred": false
+  }
+}
