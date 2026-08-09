@@ -48,7 +48,21 @@ class RouterPlannerTest(unittest.TestCase):
         self.assertEqual(plan.selected_prototype_ids, ["P006"])
         self.assertEqual(plan.task_match, "direct")
 
-    def test_partial_keeps_available_prototypes(self):
+    def test_partial_keeps_single_prototype(self):
+        plan = self.normalize({
+            "route": "phenotype_direct",
+            "prototype_ids": ["P007"],
+            "task_match": "partial",
+            "phenotype_relevance_score": 0.6,
+        })
+        self.assertEqual(
+            plan.target_phenotypes, ["lymphovascular_invasion_label"]
+        )
+        self.assertEqual(plan.selected_prototype_ids, ["P007"])
+        self.assertEqual(plan.task_match, "partial")
+        self.assertTrue(plan.supported)
+
+    def test_partial_keeps_multiple_prototypes(self):
         plan = self.normalize({
             "route": "phenotype_direct",
             "prototype_ids": ["P001", "P007"],
