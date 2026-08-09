@@ -63,4 +63,16 @@ Evaluate exact answer matching:
   /home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/answers.jsonl
 ```
 
+Run the direct Qwen-VLM control experiment using only whole-slide overview
+thumbnails and the multiple-choice question (no G2P, retrieval, or Patho-R1):
+
+```bash
+/home/wl/anaconda3/envs/mil/bin/python \
+  /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/run_qwen_wsi_baseline.py \
+  --output /home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/qwen_wsi_direct/mc_answers.jsonl
+```
+
+The runner prioritizes diagnostic `DX` slides, caches patient thumbnails,
+resumes by default, saves every answer immediately, and updates live accuracy.
+
 The full 735-question run is a pipeline demonstration because most cases overlap the G2P training or validation split. It is not an unbiased test estimate.
