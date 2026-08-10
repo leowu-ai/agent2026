@@ -14,6 +14,7 @@ AUDIT_FIELDS = (
     "task_match",
     "selected_prototype_ids",
     "target_phenotypes",
+    "prototype_support_type",
     "prototype_coverage",
     "local_morphology_useful",
     "requires_unavailable_context",
@@ -30,11 +31,13 @@ def write_router_audit(
     """Write answer-free Router audit artifacts next to planner-only output."""
     rows = []
     counts = Counter()
+    support_type_counts = Counter()
     for item, plan in records:
         route = plan.evidence_route
         task_match = plan.task_match
         counts[route] += 1
         counts[f"{route}/{task_match}"] += 1
+        support_type_counts[plan.prototype_support_type] += 1
         rows.append({
             "case_id": plan.case_id,
             "question": plan.question,
@@ -45,6 +48,7 @@ def write_router_audit(
             "task_match": task_match,
             "selected_prototype_ids": json.dumps(plan.selected_prototype_ids),
             "target_phenotypes": json.dumps(plan.target_phenotypes),
+            "prototype_support_type": plan.prototype_support_type,
             "prototype_coverage": plan.prototype_coverage,
             "local_morphology_useful": plan.local_morphology_useful,
             "requires_unavailable_context": plan.requires_unavailable_context,
@@ -55,6 +59,7 @@ def write_router_audit(
 
     csv_path = output_jsonl.with_name(f"{output_jsonl.stem}_route_audit.csv")
     summary_path = output_jsonl.with_name(f"{output_jsonl.stem}_route_summary.json")
+    support_path = output_jsonl.with_name("support_type_summary.json")
     csv_path.parent.mkdir(parents=True, exist_ok=True)
     with csv_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=AUDIT_FIELDS, lineterminator="\n")
@@ -71,9 +76,17 @@ def write_router_audit(
             route: counts[route]
             for route in ("phenotype_direct", "morphology_only", "nonvisual")
         },
+        "support_type_counts": {
+            support_type: support_type_counts[support_type]
+            for support_type in ("target_evidence", "correlated_context", "none")
+        },
     }
     summary_path.write_text(
         json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    support_path.write_text(
+        json.dumps(summary["support_type_counts"], ensure_ascii=False, indent=2),
+        encoding="utf-8",
     )
     return summary
 
@@ -123,6 +136,7 @@ def write_route_transition(old_path: Path, new_path: Path, output: Path) -> Dict
             "from": old_label,
             "to": new_label,
             "prototype_ids": new.get("selected_prototype_ids", []),
+            "prototype_support_type": new.get("prototype_support_type", "none"),
             "prototype_coverage": new.get("prototype_coverage", "none"),
         }
         if new_label == "phenotype_direct/partial":

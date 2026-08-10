@@ -1,0 +1,17 @@
+{
+  "total": 390,
+  "phenotype_direct/direct": 168,
+  "phenotype_direct/partial": 43,
+  "morphology_only": 9,
+  "nonvisual": 170,
+  "route_counts": {
+    "phenotype_direct": 211,
+    "morphology_only": 9,
+    "nonvisual": 170
+  },
+  "support_type_counts": {
+    "target_evidence": 211,
+    "correlated_context": 0,
+    "none": 179
+  }
+}

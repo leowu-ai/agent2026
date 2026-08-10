@@ -18,6 +18,7 @@ class ExecutionPlan:
     use_pathology_agent: bool = True
     evidence_route: str = "phenotype_direct"
     selected_prototype_ids: List[str] = field(default_factory=list)
+    prototype_support_type: str = "none"
     prototype_coverage: str = "none"
     local_morphology_useful: bool = False
     requires_unavailable_context: bool = False

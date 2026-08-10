@@ -135,28 +135,37 @@ class PrototypeAwarePlanner:
 
 Use only question, choices, and the prototype catalog:
 1. Infer the true target semantics from question and choices; choices clarify the task but never reveal the answer.
-2. Select at most four exact prototype IDs whose predictions would materially distinguish supplied choices. Topical relation alone is not useful evidence.
-3. Set prototype_coverage to complete, partial, or none.
+2. Select the smallest set of at most four exact prototype IDs whose predictions directly measure the requested variable or a true component of it.
+3. Classify prototype support as target_evidence, correlated_context, or none, then set coverage.
 4. Independently judge whether retrieved local H&E patches can provide useful morphology.
 5. Independently judge whether unavailable records, measurements, assays, history, or exhaustive specimen context are required.
 
-COMPLETE means selected prototype predictions can resolve the MCQ's core semantic distinction. Examples: grade 1/2/3 with histologic grade; yes/no LVI with LVI; positive/negative/equivocal HER2 status with HER2.
+TARGET_EVIDENCE means knowing the prototype prediction gives the requested variable itself, measures a real component of that same variable, or eliminates choices for that target-level reason. Histologic grade for a grade question, LVI for invasion presence or extent, and receptor status for a receptor-status question are target evidence.
+
+CORRELATED_CONTEXT means a prototype may influence, correlate with, or predict the answer without representing the requested fact. Histology, grade, and receptors do not state recommended treatment; histology does not state a performed surgery; receptor status does not state which stains were performed; HER2 status is not a FISH amplification result; phenotypes do not state documented recommendations or report wording. Correlated context is never phenotype evidence, even if clinically predictive.
+
+NONE means catalog predictions have no direct target-level discrimination. Broad carcinoma type does not distinguish DCIS architecture or benign lesions such as fibroadenoma, fibrocystic change, adenosis, mastitis, hyperplasia, or stromal fibrosis.
+
+Select only the minimum discriminative target-evidence set, not every clinically related prototype. If histologic grade alone resolves the target, select only that grade prototype. Do not add LVI, necrosis, receptor, or broad histology merely as supporting context.
+
+COMPLETE means target evidence resolves the MCQ's core semantic distinction. Examples: grade 1/2/3 with histologic grade; yes/no LVI with LVI; positive/negative/equivocal general HER2 status with HER2.
 
 PARTIAL means prototype predictions materially eliminate or favor some choices but leave an important distinction unresolved. LVI separates absent from present but not focal from extensive angioinvasion. LVI does not cover perineural invasion in a combined invasion question. Microcalcification plus LVI can support some additional-finding choices but not benign or hyperplasia alternatives. Use partial even when the unresolved remainder requires unavailable report context.
 
-NONE means prototypes do not discriminate the choices. Histological type does not distinguish solid, cribriform, papillary, or micropapillary DCIS architecture. Keep IDs empty for none.
+prototype_coverage is meaningful only for target_evidence. For correlated_context or none, set coverage=none and keep prototype_ids empty.
 
-Assay granularity matters. General ER/PR/HER2 status can use status prototypes. FISH amplification, exact IHC/Allred score, exact stained percentage, gene amplification, or documented laboratory/report facts are not equivalent to WSI status. A status prototype may be partial only when it genuinely separates some assay-result choices, such as negative versus positive while leaving positive percentage ranges unresolved; it is not complete. HER2 status is normally none for explicit FISH amplification.
+Assay granularity matters. General ER/PR/HER2 status is target_evidence/complete. ER status for choices negative, positive <10%, or positive >10% is target_evidence/partial because it separates negative from positive but not percentage ranges. HER2 status for explicit FISH/gene amplification is correlated_context or none, never partial. Receptor predictions for which stain was performed or pending are correlated_context.
 
-local_morphology_useful=true only for features assessable in retrieved local H&E patches, such as architecture, atypia, inflammation, fibrosis, adenosis, hyperplasia, fibroadenoma, fibrocystic change, benign tissue, local necrosis, or stroma. Set false for exact size, focus count, exhaustive multifocality, total-tumor percentage, margin distance, specimen extent/distribution, treatment/history/age, report wording, and exact TNM or gross facts.
+local_morphology_useful=true for patch-assessable architecture, atypia, inflammation, fibrosis, adenosis, hyperplasia, fibroadenoma, fibrocystic change, benign tissue, local necrosis, or stroma when no target-level prototype exists. Set false for exact size, focus count, exhaustive multifocality, total-tumor percentage, margin distance, specimen extent/distribution, treatment/history/age, report wording, and exact TNM or gross facts. Do not force broad prototypes into partial merely to avoid local morphology.
 
-requires_unavailable_context=true does not erase useful complete or partial prototype evidence. Return JSON only with prototype_ids, prototype_coverage, local_morphology_useful, requires_unavailable_context, phenotype_relevance_score, reason, and use_pathology_agent. prototype_coverage must be complete, partial, or none. Do not invent IDs."""
+requires_unavailable_context=true does not erase genuine target_evidence/partial, but correlated_context plus unavailable context is not partial. Return JSON only with prototype_ids, prototype_support_type, prototype_coverage, local_morphology_useful, requires_unavailable_context, phenotype_relevance_score, reason, and use_pathology_agent. Do not invent IDs."""
         user = json.dumps({
             "question": question,
             "choices": list(choices),
             "prototype_catalog": self.registry.compact_catalog(),
             "output_schema": {
                 "prototype_ids": ["P001"],
+                "prototype_support_type": "target_evidence|correlated_context|none",
                 "prototype_coverage": "complete|partial|none",
                 "local_morphology_useful": True,
                 "requires_unavailable_context": False,
@@ -203,6 +212,9 @@ requires_unavailable_context=true does not erase useful complete or partial prot
                     prototype_ids.append(normalized)
         prototype_ids = list(dict.fromkeys(prototype_ids))[:4]
 
+        support_type = str(parsed.get("prototype_support_type", "none")).strip().lower()
+        if support_type not in {"target_evidence", "correlated_context", "none"}:
+            support_type = "none"
         coverage = str(parsed.get("prototype_coverage", "none")).strip().lower()
         if coverage not in {"complete", "partial", "none"}:
             coverage = "none"
@@ -212,6 +224,10 @@ requires_unavailable_context=true does not erase useful complete or partial prot
         requires_unavailable_context = self._as_bool(
             parsed.get("requires_unavailable_context", False)
         )
+
+        if support_type != "target_evidence":
+            prototype_ids = []
+            coverage = "none"
 
         if not prototype_ids or coverage == "none":
             coverage = "none"
@@ -268,6 +284,7 @@ requires_unavailable_context=true does not erase useful complete or partial prot
             ),
             evidence_route=route,
             selected_prototype_ids=prototype_ids,
+            prototype_support_type=support_type,
             prototype_coverage=coverage,
             local_morphology_useful=local_morphology_useful,
             requires_unavailable_context=requires_unavailable_context,
