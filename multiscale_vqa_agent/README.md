@@ -1,13 +1,20 @@
 # Multi-scale G2P WSI VQA Agent
 
-This package implements the six-stage TCGA-BRCA pipeline:
+This package implements the seven-stage TCGA-BRCA pipeline:
 
-1. Numbered phenotype prototype Router (Qwen selects stable P001-style IDs)
-2. Patient-level selected-phenotype prediction with G2P-1024/2048/4096
-3. Prior-versus-learned relation reasoning for selected phenotypes
-4. Coarse-to-fine multi-scale patch retrieval and deduplication
-5. Multi-image pathology description with Patho-R1
-6. Qwen semantic evidence fusion with canonical A/B/C output IDs
+1. Answerability Gate using only the question and choices
+2. Numbered phenotype prototype Router (Qwen selects stable P001-style IDs)
+3. Patient-level selected-phenotype prediction with G2P-1024/2048/4096
+4. Prior-versus-learned relation reasoning for selected phenotypes
+5. Coarse-to-fine multi-scale patch retrieval and deduplication
+6. Multi-image pathology description with Patho-R1
+7. Qwen semantic evidence fusion with canonical A/B/C output IDs
+
+The Answerability Gate predicts `directly_answerable`, `inferable`, or
+`unanswerable`. An unanswerable question is saved as an abstention before the
+Router. If every pending question for a patient is unanswerable, G2P is not
+loaded for that patient. Gold answerability labels are optional and are read
+only after inference by the offline evaluator.
 
 The Router emits one of three evidence routes. phenotype_direct invokes only selected numbered prototypes. morphology_only pools a small top-patch set from every phenotype attention map, deduplicates consensus regions, and sends the resulting multi-scale pyramids to Patho-R1. nonvisual skips visual inference for report, treatment, age, exact size/time, and similar questions that WSI cannot establish.
 
@@ -51,6 +58,29 @@ With Qwen and Patho-R1 servers already running:
 ```bash
 bash /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/run_full_vqa.sh \
   /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/config.servers.json
+```
+
+Run all 390 multiple-choice questions with answerability evaluation after
+inference:
+
+```bash
+/home/wl/anaconda3/envs/mil/bin/python \
+  /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/run_mc_vqa.py \
+  --config /home/wl/agent_2026/g2p_toolbank_brca/multiscale_vqa_agent/config.servers.json \
+  --vqa_json /home/wl/agent_2026/dataset/WsiVQA_test.json \
+  --output /home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent/answerability_v1/mc_answers.jsonl \
+  --answerability_labels /home/wl/agent_2026/dataset/WsiVQA_answerability_3class_benchmark_v1.json \
+  --no_resume
+```
+
+Evaluate an existing answers file without running any model:
+
+```bash
+cd /home/wl/agent_2026/g2p_toolbank_brca
+/home/wl/anaconda3/envs/mil/bin/python -m \
+  multiscale_vqa_agent.answerability_evaluation \
+  outputs/multiscale_vqa_agent/answerability_v1/mc_answers.jsonl \
+  --answerability_labels /home/wl/agent_2026/dataset/WsiVQA_answerability_3class_benchmark_v1.json
 ```
 
 The JSONL output is resumable. Existing `(case_id, question)` pairs are skipped. Each row stores the execution plan, fused and per-scale prediction, prior/initial/learned relation evidence, multi-scale patch groups, Patho-R1 description, final answer, and reference answer.

@@ -58,14 +58,17 @@ class LiveAccuracyTracker:
         supported = bool(plan.get("supported", False))
         task_match = str(row.get("task_match", plan.get("task_match", "direct" if supported else "none")))
         error = bool(row.get("error"))
+        abstained = bool(row.get("abstained", False))
         answer_data = row.get("agent_answer", {}) or {}
         predicted = answer_data.get("answer")
         reference = row.get("reference_answer", row.get("input", {}).get("Answer"))
         choices = list(row.get("choices", row.get("input", {}).get("Choice", [])) or [])
-        scorable = not error and predicted is not None and reference is not None
+        scorable = not error and not abstained and predicted is not None and reference is not None
         is_correct = bool(scorable and normalize_answer(predicted) == normalize_answer(reference))
-        answer_in_choices = bool(predicted in choices) if choices else True
-        json_success = bool(row.get("json_parse_success", answer_data.get("json_parse_success", False)))
+        answer_in_choices = True if abstained else bool(predicted in choices) if choices else True
+        json_success = True if abstained else bool(
+            row.get("json_parse_success", answer_data.get("json_parse_success", False))
+        )
         requested = row.get("requested_fields", fields)
         missing = row.get("missing_fields", [])
         incomplete = bool(len(requested or []) > 1 and missing)

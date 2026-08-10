@@ -6,6 +6,7 @@ from typing import Any, Dict, Iterable, List, Optional
 
 import torch
 
+from .answerability import AnswerabilityAgent
 from .clients import OpenAICompatibleClient
 from .fusion import FusionVerificationAgent
 from .fusion_evidence import indexed_choices
@@ -25,6 +26,7 @@ class MultiScaleVQAPipeline:
         scale_dirs = {int(k): Path(v) for k, v in self.config["scales"].items()}
         self.registry = ToolBankRegistry(scale_dirs)
         self.qwen = OpenAICompatibleClient(self.config["qwen"])
+        self.answerability = AnswerabilityAgent(self.qwen)
         self.planner = PrototypeAwarePlanner(self.registry, self.qwen)
         self.planner_only = planner_only
         if planner_only:
@@ -46,6 +48,7 @@ class MultiScaleVQAPipeline:
         crop_patches: bool = True,
         resume: bool = True,
         multiple_choice_only: bool = False,
+        answerability_labels: Optional[str] = None,
     ) -> Path:
         source = Path(vqa_path or self.config["vqa_json"])
         with source.open(encoding="utf-8") as handle:
@@ -57,49 +60,142 @@ class MultiScaleVQAPipeline:
             ]
         if limit is not None:
             items = items[:limit]
-        plans = [(item, self.planner.plan(item)) for item in items]
         destination = Path(output_path or (Path(self.config["output_dir"]) / "answers.jsonl"))
         destination.parent.mkdir(parents=True, exist_ok=True)
         completed = self._completed_keys(destination) if resume else set()
         mode = "a" if resume and destination.exists() else "w"
+        grouped: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        for item in items:
+            case_id, question = self._item_key(item)
+            if (case_id, question) not in completed:
+                grouped[case_id].append(item)
+
         if self.planner_only:
+            plans = []
             with destination.open(mode, encoding="utf-8") as handle:
-                for item, plan in plans:
-                    key = (plan.case_id, plan.question)
-                    if key in completed:
-                        continue
-                    handle.write(json.dumps({"input": item, "plan": plan.to_dict()}, ensure_ascii=False) + "\n")
+                for case_items in grouped.values():
+                    for item in case_items:
+                        assessment = self._predict_answerability(item)
+                        if assessment["answerability"] == "unanswerable":
+                            result = self._abstained_result(item, assessment)
+                        else:
+                            plan = self.planner.plan(item)
+                            plans.append((item, plan))
+                            result = self._attach_answerability(
+                                {
+                                    "case_id": plan.case_id,
+                                    "question": plan.question,
+                                    "input": item,
+                                    "plan": plan.to_dict(),
+                                },
+                                assessment,
+                            )
+                        handle.write(json.dumps(result, ensure_ascii=False) + "\n")
             summary = write_router_audit(plans, destination)
             print(f"Router audit: {json.dumps(summary, ensure_ascii=False)}", flush=True)
+            self._evaluate_if_requested(destination, answerability_labels)
             return destination
-        grouped: Dict[str, List[Any]] = defaultdict(list)
-        for item, plan in plans:
-            if (plan.case_id, plan.question) not in completed:
-                grouped[plan.case_id].append((item, plan))
+
         with destination.open(mode, encoding="utf-8") as handle:
             for case_number, (case_id, case_items) in enumerate(grouped.items(), 1):
-                print(f"[{case_number}/{len(grouped)}] infer {case_id} ({len(case_items)} questions)", flush=True)
+                print(f"[{case_number}/{len(grouped)}] gate {case_id} ({len(case_items)} questions)", flush=True)
+                answerable = []
+                for item in case_items:
+                    assessment = self._predict_answerability(item)
+                    if assessment["answerability"] == "unanswerable":
+                        handle.write(json.dumps(
+                            self._abstained_result(item, assessment), ensure_ascii=False
+                        ) + "\n")
+                        handle.flush()
+                        continue
+                    answerable.append((item, assessment, self.planner.plan(item)))
+                if not answerable:
+                    print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
+                    continue
+                print(f"infer {case_id} ({len(answerable)} answerable questions)", flush=True)
                 try:
                     scale_results = self.g2p.infer_case(case_id)
                     evidence_cache = {}
-                    for item, plan in case_items:
-                        result = self._run_question(item, plan, scale_results, evidence_cache, crop_patches)
+                    for item, assessment, plan in answerable:
+                        result = self._attach_answerability(
+                            self._run_question(
+                                item, plan, scale_results, evidence_cache, crop_patches
+                            ),
+                            assessment,
+                        )
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
                         handle.flush()
                 except Exception as error:
-                    for item, plan in case_items:
-                        handle.write(json.dumps({
-                            "case_id": case_id,
-                            "question": plan.question,
-                            "input": item,
-                            "plan": plan.to_dict(),
-                            "error": f"{type(error).__name__}: {error}",
-                        }, ensure_ascii=False) + "\n")
+                    for item, assessment, plan in answerable:
+                        result = self._attach_answerability(
+                            {
+                                "case_id": case_id,
+                                "question": plan.question,
+                                "input": item,
+                                "plan": plan.to_dict(),
+                                "error": f"{type(error).__name__}: {error}",
+                            },
+                            assessment,
+                        )
+                        handle.write(json.dumps(result, ensure_ascii=False) + "\n")
                     handle.flush()
                 gc.collect()
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
+        self._evaluate_if_requested(destination, answerability_labels)
         return destination
+
+    @staticmethod
+    def _item_key(item: Dict[str, Any]):
+        return (
+            str(item.get("Id", item.get("case_id", "")))[:12],
+            str(item.get("Question", item.get("question", ""))),
+        )
+
+    def _predict_answerability(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        _, question = self._item_key(item)
+        choices = list(item.get("Choice", item.get("choices", [])) or [])
+        return self.answerability.predict(question, choices)
+
+    @staticmethod
+    def _attach_answerability(
+        result: Dict[str, Any], assessment: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        result.update({
+            "predicted_answerability": assessment["answerability"],
+            "answerability_confidence": assessment["confidence"],
+            "answerability_reason": assessment["reason"],
+            "abstained": False,
+        })
+        return result
+
+    def _abstained_result(
+        self, item: Dict[str, Any], assessment: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        case_id, question = self._item_key(item)
+        choices = list(item.get("Choice", item.get("choices", [])) or [])
+        return {
+            "case_id": case_id,
+            "question": question,
+            "choices": choices,
+            "choice_options": indexed_choices(choices),
+            "reference_answer": item.get("Answer", item.get("answer")),
+            "input": item,
+            "plan": {},
+            "predicted_answerability": assessment["answerability"],
+            "answerability_confidence": assessment["confidence"],
+            "answerability_reason": assessment["reason"],
+            "abstained": True,
+            "agent_answer": None,
+        }
+
+    @staticmethod
+    def _evaluate_if_requested(destination: Path, labels_path: Optional[str]):
+        if labels_path:
+            from .answerability_evaluation import evaluate_answerability
+
+            summary = evaluate_answerability(destination, Path(labels_path))
+            print(f"Answerability evaluation: {json.dumps(summary, ensure_ascii=False)}", flush=True)
 
     def _run_question(
         self,

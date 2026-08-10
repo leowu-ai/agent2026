@@ -22,6 +22,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         limit: Optional[int] = None,
         crop_patches: bool = True,
         resume: bool = True,
+        answerability_labels: Optional[str] = None,
     ) -> Path:
         source = Path(vqa_path or self.config["vqa_json"])
         with source.open(encoding="utf-8") as handle:
@@ -62,29 +63,53 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         with destination.open(mode, encoding="utf-8") as handle:
             for case_number, (case_id, case_items) in enumerate(grouped.items(), 1):
                 print(
-                    f"[{case_number}/{len(grouped)}] infer {case_id} "
+                    f"[{case_number}/{len(grouped)}] gate {case_id} "
                     f"({len(case_items)} MC questions)",
+                    flush=True,
+                )
+                answerable = []
+                for item in case_items:
+                    assessment = self._predict_answerability(item)
+                    if assessment["answerability"] == "unanswerable":
+                        self._save_mc_result(
+                            handle, self._abstained_result(item, assessment), tracker
+                        )
+                        continue
+                    answerable.append((item, assessment, self.planner.plan(item)))
+                if not answerable:
+                    print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
+                    continue
+
+                print(
+                    f"infer {case_id} ({len(answerable)} answerable MC questions)",
                     flush=True,
                 )
                 try:
                     scale_results = self.g2p.infer_case(case_id)
                 except Exception as error:
-                    for item in case_items:
-                        plan = self.planner.plan(item)
+                    for item, assessment, plan in answerable:
                         self._save_mc_result(
-                            handle, self._error_result(item, plan, error), tracker
+                            handle,
+                            self._attach_answerability(
+                                self._error_result(item, plan, error), assessment
+                            ),
+                            tracker,
                         )
                     continue
 
                 evidence_cache = {}
-                for item in case_items:
-                    plan = self.planner.plan(item)
+                for item, assessment, plan in answerable:
                     try:
-                        result = self._run_question(
-                            item, plan, scale_results, evidence_cache, crop_patches
+                        result = self._attach_answerability(
+                            self._run_question(
+                                item, plan, scale_results, evidence_cache, crop_patches
+                            ),
+                            assessment,
                         )
                     except Exception as error:
-                        result = self._error_result(item, plan, error)
+                        result = self._attach_answerability(
+                            self._error_result(item, plan, error), assessment
+                        )
                     self._save_mc_result(handle, result, tracker)
 
                 del scale_results, evidence_cache
@@ -92,6 +117,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                 if torch.cuda.is_available():
                     torch.cuda.empty_cache()
         tracker.save_snapshot()
+        self._evaluate_if_requested(destination, answerability_labels)
         return destination
 
     @staticmethod

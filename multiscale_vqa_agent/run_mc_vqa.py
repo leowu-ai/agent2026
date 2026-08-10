@@ -21,6 +21,11 @@ def main():
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
+    parser.add_argument(
+        "--answerability_labels",
+        default=None,
+        help="Optional Gold labels used only after inference for evaluation.",
+    )
     args = parser.parse_args()
 
     pipeline = MultipleChoiceVQAPipeline(args.config)
@@ -31,6 +36,7 @@ def main():
         limit=args.limit,
         crop_patches=not args.no_crop,
         resume=not args.no_resume,
+        answerability_labels=args.answerability_labels,
     )
     print(f"Saved answers: {output}")
 

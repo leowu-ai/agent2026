@@ -1,0 +1,4608 @@
+{
+  "schema_version": "wsi_answerability_3class_benchmark_v1",
+  "status": "draft_for_manual_freeze_before_paper",
+  "source_dataset": {
+    "repository": "shenyvshen/agent2026",
+    "commit": "d929c8fd07481b95615f41d096827723d1552064",
+    "path": "dataset/WsiVQA_test.json",
+    "blob_sha": "fb116eb9099dfe5c712608b6b8ba1d03bca5f2f4"
+  },
+  "task_definition": "Model-independent question answerability from routine pathology WSI. Labels describe the information content of the question relative to H&E WSI, not the capabilities of any particular Router, ToolBank, or model.",
+  "classes": {
+    "directly_answerable": {
+      "description": "The requested target is directly supported by H&E morphology in principle.",
+      "primary_vqa": true,
+      "strict_visual_vqa": true
+    },
+    "inferable": {
+      "description": "The target is not directly visible on H&E but is a tissue-linked biological phenotype that may be statistically inferred from WSI.",
+      "primary_vqa": true,
+      "strict_visual_vqa": false
+    },
+    "unanswerable": {
+      "description": "The requested fact requires report/gross specimen/clinical/procedural context or exact information not identifiable from WSI.",
+      "primary_vqa": false,
+      "strict_visual_vqa": false
+    },
+    "dataset_error": {
+      "description": "Malformed or internally inconsistent benchmark item; exclude from all metrics.",
+      "primary_vqa": null,
+      "strict_visual_vqa": null
+    }
+  },
+  "evaluation_protocol": {
+    "answerability_detection": {
+      "evaluate_on": "all valid questions (exclude dataset_error only)",
+      "recommended_metrics": [
+        "accuracy",
+        "macro_f1",
+        "per_class_precision",
+        "per_class_recall",
+        "per_class_f1"
+      ]
+    },
+    "primary_vqa_accuracy": {
+      "evaluate_on": [
+        "directly_answerable",
+        "inferable"
+      ],
+      "exclude": [
+        "unanswerable",
+        "dataset_error"
+      ],
+      "important": "Use the SAME frozen subset for Ours and every baseline; never let each model choose its own denominator."
+    },
+    "strict_visual_vqa_accuracy": {
+      "evaluate_on": [
+        "directly_answerable"
+      ],
+      "exclude": [
+        "inferable",
+        "unanswerable",
+        "dataset_error"
+      ]
+    },
+    "selective_reporting": {
+      "also_report": [
+        "coverage",
+        "selective_accuracy_if_model_can_abstain"
+      ]
+    }
+  },
+  "ordered_annotation_rules": [
+    {
+      "priority": 10,
+      "label": "dataset_error",
+      "when": "Exact (Id, Question) match in exact_annotations with answerability=dataset_error."
+    },
+    {
+      "priority": 20,
+      "label": "unanswerable",
+      "patterns": [
+        "exact survival time or vital status",
+        "patient age / symptoms / performance status / consent / treatment / medication",
+        "exact tumor or specimen dimensions",
+        "surgical margin status/distance when specimen orientation is required",
+        "multifocality / focus count / laterality / specimen location",
+        "exact TNM or AJCC stage",
+        "exact tumor/DCIS percentage",
+        "exact receptor staining percentage",
+        "what procedure, stain, test, recommendation, or pending study was documented"
+      ]
+    },
+    {
+      "priority": 30,
+      "label": "inferable",
+      "patterns": [
+        "categorical ER status",
+        "categorical PR status",
+        "categorical HER2 status",
+        "categorical HER2 amplification / molecular biomarker state"
+      ],
+      "definition": "Not directly visible on routine H&E, but a tissue-linked biological phenotype that can be statistically inferred from WSI."
+    },
+    {
+      "priority": 40,
+      "label": "directly_answerable",
+      "patterns": [
+        "histological type / carcinoma subtype",
+        "histologic or nuclear grade",
+        "necrosis / comedonecrosis",
+        "microcalcification",
+        "lymphovascular or vascular invasion",
+        "DCIS/LCIS presence",
+        "architectural growth pattern",
+        "benign breast morphology such as hyperplasia, adenosis, metaplasia, fibroadenoma, fibrocystic change"
+      ]
+    }
+  ],
+  "exact_annotations": [
+    {
+      "Id": "TCGA-LD-A74U",
+      "Question": "what is the tumor size approximately?",
+      "Choice": [
+        "50mm",
+        "60mm",
+        "70mm",
+        "80mm"
+      ],
+      "Answer": "70mm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A1AI",
+      "Question": "what was the size of the mass in jeb's breast?",
+      "Choice": [
+        "3.5 x 2.0 x 2.0 cm",
+        "4.5 x 3.0 x 2.0 cm",
+        "4.0 x 2.5 x 2.0 cm",
+        "5.0 x 2.5 x 2.5 cm."
+      ],
+      "Answer": "4.5 x 3.0 x 2.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A1AI",
+      "Question": "what was the status of the surgical margins in jeb's case?",
+      "Choice": [
+        "positive, indicating residual cancer.",
+        "negative, indicating removal of all cancer.",
+        "unclear, further testing is neede",
+        "d: positive, indicating the presence of cancer in the margins."
+      ],
+      "Answer": "negative, indicating removal of all cancer.",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0WZ",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "1.4 cm",
+        "2.8 cm",
+        "3 cm",
+        "3.2 cm"
+      ],
+      "Answer": "3 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0WZ",
+      "Question": "is there evidence of multifocal tumor?",
+      "Choice": [
+        "yes",
+        "no",
+        "cannot determine",
+        "not mentioned in the slide"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A5IZ",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "22 cm",
+        "9/9",
+        "grade 3",
+        "negative for invasive carcinoma"
+      ],
+      "Answer": "negative for invasive carcinoma",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题与 reference_answer 明显错位，答案语义与提问不相干。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-BH-A5IZ",
+      "Question": "what percentage of the tumor volume constitutes ductal carcinoma in situ (dcis)?",
+      "Choice": [
+        "less than 5%",
+        "22 cm",
+        "grade 3",
+        "focal atypical ductal hyperplasia"
+      ],
+      "Answer": "focal atypical ductal hyperplasia",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题与 reference_answer 明显错位，答案语义与提问不相干。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-BH-A5IZ",
+      "Question": "what type of non-neoplastic breast tissue changes were observed?",
+      "Choice": [
+        "atypical ductal hyperplasia",
+        "fibrocystic changes",
+        "dermal lymphatic invasion",
+        "focal atypical ductal hyperplasia"
+      ],
+      "Answer": "focal atypical ductal hyperplasia",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0AZ",
+      "Question": "what is the tumor size range?",
+      "Choice": [
+        "0.6 cm to 21 cm",
+        "0.6 cm to 9 cm",
+        "0.6 cm to 15 cm",
+        "0.8 cm to 21 cm"
+      ],
+      "Answer": "0.6 cm to 21 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0AZ",
+      "Question": "what percentage of tumor volume does ductal carcinoma in situ (dcis) represent?",
+      "Choice": [
+        "less than 1%",
+        "approximately 2%",
+        "around 10%",
+        "more than 5%"
+      ],
+      "Answer": "less than 1%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1PF",
+      "Question": "what is the total size of the tumor?",
+      "Choice": [
+        "1.0 cm",
+        "2.0 cm",
+        "3.0 cm",
+        "4.0 cm"
+      ],
+      "Answer": "2.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1PF",
+      "Question": "what is the size of the comedo necrosis in the ductal carcinoma in situ?",
+      "Choice": [
+        "less than 1%",
+        "less than 3%",
+        "less than 5%",
+        "less than 7%"
+      ],
+      "Answer": "less than 5%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1PF",
+      "Question": "what is the pending immunohistochemistry for?",
+      "Choice": [
+        "keratin",
+        "estrogen receptor",
+        "progesterone receptor",
+        "her2/neu"
+      ],
+      "Answer": "keratin",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the size of the infiltrating ductal carcinoma in the breast?",
+      "Choice": [
+        "2.0 cm",
+        "3.0 cm",
+        "2 mm",
+        "1.5 cm"
+      ],
+      "Answer": "3.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the nottingham score of the infiltrating ductal carcinoma?",
+      "Choice": [
+        "7/9",
+        "5/9",
+        "9/9",
+        "6/9"
+      ],
+      "Answer": "7/9",
+      "answerability": "directly_answerable",
+      "information_source": "pathology_derived_target",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "P011 only provides low/intermediate/high Nottingham categories, so it supplies related WSI evidence but cannot uniquely recover an exact numerical score such as 5/9–9/9.",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the closest margin of resection for the infiltrating ductal carcinoma?",
+      "Choice": [
+        "2.0 cm",
+        "1.5 cm",
+        "3.0 cm",
+        "0.5 cm"
+      ],
+      "Answer": "2.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the pathological stage of the breast cancer?",
+      "Choice": [
+        "t1 n0 m0",
+        "t2 n1 mx",
+        "t3 n2 m1",
+        "t4 n3 m2"
+      ],
+      "Answer": "t2 n1 mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A202",
+      "Question": "what was the size of the primary invasive carcinoma?",
+      "Choice": [
+        "2.8 cm",
+        "4 mm",
+        "0.4 cm",
+        "3 mm"
+      ],
+      "Answer": "2.8 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A202",
+      "Question": "what was the score for estrogen receptors?",
+      "Choice": [
+        "250",
+        "78",
+        "positive",
+        "negative"
+      ],
+      "Answer": "250",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A202",
+      "Question": "what was the pathologic stage?",
+      "Choice": [
+        "pt4an0mx",
+        "negative",
+        "positive",
+        "in situ component"
+      ],
+      "Answer": "pt4an0mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A0U3",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "2.3 x 2.0 cm",
+        "3.5 x 2.0 cm",
+        "2.0 x 2.0 cm",
+        "2.5 x 3.0 cm"
+      ],
+      "Answer": "2.3 x 2.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A0U3",
+      "Question": "what was the stage classification of the tumor?",
+      "Choice": [
+        "t0",
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "Answer": "t2",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A0U3",
+      "Question": "how much of the tumor was accounted for by ductal carcinoma in-situ?",
+      "Choice": [
+        "5%",
+        "15%",
+        "10%",
+        "20%"
+      ],
+      "Answer": "10%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0JE",
+      "Question": "what additional findings are present in the tumor?",
+      "Choice": [
+        "no additional findings",
+        "calcifications and microvascular invasion",
+        "focal atypical ductal hyperplasia",
+        "benign changes in the surrounding breast tissue"
+      ],
+      "Answer": "calcifications and microvascular invasion",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "正确选项由钙化与微血管/淋巴血管侵犯两个现有视觉 phenotype 组成，适合多头证据融合。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0JE",
+      "Question": "what is found in the surrounding breast tissue?",
+      "Choice": [
+        "benign changes",
+        "high-grade ductal carcinoma",
+        "ductal carcinoma in situ",
+        "extranodal extension"
+      ],
+      "Answer": "benign changes",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0JE",
+      "Question": "where were receptor studies performed?",
+      "Choice": [
+        "on the sentinel lymph nodes",
+        "on the right breast mass",
+        "on the surrounding breast tissue",
+        "on the axillary lymph nodes"
+      ],
+      "Answer": "on the right breast mass",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A1-A0SF",
+      "Question": "what is the size of the infiltrating ductal carcinoma in the breast?",
+      "Choice": [
+        "1.4 cm",
+        "2.4 cm",
+        "3.4 cm",
+        "4.4 cm"
+      ],
+      "Answer": "2.4 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A1-A0SF",
+      "Question": "what is the pathological finding in the ovary?",
+      "Choice": [
+        "benign paratubal cyst",
+        "malignant tumor",
+        "endometriosis",
+        "ovarian cyst"
+      ],
+      "Answer": "benign paratubal cyst",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1P7",
+      "Question": "what were the results of the tumor margin assessment?",
+      "Choice": [
+        "positive",
+        "negative",
+        "inconclusive",
+        "not mentioned"
+      ],
+      "Answer": "negative",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1P7",
+      "Question": "what was the receptor status for her 2-neu?",
+      "Choice": [
+        "positive",
+        "negative",
+        "equivocal",
+        "not mentioned"
+      ],
+      "Answer": "equivocal",
+      "answerability": "inferable",
+      "information_source": "latent_receptor_or_molecular_phenotype",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "The current HER2 phenotype head is binary positive/negative, while the choices include equivocal; the WSI phenotype is informative but does not fully cover the answer space.",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DG",
+      "Question": "what is the pathological stage of the tumor?",
+      "Choice": [
+        "pt0n0",
+        "pt2n0",
+        "pt1n1",
+        "pt3n2"
+      ],
+      "Answer": "pt2n0",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DG",
+      "Question": "what percentage of the tumor volume comprises the in situ component?",
+      "Choice": [
+        "approximately 30%",
+        "approximately 15%",
+        "approximately 5%",
+        "approximately 20%"
+      ],
+      "Answer": "approximately 20%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DG",
+      "Question": "what type of breast tissue is present besides the tumor?",
+      "Choice": [
+        "fibroadenoma only",
+        "fibrocystic change only",
+        "both fibrocystic change and fibroadenoma",
+        "non-neoplastic breast tissue"
+      ],
+      "Answer": "both fibrocystic change and fibroadenoma",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DD",
+      "Question": "what is the histological finding of the breast simple mastectomy?",
+      "Choice": [
+        "ductal carcinoma in situ,",
+        "adipose breast tissue,",
+        "nuclear pleomorphism and mitotic activity,",
+        "lymphoplasmacytic infiltrate and necrosis"
+      ],
+      "Answer": "adipose breast tissue,",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DD",
+      "Question": "what is the histological finding of the modified radical mastectomy?",
+      "Choice": [
+        "ductal carcinoma in situ,",
+        "ductal epithelial hyperplasia,",
+        "lymphoplasmacytic infiltrate and necrosis,",
+        "skin and nipple are histologically unremarkable"
+      ],
+      "Answer": "lymphoplasmacytic infiltrate and necrosis,",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DD",
+      "Question": "what is the receptor status mentioned in the slide?",
+      "Choice": [
+        "estrogen receptors are positive,",
+        "progesterone receptors are positive,",
+        "both estrogen and progesterone receptors are positive,",
+        "receptor status is not mentioned"
+      ],
+      "Answer": "estrogen receptors are positive,",
+      "answerability": "inferable",
+      "information_source": "latent_receptor_or_molecular_phenotype",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0IA",
+      "Question": "what is the size of the tumor found in the patient's breast?",
+      "Choice": [
+        "2.0 cm",
+        "1.5 cm",
+        "2.5 cm",
+        "3.0 cm"
+      ],
+      "Answer": "2.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0IA",
+      "Question": "what other changes were found in the patient's breast?",
+      "Choice": [
+        "hyperplasia",
+        "fibrosis",
+        "metaplasia",
+        "dilated ducts"
+      ],
+      "Answer": "hyperplasia",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0IA",
+      "Question": "was there any residual carcinoma in the previous biopsy site?",
+      "Choice": [
+        "no",
+        "yes",
+        "not mentioned",
+        "none of the above"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "where was the metastatic involvement found?",
+      "Choice": [
+        "breast tissue",
+        "lymph nodes",
+        "chest cavity",
+        "abdominal organs"
+      ],
+      "Answer": "lymph nodes",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what type of procedure did the patient undergo?",
+      "Choice": [
+        "mastectomy",
+        "lumpectomy",
+        "biopsy",
+        "lymph node dissection"
+      ],
+      "Answer": "lumpectomy",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what additional tests were performed?",
+      "Choice": [
+        "magnetic resonance imaging",
+        "computed tomography scan",
+        "positron emission tomography scan",
+        "immunostains"
+      ],
+      "Answer": "immunostains",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what does the surgical slide provide information on?",
+      "Choice": [
+        "patient demographics",
+        "treatment plan",
+        "tumor size and characteristics",
+        "prognosis"
+      ],
+      "Answer": "tumor size and characteristics",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what type of node was involved in the metastatic carcinoma?",
+      "Choice": [
+        "sentinel lymph node",
+        "axillary lymph node",
+        "inguinal lymph node",
+        "paraaortic lymph node"
+      ],
+      "Answer": "sentinel lymph node",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "0.8 cm",
+        "1.5 cm",
+        "2.1 cm",
+        "2.8 cm"
+      ],
+      "Answer": "2.1 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what is the elston modification of bloom-richardson grade?",
+      "Choice": [
+        "grade 1/3",
+        "grade 2/3",
+        "grade 3/3",
+        "not specified"
+      ],
+      "Answer": "grade 2/3",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题直接询问组织学分级，已有 histologic_grade_label head。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what is the status of the surgical margins?",
+      "Choice": [
+        "negative",
+        "positive",
+        "uncertain",
+        "tumor not transected"
+      ],
+      "Answer": "negative",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what other findings were observed in the pathological slide?",
+      "Choice": [
+        "no other findings",
+        "fibroids and hemorrhage",
+        "ductal carcinoma in situ",
+        "axillary node involvement"
+      ],
+      "Answer": "fibroids and hemorrhage",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A259",
+      "Question": "what was the size of the patient's tumor?",
+      "Choice": [
+        "1.0 cm",
+        "1.5 cm",
+        "2.0 cm",
+        "2.5 cm"
+      ],
+      "Answer": "1.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A1-A0SJ",
+      "Question": "what is the immunohistochemical finding of the tumor?",
+      "Choice": [
+        "renal cell carcinoma",
+        "renal tumor",
+        "angiomyolipoma",
+        "oncocytoma"
+      ],
+      "Answer": "renal tumor",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "BRCA 乳腺数据中混入肾肿瘤题，且 IHC 问法与诊断类选项不匹配，明显跨域/异常。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-E9-A1N6",
+      "Question": "what was the size of the breast tumor?",
+      "Choice": [
+        "2.3 x 2.3 x 2 cm",
+        "2.3 x 2.3 x 2 mm",
+        "2.3 x 2.3 x 2 um",
+        "2.3 x 2.3 x 2 nm"
+      ],
+      "Answer": "2.3 x 2.3 x 2 mm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1N6",
+      "Question": "what was the missing data preventing the determination of the nottingham histologic score?",
+      "Choice": [
+        "tubule formation, nuclear pleomorphism, and mitotic count",
+        "tubule formation, nuclear pleomorphism, and lymph node invasion",
+        "tubule formation, nuclear pleomorphism, and tumor extent",
+        "tubule formation, nuclear pleomorphism, and margin status"
+      ],
+      "Answer": "tubule formation, nuclear pleomorphism, and mitotic count",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1N6",
+      "Question": "was any information provided on neo-adjuvant treatment?",
+      "Choice": [
+        "yes",
+        "no",
+        "unclear",
+        "insufficient"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A5YP",
+      "Question": "what was the size of the high-grade ductal carcinoma in situ (dcis) in the breast?",
+      "Choice": [
+        "1.8 cm",
+        "2.5 cm",
+        "3.2 cm",
+        "4.5 cm"
+      ],
+      "Answer": "1.8 cm",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A5YP",
+      "Question": "were the margins involved with tumor?",
+      "Choice": [
+        "yes",
+        "no",
+        "cannot determine",
+        "not mentioned"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A5YP",
+      "Question": "what additional findings were noted apart from the carcinomas?",
+      "Choice": [
+        "proliferative fibrocystic changes and neurofibromatosis",
+        "invasive lobular carcinoma and fibroadenoma",
+        "ductal carcinoma in situ (dcis) and mastitis",
+        "metastatic carcinoma and ductal hyperplasia"
+      ],
+      "Answer": "proliferative fibrocystic changes and neurofibromatosis",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "where has the tumor spread to?",
+      "Choice": [
+        "skin",
+        "right axilla",
+        "non-neoplastic breast tissue changes",
+        "left axilla"
+      ],
+      "Answer": "left axilla",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "what type of tissue changes are mentioned in the slide?",
+      "Choice": [
+        "invasive ductal carcinoma",
+        "left axilla",
+        "non-neoplastic breast tissue changes",
+        "estrogen and progesterone receptor positivity"
+      ],
+      "Answer": "non-neoplastic breast tissue changes",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "what does the slide confirm about the diagnosis?",
+      "Choice": [
+        "size and location of the tumor within the breast",
+        "involvement of the skin by the carcinoma",
+        "non-neoplastic breast tissue changes",
+        "presence of benign lymph nodes"
+      ],
+      "Answer": "involvement of the skin by the carcinoma",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "what stains were performed on the tissue?",
+      "Choice": [
+        "estrogen and progesterone receptor positivity",
+        "skin",
+        "non-neoplastic breast tissue changes",
+        "special stains"
+      ],
+      "Answer": "special stains",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A3M7",
+      "Question": "what is the patient's karnofsky performance scale score indicating?",
+      "Choice": [
+        "severely symptomatic",
+        "moderately symptomatic",
+        "mildly symptomatic",
+        "asymptomatic"
+      ],
+      "Answer": "asymptomatic",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A3M7",
+      "Question": "is the patient currently on any medications?",
+      "Choice": [
+        "yes",
+        "no",
+        "not specified",
+        "none of the above"
+      ],
+      "Answer": "not specified",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A3M7",
+      "Question": "is there any information about the presence of distant metastasis?",
+      "Choice": [
+        "yes",
+        "no",
+        "partially mentioned",
+        "not specified"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A227",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "2.1 x 1.8 x 1.4 cm",
+        "1.8 x 1.4 x 2.1 cm",
+        "1.4 x 2.1 x 1.8 cm",
+        "1.4 x 1.8 x 2.1 cm"
+      ],
+      "Answer": "2.1 x 1.8 x 1.4 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1IY",
+      "Question": "what were the findings of the examination of the sentinel node #3?",
+      "Choice": [
+        "no malignancy was seen.",
+        "malignancy was seen.",
+        "additional testing is in progress.",
+        "immunostains are negative."
+      ],
+      "Answer": "additional testing is in progress.",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1IY",
+      "Question": "what is the size of the infiltrating ductal carcinoma in the breast?",
+      "Choice": [
+        "2.0 cm in greatest dimension.",
+        "1.5 cm in greatest dimension.",
+        "2.5 cm in greatest dimension.",
+        "1.0 cm in greatest dimension."
+      ],
+      "Answer": "2.0 cm in greatest dimension.",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A1IY",
+      "Question": "which immunostain was positive in the tumor cells?",
+      "Choice": [
+        "keratin.",
+        "estrogen receptors.",
+        "progesterone receptors.",
+        "her2-neu."
+      ],
+      "Answer": "estrogen receptors.",
+      "answerability": "unanswerable",
+      "information_source": "requires_actual_assay_result",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题明确询问 IHC/FISH/免疫表型或 receptor testing 的真实检测结果；WSI phenotype 可作为代理证据，但不能等同于实际实验室检测。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A442",
+      "Question": "is there any invasive tumor seen at the surgical margins?",
+      "Choice": [
+        "yes",
+        "no",
+        "can't tell",
+        "none of the above"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A442",
+      "Question": "what is the size of the breast tumor?",
+      "Choice": [
+        "2.5 cm",
+        "2.7 cm",
+        "3.0 cm",
+        "3.2 cm"
+      ],
+      "Answer": "2.7 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A2FW",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "1.5 cm",
+        "3.8 cm",
+        "2.8 cm",
+        "4.2 cm"
+      ],
+      "Answer": "2.8 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A2FW",
+      "Question": "what is the presence of estrogen and progesterone receptors in tumor cells?",
+      "Choice": [
+        "50%",
+        "21%",
+        "5%",
+        "0%"
+      ],
+      "Answer": "21%",
+      "answerability": "inferable",
+      "information_source": "latent_receptor_or_molecular_phenotype",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-EW-A2FW",
+      "Question": "what is the final pathologic stage of the tumor?",
+      "Choice": [
+        "pt1 n0 mx",
+        "pt2 n0 mx",
+        "pt1 n1 mx",
+        "pt2 n1 mx"
+      ],
+      "Answer": "pt2 n0 mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E2-A105",
+      "Question": "what size was the stellate mass found in the breast?",
+      "Choice": [
+        "1.0 cm",
+        "1.1 cm",
+        "1.5 cm",
+        "2.0 cm"
+      ],
+      "Answer": "1.1 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E2-A105",
+      "Question": "are the surgical margins free of tumor?",
+      "Choice": [
+        "yes",
+        "no",
+        "not mentioned",
+        "only the left breast"
+      ],
+      "Answer": "yes",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A255",
+      "Question": "what was the size of the mass that was excised?",
+      "Choice": [
+        "1.2 x 1.3 x 1.3 cm",
+        "1.2 x 1.3 x 1.2 cm",
+        "1.3 x 1.3 x 1.2 cm",
+        "1.3 x 1.3 x 1.1 cm"
+      ],
+      "Answer": "1.3 x 1.3 x 1.2 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0EW",
+      "Question": "what was the final pathological stage of the patient's cancer?",
+      "Choice": [
+        "pt1c n2 mx",
+        "pt1 n0 m0",
+        "pt2 n1 m0",
+        "pt3 n2 m1"
+      ],
+      "Answer": "pt1c n2 mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0EW",
+      "Question": "where in the patient's breast were the two tumors found?",
+      "Choice": [
+        "lower inner quadrant and upper outer quadrant",
+        "lower outer quadrant and upper middle quadrant",
+        "upper inner quadrant and lower middle quadrant",
+        "upper outer quadrant and lower inner quadrant"
+      ],
+      "Answer": "lower outer quadrant and upper middle quadrant",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08R",
+      "Question": "what is the final tumor classification for the breast?",
+      "Choice": [
+        "nos (not otherwise specified), g3 (grade 3), pt2n1a, lovoro",
+        "nos (not otherwise specified), g2 (grade 2), pt1n0, nolo",
+        "nos (not otherwise specified), g3 (grade 3), pt3n1a, nolo",
+        ", g3 (grade 3), pt2n1a, lovoro        b: nos (not otherwise specified), g2 (grade 2), pt1n0, nolo        c: nos (not otherwise specified), g3 (grade 3), pt3n1a, nolo        d: nod (not otherwise determined), g3 (grade 3), pt2n0, lovoro"
+      ],
+      "Answer": "nos (not otherwise specified), g3 (grade 3), pt2n1a, lovoro",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "选项 D 为多个选项拼接后的损坏文本，MCQ 格式明显破坏。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-A8-A08R",
+      "Question": "what is the tumor diameter in the breast?",
+      "Choice": [
+        "2 cm",
+        "3 cm",
+        "4 cm",
+        "5 cm"
+      ],
+      "Answer": "4 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "3x2.5x2.4 cm",
+        "3x3x3 cm",
+        "2.5x2.5x2 cm",
+        "2x1.5x1.5 cm"
+      ],
+      "Answer": "3x2.5x2.4 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what was found in the breast tissue besides invasive ductal carcinoma?",
+      "Choice": [
+        "invasive lobular carcinoma",
+        "intracystic papillary carcinoma",
+        "fibroadenoma",
+        "fibrocystic changes"
+      ],
+      "Answer": "intracystic papillary carcinoma",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what percentage of the tumor mass accounts for ductal carcinoma in situ?",
+      "Choice": [
+        "2%",
+        "5%",
+        "10%",
+        "15%"
+      ],
+      "Answer": "5%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what is the closest margin to the tumor?",
+      "Choice": [
+        "0.5 cm",
+        "1.2 cm",
+        "2 cm",
+        "3 cm"
+      ],
+      "Answer": "1.2 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what is the t stage of the tumor?",
+      "Choice": [
+        "pr1",
+        "pr2",
+        "pr3",
+        "pr4"
+      ],
+      "Answer": "pr2",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": "选项 pr1/pr2/pr3/pr4 疑似 pT1-pT4 的文本损坏，建议回查原始数据。"
+    },
+    {
+      "Id": "TCGA-E2-A15E",
+      "Question": "what is the size of the invasive ductal carcinoma in the breast?",
+      "Choice": [
+        "1.1 cm",
+        "0.3 cm",
+        "3.2 cm",
+        "0.1 cm"
+      ],
+      "Answer": "1.1 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E2-A15E",
+      "Question": "which type of carcinoma shows necrosis?",
+      "Choice": [
+        "ductal carcinoma in situ",
+        "invasive ductal carcinoma",
+        "lobular carcinoma in situ",
+        "none of the above"
+      ],
+      "Answer": "ductal carcinoma in situ",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E2-A15E",
+      "Question": "what are the results for er, pr, and her2?",
+      "Choice": [
+        "all positive",
+        "all negative",
+        "er and pr positive, her2 negative",
+        "er and her2 positive, pr negative"
+      ],
+      "Answer": "all positive",
+      "answerability": "inferable",
+      "information_source": "latent_receptor_or_molecular_phenotype",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题询问 ER/PR/HER2 的状态组合，三个对应 phenotype head 均存在，可多头融合。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0WV",
+      "Question": "what is the size of the infiltrating tumor in the breast?",
+      "Choice": [
+        "1.5 cm",
+        "2 cm",
+        "2.1 cm",
+        "3.5 cm"
+      ],
+      "Answer": "3.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0WV",
+      "Question": "is there any residual carcinoma in the mastectomy specimen?",
+      "Choice": [
+        "yes",
+        "no",
+        "not mentioned",
+        "not applicable"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1RA",
+      "Question": "what was the size of the lump in the breast?",
+      "Choice": [
+        "0.8 x 1.2 cm",
+        "1.2 x 1.3 cm",
+        "1.5 x 1.7 cm",
+        "2.0 x 2.2 cm"
+      ],
+      "Answer": "1.2 x 1.3 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1RA",
+      "Question": "were there any specific histological details provided?",
+      "Choice": [
+        "yes",
+        "no",
+        "not specified",
+        "insufficient information"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1RA",
+      "Question": "what is the extent of the tumor?",
+      "Choice": [
+        "unknown",
+        "localized",
+        "invasive",
+        "metastatic"
+      ],
+      "Answer": "unknown",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BT",
+      "Question": "what were the characteristics of the invasive ductal carcinoma in the breast segmental mastectomy?",
+      "Choice": [
+        "tumor measuring 2.0 cm.",
+        "ductal carcinoma with comedo necrosis.",
+        "presence of cribriform type.",
+        "all of the above."
+      ],
+      "Answer": "all of the above.",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BT",
+      "Question": "what is the result in the medial new margin?",
+      "Choice": [
+        "positive for tumor.",
+        "negative for tumor.",
+        "tumor size not mentione",
+        "d: not applicable."
+      ],
+      "Answer": "negative for tumor.",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HX",
+      "Question": "what is the grade of lobular carcinoma in the breast?",
+      "Choice": [
+        "grade 1",
+        "grade 2",
+        "grade 3",
+        "grade 4"
+      ],
+      "Answer": "grade 2",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题直接询问组织学分级，已有 histologic_grade_label head。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0HX",
+      "Question": "what findings are mentioned in the breast?",
+      "Choice": [
+        "skin involvement and paget's disease",
+        "columnar cell change and sclerosing adenosis",
+        "fibroglandular changes and associated microcalcifications",
+        "focal atypical ductal hyperplasia and atypical lobular hyperplasia"
+      ],
+      "Answer": "columnar cell change and sclerosing adenosis",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the diameter of the tumor?",
+      "Choice": [
+        "2.0 cm",
+        "10.0 cm",
+        "5.0 cm",
+        "3.5 cm"
+      ],
+      "Answer": "5.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the classification of the tumor?",
+      "Choice": [
+        "nos, g ii, pt4bn3al1voro",
+        "nos, g i, pt2n0m0",
+        "nos, g iii, pt3an1m0",
+        "nos, g iv, pt4an2m0"
+      ],
+      "Answer": "nos, g ii, pt4bn3al1voro",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the status of the dorsal resection margin?",
+      "Choice": [
+        "tumor-free",
+        "invaded by tumor",
+        "unidentified",
+        "not mentioned"
+      ],
+      "Answer": "tumor-free",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the level of angioinvasion in the tumor?",
+      "Choice": [
+        "focal",
+        "extensive",
+        "no angioinvasion",
+        "not mentioned"
+      ],
+      "Answer": "focal",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A1JL",
+      "Question": "what was the size of the tumor found in the patient's breast?",
+      "Choice": [
+        "2.1 x 2.2 x 0.8 cm.",
+        "not mentioned in the slide.",
+        "3.5 x 3.5 x 1.2 cm.",
+        "1.5 x 1.5 x 0.5 cm."
+      ],
+      "Answer": "2.1 x 2.2 x 0.8 cm.",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A1JL",
+      "Question": "what type of lesion was found in the glandular tissue surrounding the tumor?",
+      "Choice": [
+        "fibroadenoma.",
+        "mastitis.",
+        "mastopathy fibrosa et cystica.",
+        "ductal hyperplasia."
+      ],
+      "Answer": "mastopathy fibrosa et cystica.",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "what was the size of the mass in the medial portion of the specimen?",
+      "Choice": [
+        "1.5 cm",
+        "2.5 cm",
+        "3.5 cm",
+        "4.5 cm"
+      ],
+      "Answer": "3.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "what percentage of the carcinoma is comprised of intraductal carcinoma?",
+      "Choice": [
+        "less than 5%",
+        "between 10-20%",
+        "around 50%",
+        "more than 90%"
+      ],
+      "Answer": "less than 5%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "was there any tumor seen in the deep surgical margin?",
+      "Choice": [
+        "yes",
+        "no"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "what non-neoplastic changes were observed in the breast tissue?",
+      "Choice": [
+        "fibrosis",
+        "hyperplasia",
+        "apocrine metaplasia",
+        "adenosis"
+      ],
+      "Answer": "apocrine metaplasia",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-GM-A2D9",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "2.8 x 2.8 x 2.0 cm",
+        "1.2 x 1.0 x 0.8 cm",
+        "1.6 x 1.6 x 1.2 cm",
+        "3.5 x 3.5 x 3.5 cm"
+      ],
+      "Answer": "1.6 x 1.6 x 1.2 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-GM-A2D9",
+      "Question": "what percentage of the total tumor comprises focal intraductal carcinoma?",
+      "Choice": [
+        "less than 5%",
+        "20%",
+        "50%",
+        "more than 5%"
+      ],
+      "Answer": "less than 5%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-GM-A2D9",
+      "Question": "what is the ki-67 proliferation index of the invasive carcinoma?",
+      "Choice": [
+        "5%",
+        "10%",
+        "15%",
+        "20%"
+      ],
+      "Answer": "10%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what type of procedure did the patient have?",
+      "Choice": [
+        "bilateral simple mastectomy with sentinel node biopsy.",
+        "bilateral reconstruction surgery.",
+        "lumpectomy with radiation therapy.",
+        "none of the above."
+      ],
+      "Answer": "bilateral simple mastectomy with sentinel node biopsy.",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "in which breast did the slide find a benign sentinel node?",
+      "Choice": [
+        "right",
+        "left",
+        "both",
+        "neither"
+      ],
+      "Answer": "left",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what size was the benign sentinel node?",
+      "Choice": [
+        "7.0 cm",
+        "2.5 x 1.0 x 1.0 cm",
+        "irregular fibrous nodule",
+        "smaller palpable nodules"
+      ],
+      "Answer": "2.5 x 1.0 x 1.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what was found in the breast?",
+      "Choice": [
+        "benign sentinel node",
+        "invasive breast cancer",
+        "both a and b",
+        "neither a nor b"
+      ],
+      "Answer": "invasive breast cancer",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what was the size of the irregular fibrous nodule found in the slide?",
+      "Choice": [
+        "7.0 cm",
+        "2.5 x 1.0 x 1.0 cm",
+        "benign sentinel node",
+        "smaller palpable nodules"
+      ],
+      "Answer": "7.0 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what does the slide suggest about the presence of breast cancer?",
+      "Choice": [
+        "there is no presence of breast cancer.",
+        "there is only the presence of breast cancer in the left breast.",
+        "there is only the presence of breast cancer in the right breast.",
+        "there is the presence of invasive breast cancer in both breasts."
+      ],
+      "Answer": "there is the presence of invasive breast cancer in both breasts.",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AQ-A7U7",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "2.1 cm",
+        "3.1 cm",
+        "4.1 cm",
+        "5.1 cm'"
+      ],
+      "Answer": "4.1 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XS",
+      "Question": "what is the stage of the tumor?",
+      "Choice": [
+        "t1n0m0",
+        "t2n1m0",
+        "t3n1m1",
+        "t4n2m1"
+      ],
+      "Answer": "t1n0m0",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XS",
+      "Question": "has any treatment been administered yet?",
+      "Choice": [
+        "yes",
+        "no"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XS",
+      "Question": "what was obtained in addition to the tumor sample?",
+      "Choice": [
+        "abnormal blood sample",
+        "normal blood sample",
+        "bone marrow sample",
+        "lymph node sample"
+      ],
+      "Answer": "normal blood sample",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A2JS",
+      "Question": "what is the size of the tumor in the breast?",
+      "Choice": [
+        "2.4x0x2.8cm",
+        "1.5x1.5cm",
+        "3.2x2.6cm",
+        "0.9x0.9cm"
+      ],
+      "Answer": "2.4x0x2.8cm",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "肿瘤尺寸包含 2.4x0x2.8cm 的零维度，明显为解析/OCR 损坏。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-E9-A2JS",
+      "Question": "was there any evidence of neo-adjuvant treatment?",
+      "Choice": [
+        "no evidence of neo-adjuvant treatment",
+        "evidence of neo-adjuvant treatment",
+        "uncertain",
+        "not mentioned"
+      ],
+      "Answer": "no evidence of neo-adjuvant treatment",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0DK",
+      "Question": "what is the size of the invasive tumor in the patient's breast tissue?",
+      "Choice": [
+        "1.5 cm",
+        "3 cm",
+        "2.5 cm",
+        "4 cm"
+      ],
+      "Answer": "2.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what is the patient's age?",
+      "Choice": [
+        "46",
+        "37",
+        "52",
+        "64"
+      ],
+      "Answer": "46",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what type of consent did the patient provide?",
+      "Choice": [
+        "informed consent",
+        "implied consent",
+        "verbal consent",
+        "written consent"
+      ],
+      "Answer": "written consent",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what is the staging of the tumor?",
+      "Choice": [
+        "pt2 n2 mo stage a",
+        "pt1 n0 mo stage b",
+        "pt3 n1 mo stage b",
+        "pt2 n2 mo stage b"
+      ],
+      "Answer": "pt2 n2 mo stage a",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": "staging 选项中的 'mo stage a/b' 格式可疑，建议回查原始报告。"
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what does the pathological description indicate about the tumor?",
+      "Choice": [
+        "presence of a primary tumor with an extension",
+        "presence of multiple tumors",
+        "presence of a benign tumor",
+        "absence of any tumor"
+      ],
+      "Answer": "presence of a primary tumor with an extension",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "who signed the slide?",
+      "Choice": [
+        "director of research pathology",
+        "patient's primary care physician",
+        "surgeon",
+        "patient"
+      ],
+      "Answer": "director of research pathology",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "what was the size of the tumor in the patient's breast?",
+      "Choice": [
+        "2.7 x 2.7 x 2.5 cm",
+        "3.0 x 3.0 x 3.0 cm",
+        "2.0 x 2.0 x 2.0 cm",
+        "2.5 x 2.5 x 2.5 cm"
+      ],
+      "Answer": "2.7 x 2.7 x 2.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "was the nottingham histologic score determined for the patient?",
+      "Choice": [
+        "no",
+        "yes",
+        "not mentioned",
+        "insufficient information"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "did the patient receive neo-adjuvant treatment?",
+      "Choice": [
+        "no",
+        "yes",
+        "not mentioned",
+        "insufficient information"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "were there any additional pathologic findings slideed apart from breast cancer?",
+      "Choice": [
+        "no",
+        "yes",
+        "not mentioned",
+        "insufficient information"
+      ],
+      "Answer": "no",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A7T0",
+      "Question": "what was the size of the largest invasive carcinoma?",
+      "Choice": [
+        "2 cm",
+        "2.8 cm",
+        "3 cm",
+        "2.2 cm"
+      ],
+      "Answer": "2.8 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-LL-A7T0",
+      "Question": "what was the depth of the closest margin for the invasive carcinoma?",
+      "Choice": [
+        "1 mm deep",
+        "2 mm deep",
+        "3 mm deep",
+        "4 mm deep"
+      ],
+      "Answer": "4 mm deep",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what additional markers are mentioned in the slide?",
+      "Choice": [
+        "ca-125",
+        "afp",
+        "er, pr, and her-2/neu",
+        "cea"
+      ],
+      "Answer": "er, pr, and her-2/neu",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what does the slide include information on?",
+      "Choice": [
+        "the patient's age",
+        "the patient's gender",
+        "the primary tumor, lymph nodes, and pathological staging",
+        "the patient's symptom description"
+      ],
+      "Answer": "the primary tumor, lymph nodes, and pathological staging",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what are some features observed in the tumor?",
+      "Choice": [
+        "telangiectasis",
+        "nuclear atypia",
+        "adenocarcinoma",
+        "inflammation"
+      ],
+      "Answer": "nuclear atypia",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what are the comments or notes from the pathologist in the slide?",
+      "Choice": [
+        "no remarks were made",
+        "the tumor is highly malignant",
+        "recommendation for surgery",
+        "the need for further tests"
+      ],
+      "Answer": "no remarks were made",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what is the histological diagnosis based on?",
+      "Choice": [
+        "radiographic imaging",
+        "physical examination",
+        "microscopic examination",
+        "genetic testing"
+      ],
+      "Answer": "microscopic examination",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08L",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "2 cm",
+        "4 cm",
+        "6 cm",
+        "8 cm"
+      ],
+      "Answer": "6 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A08L",
+      "Question": "how far has the tumor invaded?",
+      "Choice": [
+        "lymph vessels only",
+        "up to the base of the nipple",
+        "pectoral muscle only",
+        "lymph vessels, up to the base of the nipple, and pectoral muscle"
+      ],
+      "Answer": "lymph vessels, up to the base of the nipple, and pectoral muscle",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "what is the size of the labeled \"right breast\" specimen received?",
+      "Choice": [
+        "30.5 x 8 cm",
+        "3.2 x 2.2 x 1 cm",
+        "5 x 3 cm",
+        "6.5 x 3.5 cm"
+      ],
+      "Answer": "30.5 x 8 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "what is the measurement of the biopsy cavity?",
+      "Choice": [
+        "4 x 4 cm",
+        "3.2 x 2.2 x 1 cm",
+        "5 x 3 cm",
+        "6.5 x 3.5 cm"
+      ],
+      "Answer": "4 x 4 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "which sections are included in the pathological slide?",
+      "Choice": [
+        "nipple, nipple base, and skin defect",
+        "nipple base, skin defect, and upper inner quadrant",
+        "deep margin, lesion under the skin defect, and upper outer quadrant",
+        "posterior fibrotic area, deep margin, and intramammary lymph nodes"
+      ],
+      "Answer": "nipple base, skin defect, and upper inner quadrant",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "what are the recommendations for further evaluation and staging?",
+      "Choice": [
+        "perform hormone receptor and her2 testing",
+        "perform additional tests for vascular invasion",
+        "perform additional tests for benign breast parenchymal changes",
+        "perform additional tests for scar measurement"
+      ],
+      "Answer": "perform hormone receptor and her2 testing",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A1JK",
+      "Question": "what is the pathological tumor size of the breast?",
+      "Choice": [
+        "pt1",
+        "pt2",
+        "pt3",
+        "pt4"
+      ],
+      "Answer": "pt2",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0CK",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "0.5 cm",
+        "0.5 mm",
+        "1.5 cm",
+        "2.5 cm"
+      ],
+      "Answer": "0.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0CK",
+      "Question": "what was the pre-operative diagnosis?",
+      "Choice": [
+        "malignancy",
+        "fibrous tissue",
+        "saa",
+        "lobular carcinoma in situ"
+      ],
+      "Answer": "fibrous tissue",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0CK",
+      "Question": "what was the result of the her2/neu fish analysis?",
+      "Choice": [
+        "gene amplification detected",
+        "gene amplification not detected",
+        "inconclusive",
+        "not tested"
+      ],
+      "Answer": "gene amplification not detected",
+      "answerability": "inferable",
+      "information_source": "latent_receptor_or_molecular_phenotype",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题明确询问 IHC/FISH/免疫表型或 receptor testing 的真实检测结果；WSI phenotype 可作为代理证据，但不能等同于实际实验室检测。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-OL-A5RX",
+      "Question": "what is the ptnm staging of the tumor in the patient?",
+      "Choice": [
+        "pt1c(m), no, mx",
+        "ptx, no, m0",
+        "pt1c(m), n1, m0",
+        "pt1c(m), no, m1"
+      ],
+      "Answer": "pt1c(m), no, mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-OL-A5RX",
+      "Question": "what type of changes were found in the breast tissue of the patient?",
+      "Choice": [
+        "columnar cell changes, duct ectasia, and fibroadenoma",
+        "apocrine metaplasia, intraductal papilloma, and fragments of implant capsule",
+        "focal lactational changes and intraductal hyperplasia",
+        "all of the above"
+      ],
+      "Answer": "all of the above",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-OL-A5RX",
+      "Question": "were the excisional biopsy margins free of tumor?",
+      "Choice": [
+        "yes",
+        "no",
+        "not mentioned",
+        "inconclusive"
+      ],
+      "Answer": "yes",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A3XY",
+      "Question": "what is the final diagnosis of the patient?",
+      "Choice": [
+        "invasive ductal carcinoma (no special type) in right breast",
+        "ductal carcinoma in situ in the left breast",
+        "fibrocystic changes",
+        "usual ductal hyperplasia"
+      ],
+      "Answer": "invasive ductal carcinoma (no special type) in right breast",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A3XY",
+      "Question": "how big is the unifocal tumor?",
+      "Choice": [
+        "1.5 cm in greatest dimension",
+        "2.0 cm in greatest dimension",
+        "2.5 cm in greatest dimension",
+        "3.0 cm in greatest dimension"
+      ],
+      "Answer": "2.5 cm in greatest dimension",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A27M",
+      "Question": "what type of cancer has the patient been diagnosed with?",
+      "Choice": [
+        "lung cancer",
+        "breast cancer",
+        "skin cancer",
+        "colon cancer"
+      ],
+      "Answer": "breast cancer",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A27M",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "1.5 x 0.8 x 1.2 cm",
+        "3.2 x 1.6 x 2.4 cm",
+        "2.6 x 1.2 x 1.8 cm",
+        "2.0 x 1.0 x 1.5 cm"
+      ],
+      "Answer": "2.6 x 1.2 x 1.8 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A1KP",
+      "Question": "what is the recommended treatment for the patient?",
+      "Choice": [
+        "lumpectomy",
+        "chemotherapy",
+        "total mastectomy",
+        "radiation therapy"
+      ],
+      "Answer": "total mastectomy",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A1KP",
+      "Question": "what is the diagnosis of the patient based on?",
+      "Choice": [
+        "biopsy results",
+        "physical examination",
+        "imaging tests",
+        "special studies"
+      ],
+      "Answer": "biopsy results",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A1KP",
+      "Question": "are all the tumor masses well-circumscribed and firm?",
+      "Choice": [
+        "yes",
+        "no",
+        "not mentioned",
+        "cannot be determined"
+      ],
+      "Answer": "yes",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-OL-A66P",
+      "Question": "what is the finding in the superior mastectomy flap?",
+      "Choice": [
+        "invasive ductal carcinoma;",
+        "fibroadipose tissue with focal fat necrosis;",
+        "atypical ductal hyperplasia;",
+        "fibroadenomatous changes."
+      ],
+      "Answer": "fibroadipose tissue with focal fat necrosis;",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-OL-A66P",
+      "Question": "how many foci of invasive ductal carcinoma are found in the breast simple mastectomy?",
+      "Choice": [
+        "one;",
+        "two;",
+        "three;",
+        "four."
+      ],
+      "Answer": "two;",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-OL-A66P",
+      "Question": "what is one of the changes mentioned in the slide outside the primary finding?",
+      "Choice": [
+        "metastatic carcinoma;",
+        "fibroadipose tissue in the inferior and medial flaps;",
+        "intraductal carcinoma in situ;",
+        "normal breast tissue."
+      ],
+      "Answer": "fibroadipose tissue in the inferior and medial flaps;",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A73U",
+      "Question": "what is the clinical diagnosis of the patient?",
+      "Choice": [
+        "suspicion of cancer in the right breast",
+        "suspicion of cancer in the left breast",
+        "suspicion of cancer in both breasts",
+        "suspicion of cancer in an unknown location"
+      ],
+      "Answer": "suspicion of cancer in the left breast",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A73U",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "4x2.2x1.6cm",
+        "2x1.6x4cm",
+        "1.6x2x4cm",
+        "2.2x4x1.6cm"
+      ],
+      "Answer": "4x2.2x1.6cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A73U",
+      "Question": "what percentage of neoplastic cell nuclei had estrogen and progesterone receptors?",
+      "Choice": [
+        "15%",
+        "25%",
+        "50%",
+        "75%"
+      ],
+      "Answer": "75%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A12D",
+      "Question": "what other findings are mentioned in the pathological slide?",
+      "Choice": [
+        "no other findings are mentioned",
+        "the presence of sclerosing adenosis and focal ductal carcinoma",
+        "the biopsy is positive for carcinoma",
+        "the slide does not mention any other findings"
+      ],
+      "Answer": "the presence of sclerosing adenosis and focal ductal carcinoma",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A12D",
+      "Question": "what additional tests are pending according to the slide?",
+      "Choice": [
+        "no additional tests are pending",
+        "staining and test results",
+        "biopsy results",
+        "the slide does not mention any additional tests"
+      ],
+      "Answer": "staining and test results",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AO-A12D",
+      "Question": "is the diagnosis of carcinoma confirmed by the pathological slide?",
+      "Choice": [
+        "no, it is not confirmed",
+        "yes, it is confirmed",
+        "the slide does not provide a diagnosis",
+        "the slide is inconclusive"
+      ],
+      "Answer": "yes, it is confirmed",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1RE",
+      "Question": "what was the size of the tumor found in the breast?",
+      "Choice": [
+        "2.5 cm",
+        "3.5 cm",
+        "4.5 cm",
+        "5.5 cm"
+      ],
+      "Answer": "3.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E9-A1RE",
+      "Question": "were the margins of the tumor involved?",
+      "Choice": [
+        "yes",
+        "no",
+        "not specified",
+        "partially"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A1JB",
+      "Question": "what was the size of the tumor in the breast?",
+      "Choice": [
+        "3.0 x 2.1 x 1.3 cm",
+        "2.0 x 1.5 x 1.0 cm",
+        "4.5 x 3.2 x 2.0 cm",
+        "1.8 x 1.3 x 0.9 cm"
+      ],
+      "Answer": "3.0 x 2.1 x 1.3 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A1JB",
+      "Question": "what additional lesions were found in the glandular tissue?",
+      "Choice": [
+        "lobular carcinoma in situ (lcs) and mastopathia fibrosa et cystica",
+        "adenosis sclerosans and calcifications",
+        "columnar cell changes (ccc) and ductal carcinoma in situ (ocis)",
+        "hyperplasia ductalis simplex (udh) and adenosis sclerosans"
+      ],
+      "Answer": "lobular carcinoma in situ (lcs) and mastopathia fibrosa et cystica",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A1JB",
+      "Question": "what was the immunophenotype of the neoplastic cells?",
+      "Choice": [
+        "e-cadherin positive and ck7 positive",
+        "estrogen receptors positive and progesterone receptors positive",
+        "her2 staining with a score of 2+",
+        "her2/neu gene amplification"
+      ],
+      "Answer": "e-cadherin positive and ck7 positive",
+      "answerability": "unanswerable",
+      "information_source": "requires_actual_assay_result",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题明确询问 IHC/FISH/免疫表型或 receptor testing 的真实检测结果；WSI phenotype 可作为代理证据，但不能等同于实际实验室检测。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what is the chief complaint of the patient?",
+      "Choice": [
+        "breast tumor",
+        "symptomatic",
+        "lump in the breast",
+        "pain"
+      ],
+      "Answer": "pain",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what are the symptoms slideed by the patient?",
+      "Choice": [
+        "breast tumor",
+        "symptomatic",
+        "pain",
+        "lump in the breast"
+      ],
+      "Answer": "breast tumor",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": "症状题 reference='breast tumor' 语义可疑，但尚不足以确定为错位，暂保留。"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what is the performance scale of the patient?",
+      "Choice": [
+        "symptomatic, in bed less than 50% of the day",
+        "breast tumor",
+        "lump in the breast",
+        "pain"
+      ],
+      "Answer": "pain",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "reference_answer 为 pain，但问题询问 performance scale / menopausal status / birth control，答案类型明显错位。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what is the menopausal status of the patient?",
+      "Choice": [
+        "post-menopausal",
+        "breast tumor",
+        "lump in the breast",
+        "pain"
+      ],
+      "Answer": "pain",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "reference_answer 为 pain，但问题询问 performance scale / menopausal status / birth control，答案类型明显错位。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what methods of birth control does the patient use?",
+      "Choice": [
+        "condom, oral contraceptive or iud",
+        "breast tumor",
+        "symptomatic",
+        "pain"
+      ],
+      "Answer": "pain",
+      "answerability": "dataset_error",
+      "information_source": "invalid_or_malformed_benchmark_item",
+      "directly_visible_from_wsi": null,
+      "predictable_from_wsi": null,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "reference_answer 为 pain，但问题询问 performance scale / menopausal status / birth control，答案类型明显错位。",
+      "quality_warning": "exclude_from_evaluation"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what information is not provided in the caption?",
+      "Choice": [
+        "results of diagnostic studies",
+        "microscopic appearance of the tumor",
+        "birth control methods",
+        "menopausal status"
+      ],
+      "Answer": "birth control methods",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FW",
+      "Question": "what surgical procedures did the patient undergo?",
+      "Choice": [
+        "colonoscopy and biopsy",
+        "endoscopy and abdominal surgery",
+        "mastectomy and sentinel lymph node biopsy",
+        "hysterectomy and oophorectomy"
+      ],
+      "Answer": "mastectomy and sentinel lymph node biopsy",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FW",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "75 mm",
+        "9",
+        "4 and 6",
+        "13"
+      ],
+      "Answer": "75 mm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FW",
+      "Question": "what additional findings were noted on examination?",
+      "Choice": [
+        "no abnormalities were observed",
+        "extensive angiolymphatic invasion and microcalcifications",
+        "fibrocystic changes",
+        "incidental fibroadenoma"
+      ],
+      "Answer": "extensive angiolymphatic invasion and microcalcifications",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "正确选项由 angiolymphatic invasion 与 microcalcifications 组成，现有两个 phenotype head 可直接提供证据。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "what type of hyperplasia was observed in the breast?",
+      "Choice": [
+        "atypical lobular hyperplasia",
+        "atypical ductal hyperplasia",
+        "focal hyperplasia",
+        "ductal hyperplasia"
+      ],
+      "Answer": "atypical lobular hyperplasia",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "what was the percentage of nuclear staining for progesterone receptors in the patient's breast?",
+      "Choice": [
+        "70-80%",
+        "80-90%",
+        "90-100%",
+        "50-60%"
+      ],
+      "Answer": "80-90%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "what significant findings were observed in the patient's slide apart from breast carcinoma?",
+      "Choice": [
+        "no other significant finding is mentioned in the slide.",
+        "enlarged lymph nodes were observed.",
+        "malignant cells were found in the bone.",
+        "c:malignant cells were found in the bone. d:multiple metastases were observed in the liver."
+      ],
+      "Answer": "no other significant finding is mentioned in the slide.",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "which breast was scheduled for sentinel node biopsy?",
+      "Choice": [
+        "right breast",
+        "left breast",
+        "both breasts",
+        "unclear"
+      ],
+      "Answer": "left breast",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A09Q",
+      "Question": "what is the size of the breast tumor mentioned in the slide?",
+      "Choice": [
+        "2.5 cm",
+        "3 cm",
+        "4.5 cm",
+        "6.3 cm"
+      ],
+      "Answer": "4.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A09Q",
+      "Question": "which breast tissue is affected by fibrolipomatous changes?",
+      "Choice": [
+        "tumor",
+        "surrounding skin",
+        "axillary lymph nodes",
+        "rest of the breast tissue"
+      ],
+      "Answer": "rest of the breast tissue",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A09Q",
+      "Question": "what is the recommended next step mentioned in the slide?",
+      "Choice": [
+        "further chemotherapy",
+        "surgery",
+        "additional malignancy testing",
+        "radiation therapy"
+      ],
+      "Answer": "additional malignancy testing",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0EE",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "1 cm",
+        "3 cm",
+        "5.5 cm",
+        "8 cm"
+      ],
+      "Answer": "5.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0EE",
+      "Question": "what is the final pathological stage of the tumor?",
+      "Choice": [
+        "pt1, pn0, pmx",
+        "pt2, pn1, pmx",
+        "pt3, pn0, pmx",
+        "pt4, pn2, pr1"
+      ],
+      "Answer": "pt3, pn0, pmx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0CZ",
+      "Question": "what was the final pathologic stage of the cancer?",
+      "Choice": [
+        "pt2n1",
+        "pt3n1",
+        "pt2n0",
+        "pt1n0"
+      ],
+      "Answer": "pt2n0",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0CZ",
+      "Question": "what type of additional pathologic changes were mentioned?",
+      "Choice": [
+        "squamous metaplasia, papillary carcinoma, and spindle cell neoplasm",
+        "cystic change, apocrine metaplasia, and columnar cell change",
+        "lobular carcinoma in situ, atypical ductal hyperplasia, and radial scar",
+        "metaplastic carcinoma, angiosarcoma, and dermatofibroma"
+      ],
+      "Answer": "cystic change, apocrine metaplasia, and columnar cell change",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AQ-A54N",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "0.3 cm",
+        "4.9 cm",
+        "2.1 cm",
+        "1.5 cm"
+      ],
+      "Answer": "4.9 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AQ-A54N",
+      "Question": "was the tumor multifocal or unifocal?",
+      "Choice": [
+        "multifocal",
+        "unifocal",
+        "not mentioned",
+        "unclear"
+      ],
+      "Answer": "unifocal",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-D8-A13Z",
+      "Question": "what were the measurements of the tumor in the breast?",
+      "Choice": [
+        "45.1*2.5 cm",
+        "45.1*2.6 cm",
+        "45.2*2.5 cm",
+        "45.2*2.6 cm"
+      ],
+      "Answer": "45.2*2.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": "尺寸 '45.2*2.5 cm' 格式异常，可能存在 OCR/小数点问题，建议回查。"
+    },
+    {
+      "Id": "TCGA-D8-A13Z",
+      "Question": "what size was the second tumor?",
+      "Choice": [
+        "1.1*1.2 cm",
+        "1.1*1.3 cm",
+        "1.2*1.2 cm",
+        "1.2*1.3 cm"
+      ],
+      "Answer": "1.1*1.3 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A42U",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "2 cm",
+        "3 cm",
+        "4 cm",
+        "5 cm"
+      ],
+      "Answer": "3 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A42U",
+      "Question": "what is the result of cadherin immunostaining?",
+      "Choice": [
+        "positive",
+        "negative",
+        "equivocal",
+        "not mentioned"
+      ],
+      "Answer": "negative",
+      "answerability": "unanswerable",
+      "information_source": "requires_actual_assay_result",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题明确询问 IHC/FISH/免疫表型或 receptor testing 的真实检测结果；WSI phenotype 可作为代理证据，但不能等同于实际实验室检测。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A42U",
+      "Question": "what is the stage classification of the tumor?",
+      "Choice": [
+        "t1n0mx",
+        "t2n0mx",
+        "t3n0mx",
+        "t4n0mx"
+      ],
+      "Answer": "t2n0mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A3TM",
+      "Question": "what is the size of the invasive tumor in the breast?",
+      "Choice": [
+        "7 cm",
+        "2 cm",
+        "4 cm",
+        "10 cm"
+      ],
+      "Answer": "7 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A3TM",
+      "Question": "what is the tnm stage of the cancer?",
+      "Choice": [
+        "t3n(mi)",
+        "t2n0",
+        "t1n1",
+        "t4n3"
+      ],
+      "Answer": "t3n(mi)",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A3TM",
+      "Question": "are the surgical margins positive or negative?",
+      "Choice": [
+        "negative",
+        "positive",
+        "indeterminate",
+        "not mentioned in the slide"
+      ],
+      "Answer": "negative",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A07U",
+      "Question": "what is the size of the invasive ductal breast carcinoma?",
+      "Choice": [
+        "3.0 centimeters",
+        "2.2 centimeters",
+        "1.5 centimeters",
+        "2.8 centimeters"
+      ],
+      "Answer": "2.2 centimeters",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what is the size of the infiltrative ductal carcinoma?",
+      "Choice": [
+        "1mm,",
+        "1cm,",
+        "1dm,",
+        "1m"
+      ],
+      "Answer": "1cm,",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what type of pattern does the infiltrative ductal carcinoma demonstrate?",
+      "Choice": [
+        "acinar pattern,",
+        "cystic pattern,",
+        "papillary pattern,",
+        "cribiform pattern"
+      ],
+      "Answer": "cribiform pattern",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what can be found in fibrocystic changes?",
+      "Choice": [
+        "fibrosis,",
+        "cysts,",
+        "apocrine metaplasia,",
+        "all of the above"
+      ],
+      "Answer": "all of the above",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what is the distance between the nearest margin and the tumor?",
+      "Choice": [
+        "2mm,",
+        "2cm,",
+        "2dm,",
+        "2m"
+      ],
+      "Answer": "2mm,",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A097",
+      "Question": "what is the size of the tumor?",
+      "Choice": [
+        "3.1 cm",
+        "2.8 cm",
+        "1.5 cm",
+        "5.2 cm"
+      ],
+      "Answer": "2.8 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A097",
+      "Question": "what is the stage of the tumor?",
+      "Choice": [
+        "stage t1",
+        "stage t2",
+        "stage t3",
+        "stage t4"
+      ],
+      "Answer": "stage t2",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A8-A097",
+      "Question": "what is the presence of micrometastasis?",
+      "Choice": [
+        "no micrometastasis present",
+        "presence of micrometastasis -n1mi(sn)lovoro",
+        "micrometastasis detected in the axillary lymph nodes",
+        "micrometastasis confirmed in the distant organs"
+      ],
+      "Answer": "presence of micrometastasis -n1mi(sn)lovoro",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what was the patient's pre-operative diagnosis?",
+      "Choice": [
+        "melanoma",
+        "thyroid cancer",
+        "colon cancer",
+        "breast cancer"
+      ],
+      "Answer": "breast cancer",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what stains were performed to support the diagnosis?",
+      "Choice": [
+        "hematoxylin and eosin",
+        "alcian blue",
+        "cytokeratin and e-cadherin",
+        "periodic acid-schiff (pas)"
+      ],
+      "Answer": "cytokeratin and e-cadherin",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what was the final diagnosis of the patient?",
+      "Choice": [
+        "infiltrating carcinoma in the left breast",
+        "infiltrating carcinoma in the right breast",
+        "lung cancer with metastasis",
+        "melanoma with metastasis"
+      ],
+      "Answer": "infiltrating carcinoma in the right breast",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what was the patient’s tnm classification?",
+      "Choice": [
+        "t1n0m0",
+        "t1n1m0",
+        "t2n0m0",
+        "t2n2a"
+      ],
+      "Answer": "t2n2a",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "where was metastasis detected?",
+      "Choice": [
+        "brain",
+        "liver",
+        "axillary contents",
+        "lung"
+      ],
+      "Answer": "axillary contents",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_or_report_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A3XU",
+      "Question": "what was the size of the infiltrative ductal carcinoma?",
+      "Choice": [
+        "2.5cm",
+        "4.6cm",
+        "3.2cm",
+        "5.1cm"
+      ],
+      "Answer": "4.6cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A3XU",
+      "Question": "in which margin(s) the surgical margins are involved?",
+      "Choice": [
+        "inferior margin",
+        "lateral margin",
+        "medial margin",
+        "superior margin"
+      ],
+      "Answer": "superior margin",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-A2-A3XU",
+      "Question": "what is the tnm classification of the tumor?",
+      "Choice": [
+        "t2, n0, mx",
+        "t3, n1mi, m0",
+        "t1, n1mi, m0",
+        "t2, n1mi, mx"
+      ],
+      "Answer": "t2, n1mi, mx",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A24S",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "2.3 x 1.5 x 1.2 cm",
+        "1.6 x 1.3 x 1.1 cm",
+        "1.3 x 1.1 x 1.0 cm",
+        "1.0 x 0.9 x 0.8 cm"
+      ],
+      "Answer": "1.0 x 0.9 x 0.8 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A24S",
+      "Question": "did the biopsy site show any changes?",
+      "Choice": [
+        "yes",
+        "no",
+        "insufficient information",
+        "not applicable"
+      ],
+      "Answer": "not applicable",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A24S",
+      "Question": "what type of breast tissue changes were observed?",
+      "Choice": [
+        "nonproliferative fibrocystic changes",
+        "proliferative fibrocystic changes",
+        "epithelial hyperplasia",
+        "no observable changes"
+      ],
+      "Answer": "no observable changes",
+      "answerability": "directly_answerable",
+      "information_source": "wsi_morphology",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "问题主要询问 H&E 上可见的组织学形态/伴随病变，但没有单一现有 phenotype head 能完整回答，应使用多尺度视觉证据与 Patho-R1。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A1AU",
+      "Question": "was there any evidence of distant metastasis?",
+      "Choice": [
+        "yes",
+        "no",
+        "not mentioned",
+        "cannot be determined"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E2-A14P",
+      "Question": "what is the size of the largest metastasis found?",
+      "Choice": [
+        "1.1 cm",
+        "3 cm",
+        "3.5 cm",
+        "10 cm"
+      ],
+      "Answer": "3.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-E2-A14P",
+      "Question": "what is the size of the tumor found in the breast lumpectomy specimen?",
+      "Choice": [
+        "1.1 cm",
+        "3 cm",
+        "3.5 cm",
+        "10 cm"
+      ],
+      "Answer": "3 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what was the size of the invasive lobular carcinoma in the breast?",
+      "Choice": [
+        "1.6 cm",
+        "2.3 cm",
+        "2.6 cm",
+        "3.2 cm"
+      ],
+      "Answer": "2.6 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what were the results of the sentinel node biopsy?",
+      "Choice": [
+        "positive for carcinoma",
+        "negative for carcinoma",
+        "positive for lymph node involvement",
+        "negative for lymph node involvement"
+      ],
+      "Answer": "negative for lymph node involvement",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what were the results of the tumor receptor testing?",
+      "Choice": [
+        "positive for her2, negative for estrogen and progesterone receptors",
+        "negative for her2, positive for estrogen and progesterone receptors",
+        "positive for her2, positive for estrogen and progesterone receptors",
+        "negative for her2, negative for estrogen and progesterone receptors"
+      ],
+      "Answer": "negative for her2, positive for estrogen and progesterone receptors",
+      "answerability": "directly_answerable",
+      "information_source": "pathology_derived_target",
+      "directly_visible_from_wsi": true,
+      "predictable_from_wsi": true,
+      "include_primary_vqa": true,
+      "include_strict_visual_vqa": true,
+      "annotation_note": "The question asks for status-level ER/PR/HER2 results, and the current ToolBank contains corresponding status predictors; this is treated as answerable at the status level rather than as an assay-specific measurement.",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what were the margin of excision results?",
+      "Choice": [
+        "positive for carcinoma",
+        "negative for carcinoma",
+        "positive for lymph node involvement",
+        "negative for lymph node involvement"
+      ],
+      "Answer": "negative for carcinoma",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-BH-A0BQ",
+      "Question": "what was the total score for the excision of the breast?",
+      "Choice": [
+        "score of 2",
+        "score of 4",
+        "score of 6",
+        "score of 8"
+      ],
+      "Answer": "score of 6",
+      "answerability": "unanswerable",
+      "information_source": "insufficient_wsi_evidence",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": "'total score for the excision of the breast' 含义不清，可能是评分字段转写问题，建议回查原始题源。"
+    },
+    {
+      "Id": "TCGA-BH-A0BQ",
+      "Question": "were the surgical margins involved by the invasive component?",
+      "Choice": [
+        "yes",
+        "no",
+        "not enough information",
+        "5 mm"
+      ],
+      "Answer": "no",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题包含可从 H&E 获取的部分视觉证据，但完整答案还依赖切片/标本位置、边界标记、既往处理、laterality、定量或其他临床上下文，不能当作纯 morphology-only。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A0TP",
+      "Question": "what was the size of the tumor?",
+      "Choice": [
+        "2 x 2.5 x 3 cm",
+        "3 x 3 x 2.5 cm",
+        "3.5 x 2.5 x 3 cm",
+        "3 x 2.5 x 3.5 cm"
+      ],
+      "Answer": "3 x 3 x 2.5 cm",
+      "answerability": "unanswerable",
+      "information_source": "requires_gross_specimen_or_anatomic_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AR-A0TP",
+      "Question": "what percentage of the tumor was in situ?",
+      "Choice": [
+        "less than 5%",
+        "less than 10%",
+        "less than 15%",
+        "less than 20%"
+      ],
+      "Answer": "less than 10%",
+      "answerability": "unanswerable",
+      "information_source": "requires_exact_quantitative_measurement",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the tumor stage?",
+      "Choice": [
+        "0",
+        "1",
+        "2",
+        "3"
+      ],
+      "Answer": "2",
+      "answerability": "unanswerable",
+      "information_source": "requires_case_level_staging_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "问题询问总体肿瘤分期且选项为粗粒度 stage 编号，可优先匹配现有 AJCC stage head；需通过语义对齐确认标签空间。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the patient's treatment status?",
+      "Choice": [
+        "undergoing chemotherapy",
+        "undergoing radiation therapy",
+        "no treatment",
+        "not specified"
+      ],
+      "Answer": "no treatment",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the anatomic site for the normal sample?",
+      "Choice": [
+        "skin",
+        "heart",
+        "blood sample",
+        "liver"
+      ],
+      "Answer": "blood sample",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the specimen format for the normal sample?",
+      "Choice": [
+        "frozen",
+        "paraffin-embedded",
+        "stained",
+        "not specified"
+      ],
+      "Answer": "frozen",
+      "answerability": "unanswerable",
+      "information_source": "requires_report_gross_or_clinical_context",
+      "directly_visible_from_wsi": false,
+      "predictable_from_wsi": false,
+      "include_primary_vqa": false,
+      "include_strict_visual_vqa": false,
+      "annotation_note": "保留 nonvisual：问题主要依赖宏观尺寸、病理报告文本、治疗/病史、程序/元数据、精确 TNM/位置或其他当前 WSI 无法可靠建立的信息。",
+      "quality_warning": null
+    }
+  ],
+  "exact_annotation_summary": {
+    "unanswerable": 185,
+    "dataset_error": 8,
+    "directly_answerable": 38,
+    "inferable": 5
+  },
+  "freeze_policy": "Before using this file for final paper comparisons, manually review ambiguous specimen-level items, then freeze the labels. Do not alter labels after inspecting model correctness."
+}
