@@ -131,38 +131,35 @@ class PrototypeAwarePlanner:
     def _llm_plan(self, case_id: str, question: str, choices: Iterable[str]) -> Optional[ExecutionPlan]:
         if not self.qwen.enabled:
             return None
-        system = """You are the Router for a breast pathology multiple-choice VQA system. Decide which evidence tools to call; never answer or guess the MCQ.
+        system = """You decompose evidence needs for a breast pathology MCQ Router. Do not choose the answer and do not output a final route or task_match.
 
-Infer the target semantics from the question and supplied choices. Choices may identify a grade, histologic type, receptor, invasion extent, architecture, or yes/no task, but may never be used to guess the correct answer.
+Use only question, choices, and the prototype catalog:
+1. Infer the true target semantics from question and choices; choices clarify the task but never reveal the answer.
+2. Select at most four exact prototype IDs whose predictions would materially distinguish supplied choices. Topical relation alone is not useful evidence.
+3. Set prototype_coverage to complete, partial, or none.
+4. Independently judge whether retrieved local H&E patches can provide useful morphology.
+5. Independently judge whether unavailable records, measurements, assays, history, or exhaustive specimen context are required.
 
-Decision priority:
-1. phenotype_direct/direct
-2. phenotype_direct/partial
-3. morphology_only
-4. nonvisual
-Before choosing nonvisual, verify that no prototype materially distinguishes the choices and that the target is not local H&E morphology.
+COMPLETE means selected prototype predictions can resolve the MCQ's core semantic distinction. Examples: grade 1/2/3 with histologic grade; yes/no LVI with LVI; positive/negative/equivocal HER2 status with HER2.
 
-DIRECT: use phenotype_direct/direct only when one to four selected prototypes cover enough core answer semantics to distinguish the relevant choices. The prediction must be capable of resolving the MCQ's main semantic distinction; mere topical relation or a shared phenotype word is insufficient. Grade 1/2/3 with the grade prototype, yes/no lymphovascular invasion with the LVI prototype, and positive/negative/equivocal HER2 status with the HER2 prototype are direct.
+PARTIAL means prototype predictions materially eliminate or favor some choices but leave an important distinction unresolved. LVI separates absent from present but not focal from extensive angioinvasion. LVI does not cover perineural invasion in a combined invasion question. Microcalcification plus LVI can support some additional-finding choices but not benign or hyperplasia alternatives. Use partial even when the unresolved remainder requires unavailable report context.
 
-PARTIAL: use phenotype_direct/partial when selected prototypes materially narrow the choices but cannot distinguish all important choices, requested attributes, or modifiers. Use the specialized evidence, but do not treat it as a complete answer. Examples: LVI can distinguish absent from present but not focal from extensive; microcalcification plus LVI can help with an additional-findings question without covering benign findings; histologic type can help with additional carcinoma but cannot distinguish fibroadenoma from fibrocystic change. If prototypes explain only some choices or some requested attributes, use partial rather than direct. For a mixed visual-phenotype and unavailable component, use partial only if the phenotype truly narrows the supplied choices.
+NONE means prototypes do not discriminate the choices. Histological type does not distinguish solid, cribriform, papillary, or micropapillary DCIS architecture. Keep IDs empty for none.
 
-Prototype coverage must stay within its label space. The histological-type prototype can distinguish carcinoma types such as IDC, ILC, and DCIS. It does not directly resolve solid versus cribriform DCIS architecture, fibroadenoma versus fibrocystic change, benign background morphology, or stromal patterns. A question about DCIS architecture is morphology_only. A question contrasting fibrocystic change, IDC, both, or neither may use histological type only as partial evidence.
+Assay granularity matters. General ER/PR/HER2 status can use status prototypes. FISH amplification, exact IHC/Allred score, exact stained percentage, gene amplification, or documented laboratory/report facts are not equivalent to WSI status. A status prototype may be partial only when it genuinely separates some assay-result choices, such as negative versus positive while leaving positive percentage ranges unresolved; it is not complete. HER2 status is normally none for explicit FISH amplification.
 
-MORPHOLOGY_ONLY: use with task_match=none, no IDs, and use_pathology_agent=true when the answer is local H&E morphology assessable from retrieved patches but no prototype sufficiently covers it. Examples include cribriform/papillary/acinar architecture, nuclear atypia, inflammation, fibrosis, adenosis, hyperplasia pattern, fibroadenoma, fibrocystic change, and benign surrounding tissue. Generic words such as finding, diagnosis, or additional finding do not imply nonvisual.
+local_morphology_useful=true only for features assessable in retrieved local H&E patches, such as architecture, atypia, inflammation, fibrosis, adenosis, hyperplasia, fibroadenoma, fibrocystic change, benign tissue, local necrosis, or stroma. Set false for exact size, focus count, exhaustive multifocality, total-tumor percentage, margin distance, specimen extent/distribution, treatment/history/age, report wording, and exact TNM or gross facts.
 
-NONVISUAL: use with task_match=none, no IDs, and use_pathology_agent=false when neither available prototypes nor retrieved local H&E patches provide substantive evidence. This includes exact macroscopic size; report-dependent margins; treatment; age/history; exact survival time; medication; reproductive history; performance status; specimen preparation; metadata-only laterality; and what a report documented. It also includes global exhaustive specimen facts such as exact tumor-focus count, whole-specimen multifocality, exact extent, distance to nipple or margin, and exact distribution across named specimen regions unless a dedicated tool exists.
-
-Apply the assay boundary consistently. General status questions about ER, PR, HER2, hormone-receptor positivity, combined receptor statuses, or findings related to HER2 may use the corresponding WSI-derived phenotype prototypes. Do not infer an assay merely because ER, PR, or HER2 is named. Explicit measured-assay or report questions are nonvisual: FISH or amplification result, IHC score, immunohistochemical/immunostain result, percentage of positive nuclei, staining percentage, Allred or exact assay score, laboratory-test result, or documented pathology-report fact. WSI predictions estimate status; they are not measured IHC, FISH, or report results.
-
-Return JSON with route, prototype_ids, task_match, phenotype_relevance_score, reason, and use_pathology_agent. route must be phenotype_direct, morphology_only, or nonvisual; task_match must be direct, partial, or none. For phenotype_direct choose one to four exact catalog IDs. Do not invent IDs."""
+requires_unavailable_context=true does not erase useful complete or partial prototype evidence. Return JSON only with prototype_ids, prototype_coverage, local_morphology_useful, requires_unavailable_context, phenotype_relevance_score, reason, and use_pathology_agent. prototype_coverage must be complete, partial, or none. Do not invent IDs."""
         user = json.dumps({
             "question": question,
             "choices": list(choices),
             "prototype_catalog": self.registry.compact_catalog(),
             "output_schema": {
-                "route": "phenotype_direct|morphology_only|nonvisual",
                 "prototype_ids": ["P001"],
-                "task_match": "direct|partial|none",
+                "prototype_coverage": "complete|partial|none",
+                "local_morphology_useful": True,
+                "requires_unavailable_context": False,
                 "phenotype_relevance_score": 0.0,
                 "reason": "one sentence",
                 "use_pathology_agent": True,
@@ -206,35 +203,41 @@ Return JSON with route, prototype_ids, task_match, phenotype_relevance_score, re
                     prototype_ids.append(normalized)
         prototype_ids = list(dict.fromkeys(prototype_ids))[:4]
 
-        route = str(parsed.get(
-            "route", "phenotype_direct" if prototype_ids else "morphology_only"
-        )).strip().lower()
-        if route not in {"phenotype_direct", "morphology_only", "nonvisual"}:
-            route = "phenotype_direct" if prototype_ids else "morphology_only"
-        if route == "phenotype_direct" and not prototype_ids:
-            route = "morphology_only"
-        if route != "phenotype_direct":
+        coverage = str(parsed.get("prototype_coverage", "none")).strip().lower()
+        if coverage not in {"complete", "partial", "none"}:
+            coverage = "none"
+        local_morphology_useful = self._as_bool(
+            parsed.get("local_morphology_useful", False)
+        )
+        requires_unavailable_context = self._as_bool(
+            parsed.get("requires_unavailable_context", False)
+        )
+
+        if not prototype_ids or coverage == "none":
+            coverage = "none"
             prototype_ids = []
+            route = "morphology_only" if local_morphology_useful else "nonvisual"
+            task_match = "none"
+        else:
+            route = "phenotype_direct"
+            task_match = "direct" if coverage == "complete" else "partial"
 
         fields = [
             self.registry.prototype_id_to_field[prototype_id]
             for prototype_id in prototype_ids
         ]
         supported = route == "phenotype_direct"
-        task_match = str(parsed.get(
-            "task_match", "direct" if supported else "none"
-        )).strip().lower()
-        if task_match not in {"direct", "partial", "none"}:
-            task_match = "direct" if supported else "none"
-        if not supported:
-            task_match = "none"
-
-        default_relevance = {"direct": 1.0, "partial": 0.6, "none": 0.0}[task_match]
+        default_relevance = {"complete": 1.0, "partial": 0.65, "none": 0.0}[coverage]
         try:
             relevance = float(parsed.get("phenotype_relevance_score", default_relevance))
         except (TypeError, ValueError):
             relevance = default_relevance
-        relevance = max(0.0, min(relevance, 1.0)) if supported else 0.0
+        if coverage == "complete":
+            relevance = max(0.85, min(relevance, 1.0))
+        elif coverage == "partial":
+            relevance = max(0.45, min(relevance, 0.85))
+        else:
+            relevance = 0.0
 
         vocab = self.registry.vocabs[min(self.registry.vocabs)]
         if fields:
@@ -259,11 +262,24 @@ Return JSON with route, prototype_ids, task_match, phenotype_relevance_score, re
                 if route == "morphology_only"
                 else False
                 if route == "nonvisual"
-                else bool(parsed.get("use_pathology_agent", True))
+                else True
+                if task_match == "partial"
+                else self._as_bool(parsed.get("use_pathology_agent", True))
             ),
             evidence_route=route,
             selected_prototype_ids=prototype_ids,
+            prototype_coverage=coverage,
+            local_morphology_useful=local_morphology_useful,
+            requires_unavailable_context=requires_unavailable_context,
         )
+
+    @staticmethod
+    def _as_bool(value: Any) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            return value.strip().lower() == "true"
+        return False
 
     def _rule_plan(self, case_id: str, question: str, choices: Iterable[str]) -> ExecutionPlan:
         lowered = question.lower()

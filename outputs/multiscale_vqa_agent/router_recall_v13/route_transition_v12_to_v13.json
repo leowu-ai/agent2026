@@ -1,0 +1,2287 @@
+{
+  "old_total": 390,
+  "new_total": 390,
+  "shared_total": 390,
+  "transition_counts": {
+    "morphology_only -> morphology_only": 4,
+    "morphology_only -> nonvisual": 5,
+    "morphology_only -> phenotype_direct/direct": 2,
+    "morphology_only -> phenotype_direct/partial": 21,
+    "nonvisual -> nonvisual": 160,
+    "nonvisual -> phenotype_direct/direct": 18,
+    "nonvisual -> phenotype_direct/partial": 39,
+    "phenotype_direct/direct -> phenotype_direct/direct": 104,
+    "phenotype_direct/direct -> phenotype_direct/partial": 37
+  },
+  "all_v13_partial": [
+    {
+      "case_id": "TCGA-A1-A0SF",
+      "question": "what is the pathological finding in the soft tissue in the breast?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A1-A0SF",
+      "question": "what is the result of her2/neu testing?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A1-A0SJ",
+      "question": "what is the pathological finding of the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the pre-operative diagnosis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the result of the er/pr immunostains?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the result of the evaluation for her2-neu overexpression?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the result of the her2/neu fish analysis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CZ",
+      "question": "was her-2 positive or negative by immunohistochemistry?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CZ",
+      "question": "what type of additional pathologic changes were mentioned?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0T6",
+      "question": "what does the slide suggest about the presence of breast cancer?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A1FW",
+      "question": "what additional findings were noted on examination?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A1FX",
+      "question": "what was the final diagnosis of the patient?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A259",
+      "question": "what type of carcinoma was present along with invasive ductal carcinoma?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A259",
+      "question": "what were the findings related to her2 neu in the patient's breast tissue?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A3XY",
+      "question": "is there any necrosis present in the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08R",
+      "question": "is there any lymphatic, vascular, or perineural invasion present?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08R",
+      "question": "what is the final tumor classification for the breast?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08Z",
+      "question": "what is the classification of the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08Z",
+      "question": "what is the level of angioinvasion in the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A097",
+      "question": "what is the diagnosis given in the pathological slide?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P006",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A097",
+      "question": "what is the provisional tumor classification?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A09Q",
+      "question": "what is the recommended next step mentioned in the slide?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P013"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AC-A2FF",
+      "question": "what does the surgical slide provide information on?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AC-A2FG",
+      "question": "what other findings were observed in the pathological slide?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AC-A5XS",
+      "question": "what was the grade of the invasive lobular carcinoma?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what does the slide confirm about the diagnosis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what stains were performed on the tissue?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what type of cancer is mentioned in the slide?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what type of tissue changes are mentioned in the slide?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0J9",
+      "question": "what are the recommendations for further evaluation and staging?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0J9",
+      "question": "what does the pathology slide confirm the presence of in the breast?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0JE",
+      "question": "what additional findings are present in the tumor?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0JE",
+      "question": "what is found in the surrounding breast tissue?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A12D",
+      "question": "what does the pathological slide indicate about the biopsy of the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A12D",
+      "question": "what other findings are mentioned in the pathological slide?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A1KP",
+      "question": "what is the recommended treatment for the patient?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AQ-A7U7",
+      "question": "what additional condition is present along with invasive lobular carcinoma?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AR-A0U3",
+      "question": "what type of cancer was found in the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P006"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AR-A0U3",
+      "question": "what was the result of the estrogen receptor (er) staining?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AR-A1AU",
+      "question": "was there any evidence of distant metastasis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-B6-A0RO",
+      "question": "what percentage of the carcinoma is comprised of intraductal carcinoma?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-B6-A0WV",
+      "question": "is there any residual carcinoma in the mastectomy specimen?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-B6-A0WV",
+      "question": "what type of proliferative changes were observed in the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0AZ",
+      "question": "what is the nottingham score?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0AZ",
+      "question": "what were the results of the immunohistochemical staining?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0BQ",
+      "question": "what type of tumor is the invasive component?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0BT",
+      "question": "what were the characteristics of the invasive ductal carcinoma in the breast segmental mastectomy?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0BV",
+      "question": "what is the nottingham score of the infiltrating ductal carcinoma?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the classification of the invasive component of the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P011"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the histological finding of the breast simple mastectomy?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P008",
+        "P012"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the histological finding of the modified radical mastectomy?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P008",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the receptor status mentioned in the slide?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DG",
+      "question": "what is the grade of the tumor according to the nottingham score?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DK",
+      "question": "what type of changes are observed in the patient's breast tissue?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0EE",
+      "question": "what is the her-2/neu status of the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0EE",
+      "question": "what is the nottingham score of the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0HL",
+      "question": "what was found in the breast tissue besides invasive ductal carcinoma?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0HX",
+      "question": "what findings are mentioned in the breast?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A202",
+      "question": "what was the score for estrogen receptors?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A42U",
+      "question": "what is the status of lymphatic or vascular invasion?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A5IZ",
+      "question": "what are the hormone receptor status of the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A5IZ",
+      "question": "what is the nottingham score for the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012",
+        "P007",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A135",
+      "question": "what additional markers are mentioned in the slide?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A135",
+      "question": "what are some features observed in the tumor?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P008",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A135",
+      "question": "what does the slide include information on?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A8HR",
+      "question": "what does the pathological description indicate about the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A13Z",
+      "question": "what was the reaction of the her2 protein?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A13Z",
+      "question": "what were the results of the examination for estrogen and progesterone receptors?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JB",
+      "question": "what additional lesions were found in the glandular tissue?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P003",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JB",
+      "question": "what was the immunophenotype of the neoplastic cells?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JK",
+      "question": "what was the reaction of the her2 protein test in the invasive cancerous cells?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JL",
+      "question": "what is the final diagnosis of the patient's breast condition?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JL",
+      "question": "which hormone receptors were found to be absent in the neoplastic cell nuclei?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A105",
+      "question": "what is the final diagnosis?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A14P",
+      "question": "what is present in the breast lumpectomy specimen besides invasive ductal carcinoma?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A14P",
+      "question": "what type of carcinoma is found in the breast lumpectomy specimen?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A15E",
+      "question": "which type of carcinoma shows necrosis?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1N6",
+      "question": "what was the missing data preventing the determination of the nottingham histologic score?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1RA",
+      "question": "what is the extent of the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1RA",
+      "question": "what type of carcinoma was observed?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1RE",
+      "question": "was there evidence of venous invasion?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A22H",
+      "question": "were there any additional pathologic findings slideed apart from breast cancer?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005",
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1IY",
+      "question": "which immunostain was positive in the tumor cells?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1P7",
+      "question": "what was the grade assigned to the breast cancer according to the nottingham score?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1P7",
+      "question": "what was the receptor status for estrogen receptor (er) and progesterone receptor (pr)?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1P7",
+      "question": "what was the receptor status for her 2-neu?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1PF",
+      "question": "what is the pending immunohistochemistry for?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A2FW",
+      "question": "what is the presence of estrogen and progesterone receptors in tumor cells?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A2FW",
+      "question": "what is the status of her2?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-GM-A2D9",
+      "question": "what is the nuclear grade of the invasive ductal carcinoma?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A5YP",
+      "question": "what additional findings were noted apart from the carcinomas?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A7T0",
+      "question": "what was the tumor grade based on the nottingham histologic score?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A7T0",
+      "question": "what were the results of the estrogen receptor and progesterone receptor tests?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A7T0",
+      "question": "what were the results of the her2 test?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-OL-A5RX",
+      "question": "what is the ptnm staging of the tumor in the patient?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-OL-A66P",
+      "question": "what is one of the changes mentioned in the slide outside the primary finding?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-OL-A66P",
+      "question": "what is the finding in the superior mastectomy flap?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    }
+  ],
+  "v12_nonvisual_to_v13_partial": [
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the pre-operative diagnosis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the result of the er/pr immunostains?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the result of the evaluation for her2-neu overexpression?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CK",
+      "question": "what was the result of the her2/neu fish analysis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0T6",
+      "question": "what does the slide suggest about the presence of breast cancer?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A1FX",
+      "question": "what was the final diagnosis of the patient?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08R",
+      "question": "what is the final tumor classification for the breast?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08Z",
+      "question": "what is the classification of the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08Z",
+      "question": "what is the level of angioinvasion in the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A09Q",
+      "question": "what is the recommended next step mentioned in the slide?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P013"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AC-A2FF",
+      "question": "what does the surgical slide provide information on?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what does the slide confirm about the diagnosis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what stains were performed on the tissue?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0J9",
+      "question": "what are the recommendations for further evaluation and staging?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A1KP",
+      "question": "what is the recommended treatment for the patient?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AR-A1AU",
+      "question": "was there any evidence of distant metastasis?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-B6-A0RO",
+      "question": "what percentage of the carcinoma is comprised of intraductal carcinoma?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-B6-A0WV",
+      "question": "is there any residual carcinoma in the mastectomy specimen?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0AZ",
+      "question": "what is the nottingham score?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0BT",
+      "question": "what were the characteristics of the invasive ductal carcinoma in the breast segmental mastectomy?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0BV",
+      "question": "what is the nottingham score of the infiltrating ductal carcinoma?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the receptor status mentioned in the slide?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0EE",
+      "question": "what is the nottingham score of the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A202",
+      "question": "what was the score for estrogen receptors?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A5IZ",
+      "question": "what is the nottingham score for the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P012",
+        "P007",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A135",
+      "question": "what additional markers are mentioned in the slide?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A135",
+      "question": "what does the slide include information on?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A8HR",
+      "question": "what does the pathological description indicate about the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A13Z",
+      "question": "what were the results of the examination for estrogen and progesterone receptors?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JB",
+      "question": "what was the immunophenotype of the neoplastic cells?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JL",
+      "question": "what is the final diagnosis of the patient's breast condition?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1N6",
+      "question": "what was the missing data preventing the determination of the nottingham histologic score?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1RA",
+      "question": "what is the extent of the tumor?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1RE",
+      "question": "was there evidence of venous invasion?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1IY",
+      "question": "which immunostain was positive in the tumor cells?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1PF",
+      "question": "what is the pending immunohistochemistry for?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A2FW",
+      "question": "what is the presence of estrogen and progesterone receptors in tumor cells?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-GM-A2D9",
+      "question": "what is the nuclear grade of the invasive ductal carcinoma?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-OL-A5RX",
+      "question": "what is the ptnm staging of the tumor in the patient?",
+      "from": "nonvisual",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P007",
+        "P016"
+      ],
+      "prototype_coverage": "partial"
+    }
+  ],
+  "v12_morphology_only_to_v13_partial": [
+    {
+      "case_id": "TCGA-A1-A0SF",
+      "question": "what is the pathological finding in the soft tissue in the breast?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CZ",
+      "question": "what type of additional pathologic changes were mentioned?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A1FW",
+      "question": "what additional findings were noted on examination?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AC-A2FG",
+      "question": "what other findings were observed in the pathological slide?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what type of tissue changes are mentioned in the slide?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0J9",
+      "question": "what does the pathology slide confirm the presence of in the breast?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0JE",
+      "question": "what additional findings are present in the tumor?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A0JE",
+      "question": "what is found in the surrounding breast tissue?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A12D",
+      "question": "what other findings are mentioned in the pathological slide?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0BQ",
+      "question": "what type of tumor is the invasive component?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the histological finding of the breast simple mastectomy?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P008",
+        "P012"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the histological finding of the modified radical mastectomy?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P008",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0HL",
+      "question": "what was found in the breast tissue besides invasive ductal carcinoma?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0HX",
+      "question": "what findings are mentioned in the breast?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-C8-A135",
+      "question": "what are some features observed in the tumor?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P008",
+        "P010"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JB",
+      "question": "what additional lesions were found in the glandular tissue?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P003",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A14P",
+      "question": "what is present in the breast lumpectomy specimen besides invasive ductal carcinoma?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A22H",
+      "question": "were there any additional pathologic findings slideed apart from breast cancer?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005",
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A5YP",
+      "question": "what additional findings were noted apart from the carcinomas?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-OL-A66P",
+      "question": "what is one of the changes mentioned in the slide outside the primary finding?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-OL-A66P",
+      "question": "what is the finding in the superior mastectomy flap?",
+      "from": "morphology_only",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001"
+      ],
+      "prototype_coverage": "partial"
+    }
+  ],
+  "v12_direct_to_v13_partial": [
+    {
+      "case_id": "TCGA-A1-A0SF",
+      "question": "what is the result of her2/neu testing?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A1-A0SJ",
+      "question": "what is the pathological finding of the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A0CZ",
+      "question": "was her-2 positive or negative by immunohistochemistry?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A259",
+      "question": "what type of carcinoma was present along with invasive ductal carcinoma?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A259",
+      "question": "what were the findings related to her2 neu in the patient's breast tissue?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A2-A3XY",
+      "question": "is there any necrosis present in the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A08R",
+      "question": "is there any lymphatic, vascular, or perineural invasion present?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A097",
+      "question": "what is the diagnosis given in the pathological slide?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P006",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-A8-A097",
+      "question": "what is the provisional tumor classification?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AC-A5XS",
+      "question": "what was the grade of the invasive lobular carcinoma?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A03T",
+      "question": "what type of cancer is mentioned in the slide?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AO-A12D",
+      "question": "what does the pathological slide indicate about the biopsy of the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AQ-A7U7",
+      "question": "what additional condition is present along with invasive lobular carcinoma?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AR-A0U3",
+      "question": "what type of cancer was found in the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P006"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-AR-A0U3",
+      "question": "what was the result of the estrogen receptor (er) staining?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-B6-A0WV",
+      "question": "what type of proliferative changes were observed in the breast?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004",
+        "P005"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0AZ",
+      "question": "what were the results of the immunohistochemical staining?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DD",
+      "question": "what is the classification of the invasive component of the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P006",
+        "P011"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DG",
+      "question": "what is the grade of the tumor according to the nottingham score?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0DK",
+      "question": "what type of changes are observed in the patient's breast tissue?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A0EE",
+      "question": "what is the her-2/neu status of the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A42U",
+      "question": "what is the status of lymphatic or vascular invasion?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P007"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-BH-A5IZ",
+      "question": "what are the hormone receptor status of the tumor?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A13Z",
+      "question": "what was the reaction of the her2 protein?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JK",
+      "question": "what was the reaction of the her2 protein test in the invasive cancerous cells?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-D8-A1JL",
+      "question": "which hormone receptors were found to be absent in the neoplastic cell nuclei?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014",
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A105",
+      "question": "what is the final diagnosis?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A14P",
+      "question": "what type of carcinoma is found in the breast lumpectomy specimen?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P004"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E2-A15E",
+      "question": "which type of carcinoma shows necrosis?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P008",
+        "P009"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-E9-A1RA",
+      "question": "what type of carcinoma was observed?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P001",
+        "P002",
+        "P003",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1P7",
+      "question": "what was the grade assigned to the breast cancer according to the nottingham score?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1P7",
+      "question": "what was the receptor status for estrogen receptor (er) and progesterone receptor (pr)?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A1P7",
+      "question": "what was the receptor status for her 2-neu?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-EW-A2FW",
+      "question": "what is the status of her2?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A7T0",
+      "question": "what was the tumor grade based on the nottingham histologic score?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P006",
+        "P011",
+        "P012",
+        "P008"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A7T0",
+      "question": "what were the results of the estrogen receptor and progesterone receptor tests?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P013",
+        "P014"
+      ],
+      "prototype_coverage": "partial"
+    },
+    {
+      "case_id": "TCGA-LL-A7T0",
+      "question": "what were the results of the her2 test?",
+      "from": "phenotype_direct/direct",
+      "to": "phenotype_direct/partial",
+      "prototype_ids": [
+        "P015"
+      ],
+      "prototype_coverage": "partial"
+    }
+  ],
+  "v12_phenotype_to_v13_nonvisual": []
+}

@@ -1,0 +1,12 @@
+{
+  "total": 390,
+  "phenotype_direct/direct": 124,
+  "phenotype_direct/partial": 97,
+  "morphology_only": 4,
+  "nonvisual": 165,
+  "route_counts": {
+    "phenotype_direct": 221,
+    "morphology_only": 4,
+    "nonvisual": 165
+  }
+}

@@ -8,11 +8,13 @@ class FakeRegistry:
         "P001": "histological_type_label",
         "P006": "histologic_grade_label",
         "P007": "lymphovascular_invasion_label",
+        "P010": "microcalcification_binary",
     }
     field_to_name = {
         "histological_type_label": "histological type",
         "histologic_grade_label": "histologic grade",
         "lymphovascular_invasion_label": "lymphovascular invasion",
+        "microcalcification_binary": "microcalcification",
     }
     vocabs = {
         1024: {
@@ -20,6 +22,7 @@ class FakeRegistry:
                 "histological type": "multiclass",
                 "histologic grade": "multiclass",
                 "lymphovascular invasion": "multiclass",
+                "microcalcification": "binary",
             }
         }
     }
@@ -38,21 +41,22 @@ class RouterPlannerTest(unittest.TestCase):
             "TCGA-XX-0001", "test question", ["A", "B"], parsed
         )
 
-    def test_direct_keeps_grade_prototype(self):
+    def test_complete_maps_to_direct(self):
         plan = self.normalize({
-            "route": "phenotype_direct",
             "prototype_ids": ["P006"],
-            "task_match": "direct",
+            "prototype_coverage": "complete",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.target_phenotypes, ["histologic_grade_label"])
         self.assertEqual(plan.selected_prototype_ids, ["P006"])
         self.assertEqual(plan.task_match, "direct")
 
+        self.assertEqual(plan.prototype_coverage, "complete")
+
     def test_partial_keeps_single_prototype(self):
         plan = self.normalize({
-            "route": "phenotype_direct",
             "prototype_ids": ["P007"],
-            "task_match": "partial",
+            "prototype_coverage": "partial",
             "phenotype_relevance_score": 0.6,
         })
         self.assertEqual(
@@ -64,23 +68,22 @@ class RouterPlannerTest(unittest.TestCase):
 
     def test_partial_keeps_multiple_prototypes(self):
         plan = self.normalize({
-            "route": "phenotype_direct",
-            "prototype_ids": ["P001", "P007"],
-            "task_match": "partial",
+            "prototype_ids": ["P007", "P010"],
+            "prototype_coverage": "partial",
             "phenotype_relevance_score": 0.7,
         })
         self.assertEqual(
             plan.target_phenotypes,
-            ["histological_type_label", "lymphovascular_invasion_label"],
+            ["lymphovascular_invasion_label", "microcalcification_binary"],
         )
         self.assertEqual(plan.task_match, "partial")
         self.assertTrue(plan.supported)
 
-    def test_morphology_has_no_prototypes_and_uses_pathology(self):
+    def test_none_clears_valid_prototype_and_uses_morphology(self):
         plan = self.normalize({
-            "route": "morphology_only",
             "prototype_ids": ["P001"],
-            "task_match": "direct",
+            "prototype_coverage": "none",
+            "local_morphology_useful": True,
             "use_pathology_agent": False,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
@@ -88,26 +91,62 @@ class RouterPlannerTest(unittest.TestCase):
         self.assertEqual(plan.task_match, "none")
         self.assertTrue(plan.use_pathology_agent)
 
-    def test_nonvisual_disables_pathology(self):
+    def test_no_prototype_and_no_morphology_is_nonvisual(self):
         plan = self.normalize({
-            "route": "nonvisual",
             "prototype_ids": [],
-            "task_match": "none",
+            "prototype_coverage": "none",
+            "local_morphology_useful": False,
             "use_pathology_agent": True,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
         self.assertFalse(plan.use_pathology_agent)
         self.assertFalse(plan.supported)
 
-    def test_invalid_prototype_is_safely_discarded(self):
+    def test_invalid_partial_prototype_falls_back_to_morphology(self):
         plan = self.normalize({
-            "route": "phenotype_direct",
             "prototype_ids": ["P999"],
-            "task_match": "direct",
+            "prototype_coverage": "partial",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.evidence_route, "morphology_only")
         self.assertEqual(plan.selected_prototype_ids, [])
         self.assertEqual(plan.task_match, "none")
+
+    def test_no_prototype_with_morphology_is_morphology_only(self):
+        plan = self.normalize({
+            "prototype_ids": [],
+            "prototype_coverage": "none",
+            "local_morphology_useful": True,
+        })
+        self.assertEqual(plan.evidence_route, "morphology_only")
+        self.assertTrue(plan.use_pathology_agent)
+
+    def test_partial_survives_unavailable_context(self):
+        plan = self.normalize({
+            "prototype_ids": ["P007"],
+            "prototype_coverage": "partial",
+            "local_morphology_useful": False,
+            "requires_unavailable_context": True,
+        })
+        self.assertEqual(plan.evidence_route, "phenotype_direct")
+        self.assertEqual(plan.task_match, "partial")
+        self.assertTrue(plan.requires_unavailable_context)
+
+    def test_complete_relevance_is_clamped_up(self):
+        plan = self.normalize({
+            "prototype_ids": ["P006"],
+            "prototype_coverage": "complete",
+            "phenotype_relevance_score": 0.2,
+        })
+        self.assertEqual(plan.phenotype_relevance_score, 0.85)
+
+    def test_partial_relevance_is_clamped_down(self):
+        plan = self.normalize({
+            "prototype_ids": ["P007"],
+            "prototype_coverage": "partial",
+            "phenotype_relevance_score": 1.0,
+        })
+        self.assertEqual(plan.phenotype_relevance_score, 0.85)
 
 
 if __name__ == "__main__":
