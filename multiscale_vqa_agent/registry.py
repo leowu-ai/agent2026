@@ -135,10 +135,10 @@ class PrototypeAwarePlanner:
 
 Use only question, choices, and the prototype catalog:
 1. Infer the true target semantics from question and choices; choices clarify the task but never reveal the answer.
-2. Select the smallest set of at most four exact prototype IDs whose predictions directly measure the requested variable or a true component of it.
-3. Classify prototype support as target_evidence, correlated_context, or none, then set coverage.
-4. Independently judge whether retrieved local H&E patches can provide useful morphology.
-5. Independently judge whether unavailable records, measurements, assays, history, or exhaustive specimen context are required.
+2. For every candidate prototype apply the Choice Discrimination Test: "If I knew this prototype output perfectly, would it eliminate at least one plausible choice for the SAME variable or reason asked?" If no, it is not target evidence. Topic, disease confirmation, correlation, or background alone is insufficient.
+3. Select the smallest set of at most four exact prototype IDs that pass this test and directly measure the requested variable or a true component of it.
+4. Classify prototype support as target_evidence, correlated_context, or none, then set coverage.
+5. Independently judge whether retrieved local H&E patches can provide useful morphology and whether unavailable context is required; both may be true.
 
 TARGET_EVIDENCE means knowing the prototype prediction gives the requested variable itself, measures a real component of that same variable, or eliminates choices for that target-level reason. Histologic grade for a grade question, LVI for invasion presence or extent, and receptor status for a receptor-status question are target evidence.
 
@@ -148,15 +148,19 @@ NONE means catalog predictions have no direct target-level discrimination. Broad
 
 Select only the minimum discriminative target-evidence set, not every clinically related prototype. If histologic grade alone resolves the target, select only that grade prototype. Do not add LVI, necrosis, receptor, or broad histology merely as supporting context.
 
-COMPLETE means target evidence resolves the MCQ's core semantic distinction. Examples: grade 1/2/3 with histologic grade; yes/no LVI with LVI; positive/negative/equivocal general HER2 status with HER2.
+COMPLETE means the prototype's catalog labels cover the clinically valid target categories needed to resolve the MCQ. Inspect the catalog labels, not the field name. For standard Nottingham/histologic grade, labels grade 1/2/3 remain complete even if choices add an invalid grade 4 distractor. A genuinely different 1-4 grading system, such as Modified Black, is only partial with Nottingham 1-3. General receptor status is complete only when the prototype's actual labels cover the clinically valid supplied statuses. ER+PR prototypes may jointly complete a combination question.
 
-PARTIAL means prototype predictions materially eliminate or favor some choices but leave an important distinction unresolved. LVI separates absent from present but not focal from extensive angioinvasion. LVI does not cover perineural invasion in a combined invasion question. Microcalcification plus LVI can support some additional-finding choices but not benign or hyperplasia alternatives. Use partial even when the unresolved remainder requires unavailable report context.
+PARTIAL requires a real partition of supplied choices for the same target. LVI separates no invasion from focal/extensive but cannot resolve extent; LVI does not cover perineural invasion; LVI plus microcalcification may identify components of one additional-finding choice. Presence is not partial evidence for quantity when every choice assumes presence: DCIS presence cannot distinguish 5%/20%/50%/90%, necrosis presence cannot distinguish percentages, tumor type cannot distinguish sizes, and LVI presence cannot distinguish exact counts. Such cases are none unless a supplied absence choice is genuinely eliminated.
 
 prototype_coverage is meaningful only for target_evidence. For correlated_context or none, set coverage=none and keep prototype_ids empty.
 
-Assay granularity matters. General ER/PR/HER2 status is target_evidence/complete. ER status for choices negative, positive <10%, or positive >10% is target_evidence/partial because it separates negative from positive but not percentage ranges. HER2 status for explicit FISH/gene amplification is correlated_context or none, never partial. Receptor predictions for which stain was performed or pending are correlated_context.
+Broad histology never substitutes for architecture. P001 cannot distinguish solid, cribriform, papillary, micropapillary, acinar, or cystic patterns when all choices already assume carcinoma; use none with local morphology. It also cannot distinguish fibroadenoma, fibrocystic change, adenosis, mastitis, hyperplasia, fibrosis, apocrine metaplasia, or duct ectasia when no direct catalog classifier exists.
 
-local_morphology_useful=true for patch-assessable architecture, atypia, inflammation, fibrosis, adenosis, hyperplasia, fibroadenoma, fibrocystic change, benign tissue, local necrosis, or stroma when no target-level prototype exists. Set false for exact size, focus count, exhaustive multifocality, total-tumor percentage, margin distance, specimen extent/distribution, treatment/history/age, report wording, and exact TNM or gross facts. Do not force broad prototypes into partial merely to avoid local morphology.
+Assay and label granularity matter. General ER/PR/HER2 status uses actual catalog labels to decide complete versus partial. ER status for negative, positive <10%, or positive >10% is partial if labels only encode positive/negative. HER2 status for explicit FISH/gene amplification is correlated_context or none, never partial. Receptor predictions do not identify performed or pending stains.
+
+For exact Nottingham totals, use P011 only if its catalog labels encode the exact requested numeric scores; coarse low/intermediate/high labels cannot complete 5/9 versus 6/9 versus 7/9. Do not add LVI or necrosis because they are not score constituents. For AJCC, broad stage-group labels can complete Stage I/II/III/IV but cannot complete exact pT/N/M strings; use partial only if those labels truly partition choices, otherwise none.
+
+local_morphology_useful=true for patch-assessable architecture, atypia, inflammation, fibrosis, adenosis, hyperplasia, fibroadenoma, fibrocystic change, benign tissue, local necrosis, or stroma when no target-level prototype exists. It may remain true when unavailable context is also required. Set false for exact size, focus count, exhaustive multifocality, total-tumor percentage, margin distance, specimen extent/distribution, treatment/history/age, report wording, and exact TNM or gross facts. Do not force broad prototypes into partial merely to avoid local morphology.
 
 requires_unavailable_context=true does not erase genuine target_evidence/partial, but correlated_context plus unavailable context is not partial. Return JSON only with prototype_ids, prototype_support_type, prototype_coverage, local_morphology_useful, requires_unavailable_context, phenotype_relevance_score, reason, and use_pathology_agent. Do not invent IDs."""
         user = json.dumps({

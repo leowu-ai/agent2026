@@ -118,11 +118,14 @@ def write_route_transition(old_path: Path, new_path: Path, output: Path) -> Dict
     shared = sorted(old_plans.keys() & new_plans.keys())
     transitions = Counter()
     partial_cases = []
+    morphology_cases = []
     requested_groups = {
-        "v12_nonvisual_to_v13_partial": [],
-        "v12_morphology_only_to_v13_partial": [],
-        "v12_direct_to_v13_partial": [],
-        "v12_phenotype_to_v13_nonvisual": [],
+        "partial_to_direct": [],
+        "partial_to_nonvisual": [],
+        "partial_to_morphology_only": [],
+        "nonvisual_to_partial": [],
+        "direct_to_morphology_only": [],
+        "direct_to_partial": [],
     }
     for key in shared:
         old = old_plans[key]
@@ -142,20 +145,28 @@ def write_route_transition(old_path: Path, new_path: Path, output: Path) -> Dict
         if new_label == "phenotype_direct/partial":
             partial_cases.append(detail)
             if old_label == "nonvisual":
-                requested_groups["v12_nonvisual_to_v13_partial"].append(detail)
-            if old_label == "morphology_only":
-                requested_groups["v12_morphology_only_to_v13_partial"].append(detail)
+                requested_groups["nonvisual_to_partial"].append(detail)
             if old_label == "phenotype_direct/direct":
-                requested_groups["v12_direct_to_v13_partial"].append(detail)
-        if old_label.startswith("phenotype_direct/") and new_label == "nonvisual":
-            requested_groups["v12_phenotype_to_v13_nonvisual"].append(detail)
+                requested_groups["direct_to_partial"].append(detail)
+        if new_label == "morphology_only":
+            morphology_cases.append(detail)
+            if old_label == "phenotype_direct/direct":
+                requested_groups["direct_to_morphology_only"].append(detail)
+        if old_label == "phenotype_direct/partial":
+            if new_label == "phenotype_direct/direct":
+                requested_groups["partial_to_direct"].append(detail)
+            elif new_label == "nonvisual":
+                requested_groups["partial_to_nonvisual"].append(detail)
+            elif new_label == "morphology_only":
+                requested_groups["partial_to_morphology_only"].append(detail)
 
     result = {
         "old_total": len(old_plans),
         "new_total": len(new_plans),
         "shared_total": len(shared),
         "transition_counts": dict(sorted(transitions.items())),
-        "all_v13_partial": partial_cases,
+        "all_new_partial": partial_cases,
+        "all_new_morphology_only": morphology_cases,
         **requested_groups,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -172,7 +183,8 @@ def main() -> None:
     result = write_route_transition(args.old, args.new, args.output)
     print(json.dumps({
         "shared_total": result["shared_total"],
-        "v13_partial": len(result["all_v13_partial"]),
+        "new_partial": len(result["all_new_partial"]),
+        "new_morphology_only": len(result["all_new_morphology_only"]),
         "output": str(args.output),
     }, ensure_ascii=False))
 
