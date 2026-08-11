@@ -17,7 +17,18 @@ from multiscale_vqa_agent.clients import OpenAICompatibleClient, parse_json_resp
 from multiscale_vqa_agent.live_metrics import LiveAccuracyTracker
 
 
-SYSTEM_PROMPT = """You are answering a breast pathology multiple-choice question using only whole-slide overview thumbnails from one patient.
+ANSWERABILITY_SYSTEM_PROMPT = """You are the answerability gate for a direct breast pathology WSI baseline. Decide whether the supplied whole-slide overview thumbnail(s) contain enough information to give a reasonably grounded answer to the question. Use only the question, choices, and images.
+
+Return JSON only: {"can_answer":true,"confidence":0.0,"reason":"one short sentence"}. can_answer must be a JSON boolean, never a string.
+
+Set can_answer=true for targets reasonably supported by the available WSI morphology, including diagnosis, histologic type/subtype/grade, visible morphology, necrosis, in-situ disease, microcalcification, lymphovascular invasion, and morphology-linked categorical phenotypes when the images provide reasonable predictive evidence.
+
+Set can_answer=false for targets requiring exact measurements, age, treatment, procedure, clinical history, follow-up, specimen metadata or orientation, report-only information, exact assay measurements, or information clearly unavailable from the supplied thumbnails.
+
+Judge the information available to this direct thumbnail baseline, not whether the question is generally easy. Do not answer the multiple-choice question in this stage."""
+
+
+ANSWER_SYSTEM_PROMPT = """You are answering a breast pathology multiple-choice question using only whole-slide overview thumbnails from one patient.
 The images are low-resolution H&E overviews, so do not claim findings that are not visibly supported. You must still choose the most defensible supplied option.
 Return JSON only: {"answer_id":"A","confidence":0.0,"explanation":"one short sentence","limitations":"one short sentence"}.
 answer_id must be exactly one supplied option ID. Do not return the option text as answer_id, refuse, or return null."""
@@ -49,6 +60,22 @@ def parse_answer(raw: Optional[str], choices: Sequence[Any]) -> Optional[Dict[st
         "confidence": parsed.get("confidence") if isinstance(parsed, dict) else None,
         "explanation": parsed.get("explanation", "") if isinstance(parsed, dict) else "",
         "limitations": parsed.get("limitations", "") if isinstance(parsed, dict) else "",
+    }
+
+
+def parse_answerability(raw: Optional[str]) -> Optional[Dict[str, Any]]:
+    parsed = parse_json_response(raw)
+    if not isinstance(parsed, dict) or not isinstance(parsed.get("can_answer"), bool):
+        return None
+    try:
+        confidence = float(parsed.get("confidence", 0.0))
+    except (TypeError, ValueError):
+        confidence = 0.0
+    return {
+        "can_answer": parsed["can_answer"],
+        "confidence": max(0.0, min(confidence, 1.0)),
+        "reason": str(parsed.get("reason", "")).strip(),
+        "fallback_used": False,
     }
 
 
@@ -110,12 +137,28 @@ def completed_keys(path: Path) -> set:
     return keys
 
 
-def format_user_prompt(question: str, choices: Sequence[Any], image_count: int) -> str:
-    packet = {
+def evidence_packet(question: str, choices: Sequence[Any], image_count: int) -> Dict[str, Any]:
+    return {
         "question": question,
         "choices": indexed_choices(choices),
         "image_context": f"{image_count} whole-slide overview thumbnail(s) from the same patient",
     }
+
+
+def format_answerability_prompt(
+    question: str, choices: Sequence[Any], image_count: int
+) -> str:
+    packet = evidence_packet(question, choices, image_count)
+    packet["output_schema"] = {
+        "can_answer": True,
+        "confidence": 0.0,
+        "reason": "one short sentence",
+    }
+    return "Decide answerability only.\n" + json.dumps(packet, ensure_ascii=False)
+
+
+def format_user_prompt(question: str, choices: Sequence[Any], image_count: int) -> str:
+    packet = evidence_packet(question, choices, image_count)
     return "Select one option ID.\n" + json.dumps(packet, ensure_ascii=False)
 
 
@@ -142,7 +185,10 @@ def run(args: argparse.Namespace) -> Path:
     if args.limit is not None:
         items = items[: args.limit]
 
-    destination = Path(args.output or Path(config["output_dir"]) / "qwen_wsi_direct" / "mc_answers.jsonl")
+    destination = Path(
+        args.output
+        or Path(config["output_dir"]) / "qwen_wsi_selective" / "mc_answers.jsonl"
+    )
     destination.parent.mkdir(parents=True, exist_ok=True)
     metrics_path = Path(args.metrics) if args.metrics else destination.with_name("mc_answers_metrics.json")
     history_path = metrics_path.with_name(f"{metrics_path.stem}_history.csv")
@@ -181,8 +227,50 @@ def run(args: argparse.Namespace) -> Path:
                 image_paths, slide_paths = thumbnails.thumbnails(case_id)
                 if not image_paths:
                     raise FileNotFoundError(f"No WSI found for {case_id}")
+                gate_raw = client.chat(
+                    system=ANSWERABILITY_SYSTEM_PROMPT,
+                    user=format_answerability_prompt(
+                        question, choices, len(image_paths)
+                    ),
+                    images=image_paths,
+                    temperature=0.0,
+                    max_tokens=160,
+                    response_format={"type": "json_object"},
+                    retries=2,
+                )
+                assessment = parse_answerability(gate_raw)
+                if assessment is None:
+                    assessment = {
+                        "can_answer": True,
+                        "confidence": 0.0,
+                        "reason": "Answerability response was invalid; continuing without abstention.",
+                        "fallback_used": True,
+                    }
+                row.update({
+                    "thumbnail_paths": image_paths,
+                    "wsi_paths": slide_paths,
+                    "predicted_can_answer": assessment["can_answer"],
+                    "predicted_answerability": (
+                        "answerable" if assessment["can_answer"] else "unanswerable"
+                    ),
+                    "answerability_confidence": assessment["confidence"],
+                    "answerability_reason": assessment["reason"],
+                    "answerability_fallback_used": assessment["fallback_used"],
+                    "answerability_raw_response": gate_raw,
+                    "abstained": not assessment["can_answer"],
+                })
+                if not assessment["can_answer"]:
+                    row.update({
+                        "plan": {},
+                        "task_match": "answerability_abstain",
+                        "agent_answer": None,
+                        "json_parse_success": True,
+                    })
+                    save_result(handle, row, tracker)
+                    continue
+
                 raw = client.chat(
-                    system=SYSTEM_PROMPT,
+                    system=ANSWER_SYSTEM_PROMPT,
                     user=format_user_prompt(question, choices, len(image_paths)),
                     images=image_paths,
                     temperature=0.0,
@@ -194,29 +282,55 @@ def run(args: argparse.Namespace) -> Path:
                 if answer is None:
                     raise ValueError("Qwen response did not contain a valid supplied answer_id")
                 row.update({
-                    "thumbnail_paths": image_paths,
-                    "wsi_paths": slide_paths,
                     "raw_response": raw,
                     "agent_answer": {**answer, "json_parse_success": True},
                     "json_parse_success": True,
                 })
             except Exception as error:
+                row.setdefault("thumbnail_paths", [])
+                row.setdefault("wsi_paths", [])
+                row.setdefault("predicted_can_answer", True)
+                row.setdefault("predicted_answerability", "answerable")
+                row.setdefault("answerability_confidence", 0.0)
+                row.setdefault(
+                    "answerability_reason",
+                    "Baseline processing failed; retaining a non-rejecting fallback.",
+                )
+                row.setdefault("answerability_fallback_used", True)
+                row.setdefault("abstained", False)
                 row.update({
                     "error": f"{type(error).__name__}: {error}",
                     "json_parse_success": False,
                 })
             save_result(handle, row, tracker)
     tracker.save_snapshot()
+    if args.answerability_labels:
+        from multiscale_vqa_agent.answerability_evaluation import evaluate_answerability
+
+        summary = evaluate_answerability(
+            destination, Path(args.answerability_labels)
+        )
+        print(
+            f"Qwen selective evaluation: {json.dumps(summary, ensure_ascii=False)}",
+            flush=True,
+        )
     return destination
 
 
 def build_parser() -> argparse.ArgumentParser:
     agent_dir = Path(__file__).resolve().parent
-    parser = argparse.ArgumentParser(description="Direct Qwen-VLM baseline on whole-slide thumbnails")
+    parser = argparse.ArgumentParser(
+        description="Selective direct Qwen-VLM baseline on whole-slide thumbnails"
+    )
     parser.add_argument("--config", default=str(agent_dir / "config.servers.json"))
     parser.add_argument("--vqa_json", default=None)
     parser.add_argument("--output", default=None)
     parser.add_argument("--metrics", default=None)
+    parser.add_argument(
+        "--answerability_labels",
+        default=None,
+        help="Optional binary Gold labels read only after inference.",
+    )
     parser.add_argument("--thumbnail_dir", default=None)
     parser.add_argument("--thumbnail_size", type=int, default=1536)
     parser.add_argument("--max_slides", type=int, default=4)

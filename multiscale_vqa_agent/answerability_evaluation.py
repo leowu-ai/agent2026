@@ -235,6 +235,10 @@ def evaluate_answerability(
             "abstained_n": len(valid_audit) - len(answered),
             "selective_accuracy": _ratio(sum(row["correct"] for row in answered), len(answered)),
             "coverage": _ratio(len(answered), len(valid_audit)),
+            "overall_correct": sum(row["correct"] for row in valid_audit),
+            "overall_accuracy": _ratio(
+                sum(row["correct"] for row in valid_audit), len(valid_audit)
+            ),
         },
         "integrity": {
             "prediction_total": prediction_total,
