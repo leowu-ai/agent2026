@@ -108,21 +108,23 @@ Evaluate exact answer matching:
 
 Run the selective direct Qwen-VLM control using only whole-slide overview
 thumbnails and the multiple-choice question (no G2P, retrieval, or Patho-R1).
-Qwen first judges answerability from its own thumbnail inputs and only answers
-questions it accepts. Existing `qwen_wsi_direct` outputs remain the separate
-forced-answer baseline:
+Qwen first judges the information type from question and choices only, using
+the same H&E answerability definition as the main method. It loads thumbnails
+and answers only accepted questions. Existing `qwen_wsi_direct` and
+`qwen_wsi_selective` outputs remain the forced-answer and thumbnail-gated v1
+baselines:
 
 ```bash
 cd /home/wl/agent_2026/g2p_toolbank_brca
-mkdir -p outputs/multiscale_vqa_agent/qwen_wsi_selective
+mkdir -p outputs/multiscale_vqa_agent/qwen_wsi_selective_v2
 nohup /home/wl/anaconda3/envs/mil/bin/python \
   multiscale_vqa_agent/run_qwen_wsi_baseline.py \
   --config multiscale_vqa_agent/config.servers.json \
   --vqa_json /home/wl/agent_2026/dataset/WsiVQA_test.json \
-  --output outputs/multiscale_vqa_agent/qwen_wsi_selective/mc_answers.jsonl \
+  --output outputs/multiscale_vqa_agent/qwen_wsi_selective_v2/mc_answers.jsonl \
   --answerability_labels /home/wl/agent_2026/dataset/WsiVQA_answerability_binary_flat_v1.json \
   --no_resume \
-  > outputs/multiscale_vqa_agent/qwen_wsi_selective/run.log 2>&1 &
+  > outputs/multiscale_vqa_agent/qwen_wsi_selective_v2/run.log 2>&1 &
 ```
 
 The runner prioritizes diagnostic `DX` slides, caches patient thumbnails,

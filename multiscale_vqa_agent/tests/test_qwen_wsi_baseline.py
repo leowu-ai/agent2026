@@ -5,13 +5,11 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
+from multiscale_vqa_agent.answerability import ANSWERABILITY_SYSTEM_PROMPT
 from multiscale_vqa_agent.run_qwen_wsi_baseline import (
-    ANSWERABILITY_SYSTEM_PROMPT,
     WSIThumbnailIndex,
-    format_answerability_prompt,
     indexed_choices,
     parse_answer,
-    parse_answerability,
     run,
 )
 
@@ -31,18 +29,8 @@ class QwenWSIBaselineTest(unittest.TestCase):
         self.assertIsNone(parse_answer('{"answer_id":"yes"}', ["no", "yes"]))
         self.assertIsNone(parse_answer('{"answer_id":"C"}', ["no", "yes"]))
 
-    def test_parse_answerability_requires_json_boolean(self):
-        self.assertEqual(
-            parse_answerability('{"can_answer":false,"confidence":0.8,"reason":"x"}')["can_answer"],
-            False,
-        )
-        self.assertIsNone(parse_answerability('{"can_answer":"false"}'))
-
     def test_answerability_prompt_has_no_evaluation_leakage(self):
-        prompt = ANSWERABILITY_SYSTEM_PROMPT + format_answerability_prompt(
-            "What is the grade?", ["1", "2"], 1
-        )
-        lowered = prompt.lower()
+        lowered = ANSWERABILITY_SYSTEM_PROMPT.lower()
         for forbidden in (
             "reference_answer", "reference answer", "gold_can_answer",
             "exclude_from_evaluation", "reason_code", "label_source",
@@ -52,19 +40,27 @@ class QwenWSIBaselineTest(unittest.TestCase):
     def test_false_gate_skips_answer_stage(self):
         class FakeClient:
             calls = 0
+            first_user = None
+            first_images = None
 
             def __init__(self, config):
                 pass
 
-            def chat(self, **kwargs):
+            def chat(self, *args, **kwargs):
                 FakeClient.calls += 1
+                if FakeClient.calls == 1:
+                    FakeClient.first_user = args[1]
+                    FakeClient.first_images = kwargs.get("images")
                 return '{"can_answer":false,"confidence":0.9,"reason":"not visible"}'
 
         class FakeThumbnails:
+            calls = 0
+
             def __init__(self, *args, **kwargs):
                 pass
 
             def thumbnails(self, case_id):
+                FakeThumbnails.calls += 1
                 return ["thumbnail.jpg"], ["slide.svs"]
 
         with tempfile.TemporaryDirectory() as directory:
@@ -95,6 +91,12 @@ class QwenWSIBaselineTest(unittest.TestCase):
                 run(args)
             row = json.loads(output.read_text().strip())
         self.assertEqual(FakeClient.calls, 1)
+        self.assertIsNone(FakeClient.first_images)
+        self.assertEqual(
+            set(json.loads(FakeClient.first_user)),
+            {"question", "choices", "output_schema"},
+        )
+        self.assertEqual(FakeThumbnails.calls, 0)
         self.assertFalse(row["predicted_can_answer"])
         self.assertTrue(row["abstained"])
         self.assertIsNone(row["agent_answer"])
