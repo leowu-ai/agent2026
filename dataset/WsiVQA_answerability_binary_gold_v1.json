@@ -1,0 +1,1704 @@
+{
+  "schema_version": "wsi_answerability_binary_v1",
+  "task": "binary_wsi_answerability",
+  "source_dataset": {
+    "repository": "shenyvshen/agent2026",
+    "commit": "bd9c19c8140026c0c5cbb90193633c113dfdae53",
+    "path": "dataset/WsiVQA_test.json",
+    "blob_sha": "fb116eb9099dfe5c712608b6b8ba1d03bca5f2f4",
+    "multiple_choice_expected_total": 390
+  },
+  "definition": {
+    "can_answer_true": "The requested target can reasonably be answered from the available pathology WSI, either directly from H&E morphology or as a categorical tissue-linked phenotype that can be predicted from WSI.",
+    "can_answer_false": "The requested fact requires report/gross-specimen/clinical/procedural/follow-up context, exact case-level measurements, exact staging, or actual assay-specific measurements/results that are not recoverable from the WSI alone.",
+    "excluded": "Malformed or internally inconsistent benchmark item. Use can_answer=null and exclude_from_evaluation=true."
+  },
+  "evaluation_protocol": {
+    "answerability": "Evaluate can_answer true vs false on all non-excluded MC questions.",
+    "primary_vqa": "Evaluate VQA accuracy on the fixed GOLD can_answer=true subset. If a model abstains on a GOLD can_answer=true question, count it as wrong.",
+    "fairness": "Use exactly the same GOLD can_answer=true subset for Ours and every baseline."
+  },
+  "resolution_priority": [
+    "exact_labels",
+    "high_priority_binary_rules",
+    "default_for_remaining_mc_items"
+  ],
+  "high_priority_binary_rules": {
+    "false_if_question_requires": [
+      "exact tumor/specimen/lesion size, diameter, dimension, measurement, percentage, distance, or focus count",
+      "AJCC/TNM/pathologic stage or exact case-level extent",
+      "surgical margin status/distance/orientation or specimen-location facts",
+      "patient age, symptoms, history, medication, treatment, consent, performance status, or other clinical metadata",
+      "procedure performed, stains/tests performed or pending, recommendations, report wording, specimen format/site",
+      "exact receptor percentage or continuous assay score",
+      "actual FISH/amplification or other assay-specific measurement/result",
+      "vital status or exact survival time"
+    ],
+    "true_if_question_targets": [
+      "histologic diagnosis/type/subtype",
+      "histologic or nuclear grade and histology-derived Nottingham grading/score",
+      "architectural pattern",
+      "necrosis or comedonecrosis",
+      "microcalcification",
+      "lymphovascular/vascular/angioinvasion",
+      "DCIS/LCIS presence",
+      "benign breast morphology such as hyperplasia, adenosis, metaplasia, fibroadenoma, or fibrocystic change",
+      "categorical ER/PR/HER2 biological status"
+    ]
+  },
+  "default_for_remaining_mc_items": true,
+  "exact_labels": [
+    {
+      "Id": "TCGA-LD-A74U",
+      "Question": "what is the tumor size approximately?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A1AI",
+      "Question": "what was the size of the mass in jeb's breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A1AI",
+      "Question": "what was the status of the surgical margins in jeb's case?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-B6-A0WZ",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-B6-A0WZ",
+      "Question": "is there evidence of multifocal tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A5IZ",
+      "Question": "what is the size of the tumor?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-BH-A5IZ",
+      "Question": "what percentage of the tumor volume constitutes ductal carcinoma in situ (dcis)?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-BH-A5IZ",
+      "Question": "what type of non-neoplastic breast tissue changes were observed?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0AZ",
+      "Question": "what is the tumor size range?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0AZ",
+      "Question": "what percentage of tumor volume does ductal carcinoma in situ (dcis) represent?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-EW-A1PF",
+      "Question": "what is the total size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-EW-A1PF",
+      "Question": "what is the size of the comedo necrosis in the ductal carcinoma in situ?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-EW-A1PF",
+      "Question": "what is the pending immunohistochemistry for?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the size of the infiltrating ductal carcinoma in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the nottingham score of the infiltrating ductal carcinoma?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "histology_derived_score"
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the closest margin of resection for the infiltrating ductal carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0BV",
+      "Question": "what is the pathological stage of the breast cancer?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-BH-A202",
+      "Question": "what was the size of the primary invasive carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-BH-A202",
+      "Question": "what was the score for estrogen receptors?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-BH-A202",
+      "Question": "what was the pathologic stage?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AR-A0U3",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A0U3",
+      "Question": "what was the stage classification of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AR-A0U3",
+      "Question": "how much of the tumor was accounted for by ductal carcinoma in-situ?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-AO-A0JE",
+      "Question": "what additional findings are present in the tumor?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AO-A0JE",
+      "Question": "what is found in the surrounding breast tissue?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AO-A0JE",
+      "Question": "where were receptor studies performed?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A1-A0SF",
+      "Question": "what is the size of the infiltrating ductal carcinoma in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A1-A0SF",
+      "Question": "what is the pathological finding in the ovary?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "non_target_specimen_context"
+    },
+    {
+      "Id": "TCGA-EW-A1P7",
+      "Question": "what were the results of the tumor margin assessment?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-EW-A1P7",
+      "Question": "what was the receptor status for her 2-neu?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "categorical_biological_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0DG",
+      "Question": "what is the pathological stage of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-BH-A0DG",
+      "Question": "what percentage of the tumor volume comprises the in situ component?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-BH-A0DG",
+      "Question": "what type of breast tissue is present besides the tumor?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0DD",
+      "Question": "what is the histological finding of the breast simple mastectomy?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0DD",
+      "Question": "what is the histological finding of the modified radical mastectomy?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0DD",
+      "Question": "what is the receptor status mentioned in the slide?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "categorical_biological_phenotype"
+    },
+    {
+      "Id": "TCGA-B6-A0IA",
+      "Question": "what is the size of the tumor found in the patient's breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-B6-A0IA",
+      "Question": "what other changes were found in the patient's breast?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-B6-A0IA",
+      "Question": "was there any residual carcinoma in the previous biopsy site?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "where was the metastatic involvement found?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what type of procedure did the patient undergo?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what additional tests were performed?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what does the surgical slide provide information on?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FF",
+      "Question": "what type of node was involved in the metastatic carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what is the elston modification of bloom-richardson grade?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what is the status of the surgical margins?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AC-A2FG",
+      "Question": "what other findings were observed in the pathological slide?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A259",
+      "Question": "what was the size of the patient's tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A1-A0SJ",
+      "Question": "what is the immunohistochemical finding of the tumor?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-E9-A1N6",
+      "Question": "what was the size of the breast tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E9-A1N6",
+      "Question": "what was the missing data preventing the determination of the nottingham histologic score?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E9-A1N6",
+      "Question": "was any information provided on neo-adjuvant treatment?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-LL-A5YP",
+      "Question": "what was the size of the high-grade ductal carcinoma in situ (dcis) in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "exact_size_requires_gross_or_case_level_measurement"
+    },
+    {
+      "Id": "TCGA-LL-A5YP",
+      "Question": "were the margins involved with tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-LL-A5YP",
+      "Question": "what additional findings were noted apart from the carcinomas?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "where has the tumor spread to?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "what type of tissue changes are mentioned in the slide?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "what does the slide confirm about the diagnosis?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AO-A03T",
+      "Question": "what stains were performed on the tissue?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A3M7",
+      "Question": "what is the patient's karnofsky performance scale score indicating?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A3M7",
+      "Question": "is the patient currently on any medications?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A3M7",
+      "Question": "is there any information about the presence of distant metastasis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E9-A227",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-EW-A1IY",
+      "Question": "what were the findings of the examination of the sentinel node #3?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-EW-A1IY",
+      "Question": "what is the size of the infiltrating ductal carcinoma in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-EW-A1IY",
+      "Question": "which immunostain was positive in the tumor cells?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_actual_assay_result"
+    },
+    {
+      "Id": "TCGA-LL-A442",
+      "Question": "is there any invasive tumor seen at the surgical margins?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-LL-A442",
+      "Question": "what is the size of the breast tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-EW-A2FW",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-EW-A2FW",
+      "Question": "what is the presence of estrogen and progesterone receptors in tumor cells?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "exact_receptor_percentage"
+    },
+    {
+      "Id": "TCGA-EW-A2FW",
+      "Question": "what is the final pathologic stage of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-E2-A105",
+      "Question": "what size was the stellate mass found in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-E2-A105",
+      "Question": "are the surgical margins free of tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A255",
+      "Question": "what was the size of the mass that was excised?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0EW",
+      "Question": "what was the final pathological stage of the patient's cancer?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-A2-A0EW",
+      "Question": "where in the patient's breast were the two tumors found?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A08R",
+      "Question": "what is the final tumor classification for the breast?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-A8-A08R",
+      "Question": "what is the tumor diameter in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what was found in the breast tissue besides invasive ductal carcinoma?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what percentage of the tumor mass accounts for ductal carcinoma in situ?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what is the closest margin to the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0HL",
+      "Question": "what is the t stage of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-E2-A15E",
+      "Question": "what is the size of the invasive ductal carcinoma in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-E2-A15E",
+      "Question": "which type of carcinoma shows necrosis?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-E2-A15E",
+      "Question": "what are the results for er, pr, and her2?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "categorical_biological_phenotype"
+    },
+    {
+      "Id": "TCGA-B6-A0WV",
+      "Question": "what is the size of the infiltrating tumor in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-B6-A0WV",
+      "Question": "is there any residual carcinoma in the mastectomy specimen?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E9-A1RA",
+      "Question": "what was the size of the lump in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-E9-A1RA",
+      "Question": "were there any specific histological details provided?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E9-A1RA",
+      "Question": "what is the extent of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-BH-A0BT",
+      "Question": "what were the characteristics of the invasive ductal carcinoma in the breast segmental mastectomy?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-BH-A0BT",
+      "Question": "what is the result in the medial new margin?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0HX",
+      "Question": "what is the grade of lobular carcinoma in the breast?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-BH-A0HX",
+      "Question": "what findings are mentioned in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the diameter of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the classification of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the status of the dorsal resection margin?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A08Z",
+      "Question": "what is the level of angioinvasion in the tumor?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-D8-A1JL",
+      "Question": "what was the size of the tumor found in the patient's breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-D8-A1JL",
+      "Question": "what type of lesion was found in the glandular tissue surrounding the tumor?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "what was the size of the mass in the medial portion of the specimen?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "what percentage of the carcinoma is comprised of intraductal carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "was there any tumor seen in the deep surgical margin?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-B6-A0RO",
+      "Question": "what non-neoplastic changes were observed in the breast tissue?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-GM-A2D9",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-GM-A2D9",
+      "Question": "what percentage of the total tumor comprises focal intraductal carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-GM-A2D9",
+      "Question": "what is the ki-67 proliferation index of the invasive carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what type of procedure did the patient have?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "in which breast did the slide find a benign sentinel node?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what size was the benign sentinel node?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what was found in the breast?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what was the size of the irregular fibrous nodule found in the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A2-A0T6",
+      "Question": "what does the slide suggest about the presence of breast cancer?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AQ-A7U7",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AN-A0XS",
+      "Question": "what is the stage of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AN-A0XS",
+      "Question": "has any treatment been administered yet?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AN-A0XS",
+      "Question": "what was obtained in addition to the tumor sample?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-E9-A2JS",
+      "Question": "what is the size of the tumor in the breast?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-E9-A2JS",
+      "Question": "was there any evidence of neo-adjuvant treatment?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-BH-A0DK",
+      "Question": "what is the size of the invasive tumor in the patient's breast tissue?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what is the patient's age?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what type of consent did the patient provide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what is the staging of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "what does the pathological description indicate about the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-C8-A8HR",
+      "Question": "who signed the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "what was the size of the tumor in the patient's breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "was the nottingham histologic score determined for the patient?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "did the patient receive neo-adjuvant treatment?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-E9-A22H",
+      "Question": "were there any additional pathologic findings slideed apart from breast cancer?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-LL-A7T0",
+      "Question": "what was the size of the largest invasive carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-LL-A7T0",
+      "Question": "what was the depth of the closest margin for the invasive carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what additional markers are mentioned in the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what does the slide include information on?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what are some features observed in the tumor?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what are the comments or notes from the pathologist in the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A135",
+      "Question": "what is the histological diagnosis based on?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-A8-A08L",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A08L",
+      "Question": "how far has the tumor invaded?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "what is the size of the labeled \"right breast\" specimen received?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "what is the measurement of the biopsy cavity?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "which sections are included in the pathological slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AO-A0J9",
+      "Question": "what are the recommendations for further evaluation and staging?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-D8-A1JK",
+      "Question": "what is the pathological tumor size of the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0CK",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0CK",
+      "Question": "what was the pre-operative diagnosis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A2-A0CK",
+      "Question": "what was the result of the her2/neu fish analysis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "actual_fish_assay_result"
+    },
+    {
+      "Id": "TCGA-OL-A5RX",
+      "Question": "what is the ptnm staging of the tumor in the patient?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-OL-A5RX",
+      "Question": "what type of changes were found in the breast tissue of the patient?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-OL-A5RX",
+      "Question": "were the excisional biopsy margins free of tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A3XY",
+      "Question": "what is the final diagnosis of the patient?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A3XY",
+      "Question": "how big is the unifocal tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-D8-A27M",
+      "Question": "what type of cancer has the patient been diagnosed with?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-D8-A27M",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AO-A1KP",
+      "Question": "what is the recommended treatment for the patient?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AO-A1KP",
+      "Question": "what is the diagnosis of the patient based on?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-AO-A1KP",
+      "Question": "are all the tumor masses well-circumscribed and firm?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-OL-A66P",
+      "Question": "what is the finding in the superior mastectomy flap?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-OL-A66P",
+      "Question": "how many foci of invasive ductal carcinoma are found in the breast simple mastectomy?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-OL-A66P",
+      "Question": "what is one of the changes mentioned in the slide outside the primary finding?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-D8-A73U",
+      "Question": "what is the clinical diagnosis of the patient?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-D8-A73U",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-D8-A73U",
+      "Question": "what percentage of neoplastic cell nuclei had estrogen and progesterone receptors?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-AO-A12D",
+      "Question": "what other findings are mentioned in the pathological slide?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AO-A12D",
+      "Question": "what additional tests are pending according to the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AO-A12D",
+      "Question": "is the diagnosis of carcinoma confirmed by the pathological slide?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-E9-A1RE",
+      "Question": "what was the size of the tumor found in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-E9-A1RE",
+      "Question": "were the margins of the tumor involved?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-D8-A1JB",
+      "Question": "what was the size of the tumor in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-D8-A1JB",
+      "Question": "what additional lesions were found in the glandular tissue?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-D8-A1JB",
+      "Question": "what was the immunophenotype of the neoplastic cells?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_actual_assay_result"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what is the chief complaint of the patient?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what are the symptoms slideed by the patient?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what is the performance scale of the patient?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what is the menopausal status of the patient?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what methods of birth control does the patient use?",
+      "can_answer": null,
+      "exclude_from_evaluation": true,
+      "reason_code": "dataset_error"
+    },
+    {
+      "Id": "TCGA-C8-A1HJ",
+      "Question": "what information is not provided in the caption?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A2-A1FW",
+      "Question": "what surgical procedures did the patient undergo?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A2-A1FW",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A1FW",
+      "Question": "what additional findings were noted on examination?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "what type of hyperplasia was observed in the breast?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "what was the percentage of nuclear staining for progesterone receptors in the patient's breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "what significant findings were observed in the patient's slide apart from breast carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A2-A25A",
+      "Question": "which breast was scheduled for sentinel node biopsy?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A09Q",
+      "Question": "what is the size of the breast tumor mentioned in the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A8-A09Q",
+      "Question": "which breast tissue is affected by fibrolipomatous changes?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A09Q",
+      "Question": "what is the recommended next step mentioned in the slide?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-BH-A0EE",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0EE",
+      "Question": "what is the final pathological stage of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-A2-A0CZ",
+      "Question": "what was the final pathologic stage of the cancer?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-A2-A0CZ",
+      "Question": "what type of additional pathologic changes were mentioned?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-AQ-A54N",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AQ-A54N",
+      "Question": "was the tumor multifocal or unifocal?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-D8-A13Z",
+      "Question": "what were the measurements of the tumor in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-D8-A13Z",
+      "Question": "what size was the second tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A42U",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A42U",
+      "Question": "what is the result of cadherin immunostaining?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_actual_assay_result"
+    },
+    {
+      "Id": "TCGA-BH-A42U",
+      "Question": "what is the stage classification of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AC-A3TM",
+      "Question": "what is the size of the invasive tumor in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AC-A3TM",
+      "Question": "what is the tnm stage of the cancer?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AC-A3TM",
+      "Question": "are the surgical margins positive or negative?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A07U",
+      "Question": "what is the size of the invasive ductal breast carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what is the size of the infiltrative ductal carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what type of pattern does the infiltrative ductal carcinoma demonstrate?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what can be found in fibrocystic changes?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A0EM",
+      "Question": "what is the distance between the nearest margin and the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A097",
+      "Question": "what is the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A8-A097",
+      "Question": "what is the stage of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-A8-A097",
+      "Question": "what is the presence of micrometastasis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what was the patient's pre-operative diagnosis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what stains were performed to support the diagnosis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what was the final diagnosis of the patient?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "what was the patient’s tnm classification?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-A2-A1FX",
+      "Question": "where was metastasis detected?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_or_report_context"
+    },
+    {
+      "Id": "TCGA-A2-A3XU",
+      "Question": "what was the size of the infiltrative ductal carcinoma?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A3XU",
+      "Question": "in which margin(s) the surgical margins are involved?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-A2-A3XU",
+      "Question": "what is the tnm classification of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AR-A24S",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A24S",
+      "Question": "did the biopsy site show any changes?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A24S",
+      "Question": "what type of breast tissue changes were observed?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "wsi_morphology_or_predictable_phenotype"
+    },
+    {
+      "Id": "TCGA-AR-A1AU",
+      "Question": "was there any evidence of distant metastasis?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E2-A14P",
+      "Question": "what is the size of the largest metastasis found?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-E2-A14P",
+      "Question": "what is the size of the tumor found in the breast lumpectomy specimen?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what was the size of the invasive lobular carcinoma in the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what were the results of the sentinel node biopsy?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what were the results of the tumor receptor testing?",
+      "can_answer": true,
+      "exclude_from_evaluation": false,
+      "reason_code": "categorical_biological_phenotype"
+    },
+    {
+      "Id": "TCGA-AC-A5XS",
+      "Question": "what were the margin of excision results?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-BH-A0BQ",
+      "Question": "what was the total score for the excision of the breast?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "insufficient_wsi_evidence"
+    },
+    {
+      "Id": "TCGA-BH-A0BQ",
+      "Question": "were the surgical margins involved by the invasive component?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A0TP",
+      "Question": "what was the size of the tumor?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_gross_specimen_or_anatomic_context"
+    },
+    {
+      "Id": "TCGA-AR-A0TP",
+      "Question": "what percentage of the tumor was in situ?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_exact_quantitative_measurement"
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the tumor stage?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_case_level_staging_context"
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the patient's treatment status?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the anatomic site for the normal sample?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    },
+    {
+      "Id": "TCGA-AN-A0XW",
+      "Question": "what is the specimen format for the normal sample?",
+      "can_answer": false,
+      "exclude_from_evaluation": false,
+      "reason_code": "requires_report_gross_or_clinical_context"
+    }
+  ]
+}
