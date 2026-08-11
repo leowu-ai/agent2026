@@ -1,0 +1,63 @@
+{
+  "updated_at": "2026-08-11T17:26:12+08:00",
+  "selected_total": 390,
+  "processed": 390,
+  "answered": 168,
+  "abstained": 222,
+  "coverage": 0.4307692307692308,
+  "answered_correct": 65,
+  "selective_accuracy": 0.3869047619047619,
+  "remaining": 0,
+  "completion": 1.0,
+  "scorable": 168,
+  "correct": 65,
+  "errors": 0,
+  "accuracy": 0.16666666666666666,
+  "accuracy_scorable": 0.3869047619047619,
+  "supported_processed": 0,
+  "supported_correct": 0,
+  "supported_accuracy": null,
+  "unsupported_processed": 168,
+  "unsupported_correct": 65,
+  "unsupported_accuracy": 0.3869047619047619,
+  "json_parse_failures": 0,
+  "answers_outside_choices": 0,
+  "multifield_incomplete": 0,
+  "structured_overrides": 0,
+  "override_structured_accuracy": null,
+  "override_agent_accuracy": null,
+  "per_task_match": {
+    "direct_qwen_wsi": {
+      "processed": 168,
+      "scorable": 168,
+      "correct": 65,
+      "errors": 0,
+      "accuracy": 0.3869047619047619,
+      "accuracy_scorable": 0.3869047619047619
+    }
+  },
+  "per_task": {
+    "unrouted": {
+      "processed": 168,
+      "scorable": 168,
+      "correct": 65,
+      "errors": 0,
+      "accuracy": 0.3869047619047619,
+      "accuracy_scorable": 0.3869047619047619
+    }
+  },
+  "last": {
+    "case_id": "TCGA-AN-A0XW",
+    "question": "what is the specimen format for the normal sample?",
+    "task": "unrouted",
+    "task_match": "answerability_abstain",
+    "supported": false,
+    "correct": false,
+    "error": null,
+    "predicted": null,
+    "reference": "frozen",
+    "answer_in_choices": true,
+    "json_parse_success": true,
+    "override_occurred": false
+  }
+}
