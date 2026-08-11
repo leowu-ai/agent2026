@@ -1,0 +1,66 @@
+{
+  "answerability": {
+    "n_valid": 228,
+    "accuracy": 0.881578947368421,
+    "macro_f1": 0.5129294755877035,
+    "per_class": {
+      "directly_answerable": {
+        "precision": 0.9444444444444444,
+        "recall": 0.4473684210526316,
+        "f1": 0.6071428571428572,
+        "support": 38
+      },
+      "inferable": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 5
+      },
+      "unanswerable": {
+        "precision": 0.8761904761904762,
+        "recall": 0.9945945945945946,
+        "f1": 0.9316455696202532,
+        "support": 185
+      }
+    },
+    "confusion_matrix_labels": [
+      "directly_answerable",
+      "inferable",
+      "unanswerable"
+    ],
+    "confusion_matrix": [
+      [
+        17,
+        0,
+        21
+      ],
+      [
+        0,
+        0,
+        5
+      ],
+      [
+        1,
+        0,
+        184
+      ]
+    ]
+  },
+  "binary_answerability": {
+    "accuracy": 0.881578947368421,
+    "precision": 0.9444444444444444,
+    "recall": 0.3953488372093023,
+    "f1": 0.5573770491803278
+  },
+  "vqa": {
+    "gold_predictively_answerable_n": 43,
+    "gold_predictively_answerable_correct": 4,
+    "gold_predictively_answerable_accuracy": 0.09302325581395349,
+    "strict_visual_n": 38,
+    "strict_visual_correct": 4,
+    "strict_visual_accuracy": 0.10526315789473684,
+    "answered_n": 18,
+    "selective_accuracy": 0.2222222222222222,
+    "coverage": 0.07894736842105263
+  }
+}
