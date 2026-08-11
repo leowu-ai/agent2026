@@ -1,0 +1,38 @@
+{
+  "dataset": {
+    "gold_total": 390,
+    "gold_valid": 382,
+    "gold_excluded": 8,
+    "gold_can_answer": 186,
+    "gold_cannot_answer": 196
+  },
+  "answerability": {
+    "accuracy": 0.8743455497382199,
+    "precision": 0.9367088607594937,
+    "recall": 0.7956989247311828,
+    "f1": 0.8604651162790697,
+    "specificity": 0.9489795918367347,
+    "balanced_accuracy": 0.8723392582839588,
+    "auroc": 0.881171823568137,
+    "tp": 148,
+    "fp": 10,
+    "fn": 38,
+    "tn": 186
+  },
+  "vqa": {
+    "gold_answerable_n": 186,
+    "gold_answerable_correct": 0,
+    "gold_answerable_accuracy": 0.0,
+    "answered_n": 0,
+    "abstained_n": 382,
+    "selective_accuracy": 0.0,
+    "coverage": 0.0
+  },
+  "integrity": {
+    "prediction_total": 390,
+    "missing_predictions": 0,
+    "extra_predictions": 0,
+    "duplicate_predictions": 0,
+    "legacy_conversions": 0
+  }
+}

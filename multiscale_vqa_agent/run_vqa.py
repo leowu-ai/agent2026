@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--output", default=None)
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--planner_only", action="store_true")
+    parser.add_argument("--answerability_only", action="store_true")
     parser.add_argument("--mc_only", action="store_true")
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
@@ -27,7 +28,11 @@ def main():
         help="Optional Gold labels used only after inference for evaluation.",
     )
     args = parser.parse_args()
-    pipeline = MultiScaleVQAPipeline(args.config, planner_only=args.planner_only)
+    pipeline = MultiScaleVQAPipeline(
+        args.config,
+        planner_only=args.planner_only,
+        answerability_only=args.answerability_only,
+    )
     output = pipeline.run(
         vqa_path=args.vqa_json,
         output_path=args.output,

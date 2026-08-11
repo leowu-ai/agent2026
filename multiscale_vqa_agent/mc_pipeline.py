@@ -24,6 +24,15 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         resume: bool = True,
         answerability_labels: Optional[str] = None,
     ) -> Path:
+        if self.answerability_only:
+            return super().run(
+                vqa_path=vqa_path,
+                output_path=output_path,
+                limit=limit,
+                resume=resume,
+                multiple_choice_only=True,
+                answerability_labels=answerability_labels,
+            )
         source = Path(vqa_path or self.config["vqa_json"])
         with source.open(encoding="utf-8") as handle:
             all_items = json.load(handle)
@@ -70,7 +79,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                 answerable = []
                 for item in case_items:
                     assessment = self._predict_answerability(item)
-                    if assessment["answerability"] == "unanswerable":
+                    if not assessment["can_answer"]:
                         self._save_mc_result(
                             handle, self._abstained_result(item, assessment), tracker
                         )

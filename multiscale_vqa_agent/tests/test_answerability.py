@@ -5,9 +5,14 @@ from pathlib import Path
 
 from multiscale_vqa_agent.answerability import AnswerabilityAgent
 from multiscale_vqa_agent.answerability_evaluation import evaluate_answerability
+from multiscale_vqa_agent.live_metrics import LiveAccuracyTracker
 from multiscale_vqa_agent.mc_pipeline import MultipleChoiceVQAPipeline
 from multiscale_vqa_agent.pipeline import MultiScaleVQAPipeline
 from multiscale_vqa_agent.schemas import ExecutionPlan
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+GOLD_PATH = PROJECT_ROOT / "dataset" / "WsiVQA_answerability_binary_flat_v1.json"
 
 
 class CountingGate:
@@ -16,9 +21,10 @@ class CountingGate:
 
     def predict(self, question, choices):
         return {
-            "answerability": self.labels[question],
+            "can_answer": self.labels[question],
             "confidence": 0.9,
             "reason": "test decision",
+            "fallback_used": False,
         }
 
 
@@ -73,25 +79,23 @@ class CountingMCPipeline(MultipleChoiceVQAPipeline, CountingPipeline):
 class CapturingClient:
     enabled = True
 
-    def __init__(self):
+    def __init__(self, response=None):
+        self.response = response
         self.system = None
         self.user = None
 
     def chat(self, system, user, **kwargs):
         self.system = system
         self.user = user
-        return json.dumps({
-            "answerability": "directly_answerable",
-            "confidence": 0.8,
-            "reason": "H&E morphology can provide the target.",
-        })
+        return self.response
 
 
 class AnswerabilityPipelineTest(unittest.TestCase):
-    def make_pipeline(self, labels):
-        pipeline = CountingPipeline.__new__(CountingPipeline)
+    def make_pipeline(self, labels, pipeline_class=CountingPipeline):
+        pipeline = pipeline_class.__new__(pipeline_class)
         pipeline.config = {"output_dir": "."}
         pipeline.planner_only = False
+        pipeline.answerability_only = False
         pipeline.calls = {
             "planner": 0,
             "g2p": 0,
@@ -123,64 +127,83 @@ class AnswerabilityPipelineTest(unittest.TestCase):
             rows = [json.loads(line) for line in output.read_text().splitlines()]
         return pipeline, rows
 
-    def test_unanswerable_skips_planner(self):
-        pipeline, _ = self.run_items({"q": "unanswerable"}, [self.item("q")])
+    def test_false_skips_planner(self):
+        pipeline, _ = self.run_items({"q": False}, [self.item("q")])
         self.assertEqual(pipeline.calls["planner"], 0)
 
-    def test_unanswerable_skips_g2p(self):
-        pipeline, _ = self.run_items({"q": "unanswerable"}, [self.item("q")])
+    def test_false_skips_g2p(self):
+        pipeline, _ = self.run_items({"q": False}, [self.item("q")])
         self.assertEqual(pipeline.calls["g2p"], 0)
 
-    def test_unanswerable_skips_retrieval(self):
-        pipeline, _ = self.run_items({"q": "unanswerable"}, [self.item("q")])
+    def test_false_skips_retrieval(self):
+        pipeline, _ = self.run_items({"q": False}, [self.item("q")])
         self.assertEqual(pipeline.calls["retrieval"], 0)
 
-    def test_unanswerable_skips_pathology(self):
-        pipeline, _ = self.run_items({"q": "unanswerable"}, [self.item("q")])
+    def test_false_skips_pathology(self):
+        pipeline, _ = self.run_items({"q": False}, [self.item("q")])
         self.assertEqual(pipeline.calls["pathology"], 0)
 
-    def test_unanswerable_skips_fusion(self):
-        pipeline, rows = self.run_items({"q": "unanswerable"}, [self.item("q")])
+    def test_false_skips_fusion_and_abstains(self):
+        pipeline, rows = self.run_items({"q": False}, [self.item("q")])
         self.assertEqual(pipeline.calls["fusion"], 0)
         self.assertTrue(rows[0]["abstained"])
+        self.assertFalse(rows[0]["predicted_can_answer"])
         self.assertIsNone(rows[0]["agent_answer"])
 
-    def test_directly_answerable_enters_old_pipeline(self):
-        pipeline, rows = self.run_items(
-            {"q": "directly_answerable"}, [self.item("q")]
-        )
+    def test_true_enters_old_pipeline(self):
+        pipeline, rows = self.run_items({"q": True}, [self.item("q")])
         self.assertEqual(pipeline.calls, {
             "planner": 1, "g2p": 1, "retrieval": 1, "pathology": 1, "fusion": 1,
         })
+        self.assertTrue(rows[0]["predicted_can_answer"])
         self.assertFalse(rows[0]["abstained"])
 
-    def test_inferable_enters_old_pipeline(self):
-        pipeline, rows = self.run_items({"q": "inferable"}, [self.item("q")])
-        self.assertEqual(pipeline.calls["fusion"], 1)
-        self.assertEqual(rows[0]["predicted_answerability"], "inferable")
-
-    def test_all_unanswerable_case_never_runs_infer_case(self):
-        labels = {"q1": "unanswerable", "q2": "unanswerable"}
-        pipeline, _ = self.run_items(labels, [self.item("q1"), self.item("q2")])
+    def test_all_false_case_never_runs_infer_case(self):
+        pipeline, _ = self.run_items(
+            {"q1": False, "q2": False}, [self.item("q1"), self.item("q2")]
+        )
         self.assertEqual(pipeline.calls["g2p"], 0)
 
-    def test_mixed_case_runs_only_answerable_questions(self):
-        labels = {
-            "q1": "directly_answerable",
-            "q2": "inferable",
-            "q3": "unanswerable",
-            "q4": "unanswerable",
-        }
+    def test_mixed_case_runs_only_true_questions(self):
+        labels = {"q1": True, "q2": True, "q3": False, "q4": False}
         pipeline, rows = self.run_items(labels, [self.item(q) for q in labels])
         self.assertEqual(pipeline.calls["g2p"], 1)
         self.assertEqual(pipeline.calls["planner"], 2)
         self.assertEqual(pipeline.calls["fusion"], 2)
         self.assertEqual(sum(row["abstained"] for row in rows), 2)
 
-    def test_mc_runner_applies_the_same_case_gate(self):
-        labels = {"q1": "directly_answerable", "q2": "unanswerable"}
-        pipeline = self.make_pipeline(labels)
-        pipeline.__class__ = CountingMCPipeline
+    def test_prompt_contains_only_question_choices_and_schema(self):
+        client = CapturingClient(json.dumps({
+            "can_answer": True,
+            "confidence": 0.8,
+            "reason": "WSI morphology supports this target.",
+        }))
+        AnswerabilityAgent(client).predict("What is the grade?", ["low", "high"])
+        packet = json.loads(client.user)
+        self.assertEqual(set(packet), {"question", "choices", "output_schema"})
+        combined = f"{client.system}\n{client.user}".lower()
+        for forbidden in ("gold", "reference answer", "reason_code", "label_source"):
+            self.assertNotIn(forbidden, combined)
+
+    def test_fallback_is_true_with_zero_confidence(self):
+        result = AnswerabilityAgent(CapturingClient("not json")).predict("q", ["A"])
+        self.assertTrue(result["can_answer"])
+        self.assertEqual(result["confidence"], 0.0)
+        self.assertTrue(result["fallback_used"])
+
+    def test_string_boolean_is_rejected(self):
+        result = AnswerabilityAgent(CapturingClient(json.dumps({
+            "can_answer": "false", "confidence": 1.0, "reason": "invalid"
+        }))).predict("q", ["A"])
+        self.assertTrue(result["can_answer"])
+        self.assertTrue(result["fallback_used"])
+
+    def test_answerability_only_calls_no_downstream_component(self):
+        pipeline = CountingMCPipeline.__new__(CountingMCPipeline)
+        pipeline.config = {"output_dir": "."}
+        pipeline.planner_only = False
+        pipeline.answerability_only = True
+        pipeline.answerability = CountingGate({"q1": True, "q2": False})
         with tempfile.TemporaryDirectory() as directory:
             source = Path(directory) / "questions.json"
             output = Path(directory) / "answers.jsonl"
@@ -191,74 +214,128 @@ class AnswerabilityPipelineTest(unittest.TestCase):
                 str(source), str(output), resume=False, crop_patches=False
             )
             rows = [json.loads(line) for line in output.read_text().splitlines()]
-        self.assertEqual(pipeline.calls["planner"], 1)
-        self.assertEqual(pipeline.calls["g2p"], 1)
-        self.assertEqual(pipeline.calls["fusion"], 1)
-        self.assertEqual(sum(row["abstained"] for row in rows), 1)
+        self.assertEqual(len(rows), 2)
+        self.assertFalse(hasattr(pipeline, "planner"))
+        self.assertFalse(hasattr(pipeline, "g2p"))
+        self.assertTrue(all(row["answerability_only"] for row in rows))
 
-    def test_gold_or_reference_never_enters_answerability_prompt(self):
-        client = CapturingClient()
-        AnswerabilityAgent(client).predict("What is the grade?", ["low", "high"])
-        packet = json.loads(client.user)
-        self.assertEqual(set(packet), {"question", "choices", "output_schema"})
-        self.assertNotIn("reference", client.user.lower())
-        self.assertNotIn("gold", client.user.lower())
+    def test_abstention_is_not_counted_as_router_none(self):
+        with tempfile.TemporaryDirectory() as directory:
+            tracker = LiveAccuracyTracker(
+                Path(directory) / "metrics.json",
+                Path(directory) / "history.csv",
+                selected_total=1,
+            )
+            tracker.update({"case_id": "C1", "question": "q", "plan": {},
+                            "abstained": True, "agent_answer": None})
+            snapshot = tracker.snapshot()
+        self.assertEqual(snapshot["abstained"], 1)
+        self.assertEqual(snapshot["answered"], 0)
+        self.assertEqual(snapshot["per_task_match"], {})
+        self.assertEqual(snapshot["per_task"], {})
 
 
-class AnswerabilityEvaluationTest(unittest.TestCase):
-    def evaluate_fixture(self):
-        predictions = [
-            {
-                "case_id": "C1",
-                "question": "answerable abstain",
-                "predicted_answerability": "unanswerable",
+class BinaryEvaluatorTest(unittest.TestCase):
+    def setUp(self):
+        self.gold_payload = json.loads(GOLD_PATH.read_text(encoding="utf-8"))
+
+    def predictions(self):
+        rows = []
+        for gold in self.gold_payload["labels"]:
+            predicted = (
+                gold["can_answer"]
+                if isinstance(gold["can_answer"], bool)
+                else True
+            )
+            rows.append({
+                "case_id": gold["Id"],
+                "question": gold["Question"],
+                "predicted_can_answer": predicted,
                 "answerability_confidence": 0.9,
-                "abstained": True,
-                "agent_answer": None,
-            },
-            {
-                "case_id": "C2",
-                "question": "dataset error",
-                "predicted_answerability": "directly_answerable",
-                "abstained": False,
-                "agent_answer": {"answer": "yes"},
-            },
-        ]
-        gold = {
-            "exact_annotations": [
-                {
-                    "Id": "C1", "Question": "answerable abstain", "Answer": "yes",
-                    "answerability": "directly_answerable",
-                },
-                {
-                    "Id": "C2", "Question": "dataset error", "Answer": "yes",
-                    "answerability": "dataset_error",
-                },
-            ]
-        }
+                "answerability_fallback_used": False,
+                "abstained": not predicted,
+                "reference_answer": "yes",
+                "agent_answer": {"answer": "yes"} if predicted else None,
+            })
+        return rows
+
+    def evaluate(self, rows, gold_payload=None):
         temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(temporary.cleanup)
         directory = Path(temporary.name)
-        answers_path = directory / "answers.jsonl"
-        labels_path = directory / "labels.json"
-        answers_path.write_text(
-            "".join(json.dumps(row) + "\n" for row in predictions), encoding="utf-8"
+        answers = directory / "answers.jsonl"
+        labels = directory / "labels.json"
+        answers.write_text("".join(json.dumps(row) + "\n" for row in rows), encoding="utf-8")
+        labels.write_text(json.dumps(gold_payload or self.gold_payload), encoding="utf-8")
+        return evaluate_answerability(answers, labels)
+
+    def test_gold_counts_are_strictly_390_382_186_196_8(self):
+        summary = self.evaluate(self.predictions())
+        self.assertEqual(summary["dataset"], {
+            "gold_total": 390,
+            "gold_valid": 382,
+            "gold_excluded": 8,
+            "gold_can_answer": 186,
+            "gold_cannot_answer": 196,
+        })
+
+    def test_gold_answerable_false_abstention_is_primary_error(self):
+        rows = self.predictions()
+        valid_true_keys = {
+            (row["Id"], row["Question"])
+            for row in self.gold_payload["labels"]
+            if not row["exclude_from_evaluation"] and row["can_answer"]
+        }
+        target = next(
+            row for row in rows
+            if (row["case_id"], row["question"]) in valid_true_keys
         )
-        labels_path.write_text(json.dumps(gold), encoding="utf-8")
-        summary = evaluate_answerability(answers_path, labels_path)
-        return temporary, summary
+        target["predicted_can_answer"] = False
+        target["abstained"] = True
+        target["agent_answer"] = None
+        summary = self.evaluate(rows)
+        self.assertEqual(summary["vqa"]["gold_answerable_n"], 186)
+        self.assertEqual(summary["vqa"]["gold_answerable_correct"], 185)
 
-    def test_gold_answerable_abstention_counts_as_primary_error(self):
-        temporary, summary = self.evaluate_fixture()
-        self.addCleanup(temporary.cleanup)
-        self.assertEqual(summary["vqa"]["gold_predictively_answerable_n"], 1)
-        self.assertEqual(summary["vqa"]["gold_predictively_answerable_correct"], 0)
-        self.assertEqual(summary["vqa"]["gold_predictively_answerable_accuracy"], 0.0)
+    def test_excluded_rows_do_not_enter_any_metric(self):
+        summary = self.evaluate(self.predictions())
+        self.assertEqual(summary["answerability"]["tp"], 186)
+        self.assertEqual(summary["answerability"]["tn"], 196)
+        self.assertEqual(summary["vqa"]["answered_n"], 186)
 
-    def test_dataset_error_is_excluded_from_every_metric(self):
-        temporary, summary = self.evaluate_fixture()
-        self.addCleanup(temporary.cleanup)
-        self.assertEqual(summary["answerability"]["n_valid"], 1)
-        self.assertEqual(summary["vqa"]["coverage"], 0.0)
+    def test_missing_prediction_raises_instead_of_defaulting_false(self):
+        rows = self.predictions()
+        valid_keys = {
+            (row["Id"], row["Question"])
+            for row in self.gold_payload["labels"]
+            if not row["exclude_from_evaluation"]
+        }
+        rows = [row for row in rows if (row["case_id"], row["question"]) != next(iter(valid_keys))]
+        with self.assertRaisesRegex(ValueError, "Missing 1"):
+            self.evaluate(rows)
+
+    def test_duplicate_prediction_is_detected(self):
+        rows = self.predictions()
+        rows.append(dict(rows[0]))
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            self.evaluate(rows)
+
+    def test_gold_must_have_exactly_390_rows(self):
+        malformed = dict(self.gold_payload)
+        malformed["labels"] = self.gold_payload["labels"][:-1]
+        with self.assertRaisesRegex(ValueError, "Expected 390"):
+            self.evaluate(self.predictions(), malformed)
+
+    def test_legacy_three_class_predictions_are_convertible(self):
+        rows = self.predictions()
+        for row in rows:
+            value = row.pop("predicted_can_answer")
+            row["predicted_answerability"] = (
+                "directly_answerable" if value else "unanswerable"
+            )
+        summary = self.evaluate(rows)
+        self.assertEqual(summary["integrity"]["legacy_conversions"], 390)
+        self.assertEqual(summary["answerability"]["accuracy"], 1.0)
 
 
 if __name__ == "__main__":

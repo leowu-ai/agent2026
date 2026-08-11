@@ -25,6 +25,7 @@ class LiveAccuracyTracker:
         self.history_path = Path(history_path)
         self.selected_total = int(selected_total)
         self.processed = self.scorable = self.correct = self.errors = 0
+        self.answered = self.abstained = self.answered_correct = 0
         self.supported_processed = self.supported_correct = 0
         self.unsupported_processed = self.unsupported_correct = 0
         self.json_parse_failures = self.answers_outside_choices = 0
@@ -64,6 +65,7 @@ class LiveAccuracyTracker:
         reference = row.get("reference_answer", row.get("input", {}).get("Answer"))
         choices = list(row.get("choices", row.get("input", {}).get("Choice", [])) or [])
         scorable = not error and not abstained and predicted is not None and reference is not None
+        answered = not error and not abstained and predicted is not None
         is_correct = bool(scorable and normalize_answer(predicted) == normalize_answer(reference))
         answer_in_choices = True if abstained else bool(predicted in choices) if choices else True
         json_success = True if abstained else bool(
@@ -80,13 +82,17 @@ class LiveAccuracyTracker:
         )
 
         self.processed += 1
+        self.answered += int(answered)
+        self.abstained += int(abstained)
+        self.answered_correct += int(answered and is_correct)
         self.errors += int(error)
         self.scorable += int(scorable)
         self.correct += int(is_correct)
-        self.supported_processed += int(supported)
-        self.supported_correct += int(supported and is_correct)
-        self.unsupported_processed += int(not supported)
-        self.unsupported_correct += int((not supported) and is_correct)
+        routed = not abstained and bool(plan)
+        self.supported_processed += int(routed and supported)
+        self.supported_correct += int(routed and supported and is_correct)
+        self.unsupported_processed += int(routed and not supported)
+        self.unsupported_correct += int(routed and not supported and is_correct)
         self.json_parse_failures += int(not error and not json_success)
         self.answers_outside_choices += int(not answer_in_choices)
         self.multifield_incomplete += int(incomplete)
@@ -94,11 +100,12 @@ class LiveAccuracyTracker:
         self.override_structured_correct += int(override and structured_correct)
         self.override_agent_correct += int(override and is_correct)
 
-        for stats in (self.per_task[task], self.per_task_match[task_match]):
-            stats["processed"] += 1
-            stats["errors"] += int(error)
-            stats["scorable"] += int(scorable)
-            stats["correct"] += int(is_correct)
+        if routed:
+            for stats in (self.per_task[task], self.per_task_match[task_match]):
+                stats["processed"] += 1
+                stats["errors"] += int(error)
+                stats["scorable"] += int(scorable)
+                stats["correct"] += int(is_correct)
 
         self.last = {
             "case_id": row.get("case_id"),
@@ -143,6 +150,13 @@ class LiveAccuracyTracker:
             "updated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "selected_total": self.selected_total,
             "processed": self.processed,
+            "answered": self.answered,
+            "abstained": self.abstained,
+            "coverage": self._ratio(self.answered, self.processed),
+            "answered_correct": self.answered_correct,
+            "selective_accuracy": self._ratio(
+                self.answered_correct, self.answered
+            ),
             "remaining": max(self.selected_total - self.processed, 0),
             "completion": self._ratio(self.processed, self.selected_total),
             "scorable": self.scorable,
@@ -181,6 +195,10 @@ class LiveAccuracyTracker:
             "updated_at": snapshot["updated_at"],
             "processed": self.processed,
             "selected_total": self.selected_total,
+            "answered": self.answered,
+            "abstained": self.abstained,
+            "coverage": snapshot["coverage"],
+            "selective_accuracy": snapshot["selective_accuracy"],
             "correct": self.correct,
             "errors": self.errors,
             "accuracy": snapshot["accuracy"],

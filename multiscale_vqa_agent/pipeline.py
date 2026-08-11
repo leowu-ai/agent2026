@@ -19,16 +19,24 @@ from .router_audit import write_router_audit
 
 
 class MultiScaleVQAPipeline:
-    def __init__(self, config_path: str, planner_only: bool = False):
+    def __init__(
+        self,
+        config_path: str,
+        planner_only: bool = False,
+        answerability_only: bool = False,
+    ):
         self.config_path = Path(config_path)
         with self.config_path.open(encoding="utf-8") as handle:
             self.config = json.load(handle)
-        scale_dirs = {int(k): Path(v) for k, v in self.config["scales"].items()}
-        self.registry = ToolBankRegistry(scale_dirs)
         self.qwen = OpenAICompatibleClient(self.config["qwen"])
         self.answerability = AnswerabilityAgent(self.qwen)
-        self.planner = PrototypeAwarePlanner(self.registry, self.qwen)
         self.planner_only = planner_only
+        self.answerability_only = answerability_only
+        if answerability_only:
+            return
+        scale_dirs = {int(k): Path(v) for k, v in self.config["scales"].items()}
+        self.registry = ToolBankRegistry(scale_dirs)
+        self.planner = PrototypeAwarePlanner(self.registry, self.qwen)
         if planner_only:
             return
         self.g2p = MultiScaleG2PAgent(self.config, self.registry)
@@ -70,13 +78,25 @@ class MultiScaleVQAPipeline:
             if (case_id, question) not in completed:
                 grouped[case_id].append(item)
 
+        if self.answerability_only:
+            with destination.open(mode, encoding="utf-8") as handle:
+                for case_items in grouped.values():
+                    for item in case_items:
+                        assessment = self._predict_answerability(item)
+                        handle.write(json.dumps(
+                            self._gate_only_result(item, assessment), ensure_ascii=False
+                        ) + "\n")
+                        handle.flush()
+            self._evaluate_if_requested(destination, answerability_labels)
+            return destination
+
         if self.planner_only:
             plans = []
             with destination.open(mode, encoding="utf-8") as handle:
                 for case_items in grouped.values():
                     for item in case_items:
                         assessment = self._predict_answerability(item)
-                        if assessment["answerability"] == "unanswerable":
+                        if not assessment["can_answer"]:
                             result = self._abstained_result(item, assessment)
                         else:
                             plan = self.planner.plan(item)
@@ -102,7 +122,7 @@ class MultiScaleVQAPipeline:
                 answerable = []
                 for item in case_items:
                     assessment = self._predict_answerability(item)
-                    if assessment["answerability"] == "unanswerable":
+                    if not assessment["can_answer"]:
                         handle.write(json.dumps(
                             self._abstained_result(item, assessment), ensure_ascii=False
                         ) + "\n")
@@ -162,12 +182,33 @@ class MultiScaleVQAPipeline:
         result: Dict[str, Any], assessment: Dict[str, Any]
     ) -> Dict[str, Any]:
         result.update({
-            "predicted_answerability": assessment["answerability"],
+            "predicted_can_answer": assessment["can_answer"],
+            "predicted_answerability": (
+                "answerable" if assessment["can_answer"] else "unanswerable"
+            ),
             "answerability_confidence": assessment["confidence"],
             "answerability_reason": assessment["reason"],
+            "answerability_fallback_used": assessment["fallback_used"],
             "abstained": False,
         })
         return result
+
+    def _gate_only_result(
+        self, item: Dict[str, Any], assessment: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        case_id, question = self._item_key(item)
+        return {
+            "case_id": case_id,
+            "question": question,
+            "predicted_can_answer": assessment["can_answer"],
+            "predicted_answerability": (
+                "answerable" if assessment["can_answer"] else "unanswerable"
+            ),
+            "answerability_confidence": assessment["confidence"],
+            "answerability_reason": assessment["reason"],
+            "answerability_fallback_used": assessment["fallback_used"],
+            "answerability_only": True,
+        }
 
     def _abstained_result(
         self, item: Dict[str, Any], assessment: Dict[str, Any]
@@ -182,9 +223,11 @@ class MultiScaleVQAPipeline:
             "reference_answer": item.get("Answer", item.get("answer")),
             "input": item,
             "plan": {},
-            "predicted_answerability": assessment["answerability"],
+            "predicted_can_answer": assessment["can_answer"],
+            "predicted_answerability": "unanswerable",
             "answerability_confidence": assessment["confidence"],
             "answerability_reason": assessment["reason"],
+            "answerability_fallback_used": assessment["fallback_used"],
             "abstained": True,
             "agent_answer": None,
         }

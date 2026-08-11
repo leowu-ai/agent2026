@@ -19,6 +19,7 @@ def main():
     parser.add_argument("--output", default=None)
     parser.add_argument("--metrics", default=None)
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument("--answerability_only", action="store_true")
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
@@ -28,7 +29,9 @@ def main():
     )
     args = parser.parse_args()
 
-    pipeline = MultipleChoiceVQAPipeline(args.config)
+    pipeline = MultipleChoiceVQAPipeline(
+        args.config, answerability_only=args.answerability_only
+    )
     output = pipeline.run_multiple_choice(
         vqa_path=args.vqa_json,
         output_path=args.output,
