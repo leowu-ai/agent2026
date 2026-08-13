@@ -15,7 +15,15 @@ is saved as an abstention before the Router. If every pending question for a
 patient is unanswerable, G2P is not run for that patient. Gold answerability
 labels are optional and are read only after inference by the offline evaluator.
 
-The Router emits one of three evidence routes. phenotype_direct invokes only selected numbered prototypes. morphology_only pools a small top-patch set from every phenotype attention map, deduplicates consensus regions, and sends the resulting multi-scale pyramids to Patho-R1. nonvisual skips visual inference for report, treatment, age, exact size/time, and similar questions that WSI cannot establish.
+After the Answerability Gate accepts a question, the Router emits one of two
+evidence routes. `phenotype_direct` uses the selected numbered prototype
+prediction, relation evidence, selected phenotype patches when needed,
+Patho-R1, and Fusion; its existing `direct` and `partial` matches are retained.
+`morphology_only` combines all compact fused phenotype prototype predictions,
+the existing representative all-phenotype patch pyramids, up to two WSI
+overview thumbnails, a Patho-R1 visual summary, and final Fusion. No
+question-conditioned or choice-conditioned patch retrieval is used in this
+version.
 
 The three G2P models run once per patient. Same-scale candidates are deduplicated; cross-scale matches are retained as evidence pyramids. The 2048/1024 global bypass prevents a weak 4096 candidate from suppressing focal evidence. Final option semantics are decided by Qwen from explicit labels and definitions; code validates only prototype IDs and answer IDs.
 

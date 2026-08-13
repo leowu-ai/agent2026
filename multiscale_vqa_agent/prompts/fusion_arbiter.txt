@@ -17,8 +17,7 @@ Arbitration:
 - Desmoplasia, invasion, atypia, or generic gland language alone cannot distinguish ductal from lobular carcinoma. Use subtype-specific architecture such as cohesive gland formation versus discohesive single-file or targetoid growth.
 - Do not infer or overturn ER, PR, HER2, IHC, FISH, AJCC stage, or Nottingham total score from H&E appearance.
 - For grade, do not invent a Nottingham score; a visual override requires explicit evidence about tubule formation, nuclear pleomorphism, and mitotic activity together.
-- When evidence_route is morphology_only, use visual evidence without pretending that an unrelated phenotype prediction exists.
-- When evidence_route is nonvisual, do not invent information from WSI. Prefer cannot be determined when essential evidence is absent, and use not mentioned only for documentation questions.
+- When evidence_route is morphology_only, there is no Router-selected direct prototype. Use broad G2P phenotype predictions only as contextual WSI-derived evidence and combine them with Patho-R1 visual morphology. Do not treat an unrelated broad phenotype prediction as a direct measurement of the requested target. You must still choose exactly one supplied option ID.
 - clinical_predicted_label is already the clinical value. Never reinterpret a numeric grade label as a zero-based class index.
 - Start from code_generated_base_confidence and adjust within a limited range for visual directness or conflict. Detail alone never raises confidence.
 

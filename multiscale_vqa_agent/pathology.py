@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .clients import OpenAICompatibleClient
 from .schemas import EvidenceGroup
@@ -14,9 +14,10 @@ class PathologyAgent:
         question: str,
         field: str,
         groups: List[EvidenceGroup],
+        overview_paths: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         del field  # Retrieval provenance must not bias the visual expert.
-        entries = self._image_entries(groups)
+        entries = self._image_entries(groups, overview_paths or [])
         evidence = [group.to_dict() for group in groups]
         if not entries:
             return {
@@ -26,6 +27,7 @@ class PathologyAgent:
                 "available_image_count": 0,
                 "request_attempts": 0,
                 "evidence_groups": evidence,
+                "image_metadata": [],
             }
         if not self.client.enabled:
             return {
@@ -35,6 +37,10 @@ class PathologyAgent:
                 "available_image_count": len(entries),
                 "request_attempts": 0,
                 "evidence_groups": evidence,
+                "image_metadata": [
+                    self._entry_metadata(entry, index)
+                    for index, entry in enumerate(entries, 1)
+                ],
             }
 
         system = (
@@ -51,11 +57,7 @@ class PathologyAgent:
             user = json.dumps({
                 "question": question,
                 "image_order": [
-                    {
-                        "ordinal": index,
-                        "group_id": entry["group_id"],
-                        "scale": entry["scale"],
-                    }
+                    self._entry_metadata(entry, index)
                     for index, entry in enumerate(selected, 1)
                 ],
                 "evidence_rule": (
@@ -83,6 +85,10 @@ class PathologyAgent:
                     "image_max_size": image_max_size,
                     "retry_history": failures,
                     "evidence_groups": evidence,
+                    "image_metadata": [
+                        self._entry_metadata(entry, index)
+                        for index, entry in enumerate(selected, 1)
+                    ],
                 }
             except Exception as error:
                 failures.append(
@@ -98,12 +104,31 @@ class PathologyAgent:
             "image_max_size": attempts[-1][1] if attempts else None,
             "retry_history": failures,
             "evidence_groups": evidence,
+            "image_metadata": [
+                self._entry_metadata(entry, index)
+                for index, entry in enumerate(
+                    self._select_entries(entries, attempts[-1][0]), 1
+                )
+            ] if attempts else [],
         }
 
     @staticmethod
-    def _image_entries(groups: List[EvidenceGroup]) -> List[Dict[str, Any]]:
-        return [
+    def _image_entries(
+        groups: List[EvidenceGroup], overview_paths: List[str]
+    ) -> List[Dict[str, Any]]:
+        overviews = [
             {
+                "kind": "overview",
+                "group_id": None,
+                "scale": None,
+                "image_path": str(path),
+            }
+            for path in overview_paths
+            if path
+        ]
+        patches = [
+            {
+                "kind": "patch",
                 "group_id": group.group_id,
                 "scale": int(scale),
                 "image_path": patch.image_path,
@@ -112,6 +137,17 @@ class PathologyAgent:
             for scale, patch in sorted(group.patches.items(), reverse=True)
             if patch.image_path
         ]
+        return overviews + patches
+
+    @staticmethod
+    def _entry_metadata(entry: Dict[str, Any], ordinal: int) -> Dict[str, Any]:
+        result = {"ordinal": ordinal, "kind": entry["kind"]}
+        if entry["kind"] == "patch":
+            result.update({
+                "group_id": entry["group_id"],
+                "scale": entry["scale"],
+            })
+        return result
 
     @staticmethod
     def _attempt_schedule(available: int) -> List[tuple]:
@@ -133,8 +169,10 @@ class PathologyAgent:
         if len(entries) <= limit:
             return list(entries)
 
+        overviews = [entry for entry in entries if entry["kind"] == "overview"]
+        patches = [entry for entry in entries if entry["kind"] == "patch"]
         by_group: Dict[int, List[Dict[str, Any]]] = {}
-        for entry in entries:
+        for entry in patches:
             by_group.setdefault(entry["group_id"], []).append(entry)
         for values in by_group.values():
             values.sort(key=lambda item: item["scale"], reverse=True)
@@ -143,11 +181,17 @@ class PathologyAgent:
         seen = set()
 
         def add(entry: Dict[str, Any]):
-            key = (entry["group_id"], entry["scale"], entry["image_path"])
+            key = (
+                entry["kind"], entry["group_id"], entry["scale"],
+                entry["image_path"],
+            )
             if key not in seen and len(selected) < limit:
                 selected.append(entry)
                 seen.add(key)
 
+        # Preserve broad WSI context before patch-level evidence.
+        for entry in overviews[:2]:
+            add(entry)
         # Cover every evidence group at architecture scale first.
         for values in by_group.values():
             add(values[0])
@@ -156,8 +200,7 @@ class PathologyAgent:
             if len(values) > 1:
                 add(values[-1])
         # Fill remaining slots with intermediate or unused views.
-        for entry in entries:
+        for entry in overviews[2:] + patches:
             add(entry)
 
-        selected.sort(key=lambda item: (-item["scale"], item["group_id"]))
         return selected

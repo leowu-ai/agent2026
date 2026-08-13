@@ -98,7 +98,7 @@ class RouterPlannerTest(unittest.TestCase):
         self.assertEqual(plan.task_match, "none")
         self.assertTrue(plan.use_pathology_agent)
 
-    def test_no_prototype_and_no_morphology_is_nonvisual(self):
+    def test_no_prototype_always_uses_morphology_only(self):
         plan = self.normalize({
             "prototype_ids": [],
             "prototype_support_type": "none",
@@ -107,7 +107,8 @@ class RouterPlannerTest(unittest.TestCase):
             "use_pathology_agent": True,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
-        self.assertFalse(plan.use_pathology_agent)
+        self.assertEqual(plan.evidence_route, "morphology_only")
+        self.assertTrue(plan.use_pathology_agent)
         self.assertFalse(plan.supported)
 
     def test_invalid_partial_prototype_falls_back_to_morphology(self):
@@ -170,7 +171,7 @@ class RouterPlannerTest(unittest.TestCase):
         })
         self.assertEqual(plan.selected_prototype_ids, [])
         self.assertEqual(plan.prototype_coverage, "none")
-        self.assertEqual(plan.evidence_route, "nonvisual")
+        self.assertEqual(plan.evidence_route, "morphology_only")
 
     def test_correlated_context_with_morphology_uses_morphology(self):
         plan = self.normalize({
@@ -191,7 +192,7 @@ class RouterPlannerTest(unittest.TestCase):
             "local_morphology_useful": False,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
-        self.assertEqual(plan.evidence_route, "nonvisual")
+        self.assertEqual(plan.evidence_route, "morphology_only")
 
     def test_invalid_support_type_is_normalized_to_none(self):
         plan = self.normalize({
@@ -203,6 +204,35 @@ class RouterPlannerTest(unittest.TestCase):
         self.assertEqual(plan.prototype_support_type, "none")
         self.assertEqual(plan.prototype_coverage, "none")
         self.assertEqual(plan.evidence_route, "morphology_only")
+
+    def test_normalized_plans_only_use_two_runtime_routes(self):
+        cases = [
+            {
+                "prototype_ids": ["P006"],
+                "prototype_support_type": "target_evidence",
+                "prototype_coverage": "complete",
+            },
+            {
+                "prototype_ids": ["P007"],
+                "prototype_support_type": "target_evidence",
+                "prototype_coverage": "partial",
+            },
+            {
+                "prototype_ids": [],
+                "prototype_support_type": "none",
+                "prototype_coverage": "none",
+            },
+        ]
+        routes = {self.normalize(parsed).evidence_route for parsed in cases}
+        self.assertEqual(routes, {"phenotype_direct", "morphology_only"})
+
+    def test_rule_fallback_uses_morphology_only(self):
+        plan = self.planner._rule_plan(
+            "TCGA-XX-0001", "What treatment was documented?", ["A", "B"]
+        )
+        self.assertEqual(plan.evidence_route, "morphology_only")
+        self.assertEqual(plan.task_type, "morphology")
+        self.assertTrue(plan.use_pathology_agent)
 
 
 if __name__ == "__main__":

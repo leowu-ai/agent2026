@@ -1,4 +1,5 @@
 import hashlib
+import re
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -413,12 +414,49 @@ class WSICropper:
                 patch.image_path = str(target)
         return groups
 
-    def _resolve_wsi(self, case_id: str, slide_id: str) -> Optional[Path]:
+    def overview_thumbnails(
+        self,
+        case_id: str,
+        size: int = 1536,
+        max_slides: int = 2,
+    ) -> List[str]:
+        try:
+            import openslide
+        except ImportError:
+            return []
+        candidates = sorted(
+            self._case_slides(case_id), key=self._slide_priority
+        )[: max(0, int(max_slides))]
+        directory = self.output_root / case_id / "overviews"
+        paths = []
+        for slide_path in candidates:
+            target = directory / f"{slide_path.stem}.overview_{int(size)}.jpg"
+            try:
+                if not target.exists() or target.stat().st_size <= 0:
+                    directory.mkdir(parents=True, exist_ok=True)
+                    with openslide.OpenSlide(str(slide_path)) as slide:
+                        image = slide.get_thumbnail((int(size), int(size))).convert("RGB")
+                    image.save(target, "JPEG", quality=90)
+                paths.append(str(target))
+            except Exception:
+                continue
+        return paths
+
+    @staticmethod
+    def _slide_priority(path: Path):
+        name = path.name.upper()
+        priority = 0 if re.search(r"-DX\d", name) else 1 if "-TS" in name else 2
+        return priority, name
+
+    def _case_slides(self, case_id: str) -> List[Path]:
         if self._index is None:
             self._index = {}
             for path in self.wsi_root.rglob("*.svs"):
                 self._index.setdefault(path.name[:12], []).append(path)
-        candidates = self._index.get(case_id, [])
+        return self._index.get(case_id, [])
+
+    def _resolve_wsi(self, case_id: str, slide_id: str) -> Optional[Path]:
+        candidates = self._case_slides(case_id)
         if not candidates:
             return None
         feature_stem = slide_id.rsplit("_", 2)[0]

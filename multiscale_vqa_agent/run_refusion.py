@@ -82,6 +82,7 @@ def main():
                     row.get("phenotype_predictions", row.get("phenotype_prediction", {})),
                     row.get("relation_evidence_by_field", row.get("relation_evidence", {})),
                     row["pathology_evidence"],
+                    broad_g2p_predictions=row.get("broad_g2p_predictions"),
                 )
                 row["previous_agent_answer"] = old_answer
                 row["agent_answer"] = new_answer

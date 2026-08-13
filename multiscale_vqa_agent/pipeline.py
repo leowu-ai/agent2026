@@ -245,13 +245,15 @@ class MultiScaleVQAPipeline:
         item: Dict[str, Any],
         plan: Any,
         scale_results: Dict[int, Dict[str, Any]],
-        evidence_cache: Dict[str, Dict[str, Any]],
+        evidence_cache: Dict[str, Any],
         crop_patches: bool,
     ) -> Dict[str, Any]:
         choices = list(item.get("Choice", item.get("choices", [])) or [])
         predictions = []
         relations_by_field = {}
         pathology_by_field = {}
+        broad_g2p_predictions = None
+        overview_paths = []
 
         for field in plan.target_phenotypes:
             if field not in evidence_cache:
@@ -266,7 +268,7 @@ class MultiScaleVQAPipeline:
         evidence_route = getattr(
             plan,
             "evidence_route",
-            "phenotype_direct" if plan.target_phenotypes else "nonvisual",
+            "phenotype_direct" if plan.target_phenotypes else "morphology_only",
         )
         if evidence_route == "phenotype_direct" and plan.target_phenotypes:
             primary = plan.target_phenotypes[0]
@@ -300,6 +302,12 @@ class MultiScaleVQAPipeline:
             pathology["structured_fields_covered"] = list(plan.target_phenotypes)
             pathology["retrieval_mode"] = "selected_phenotype"
         elif evidence_route == "morphology_only":
+            predictions_key = "__all_g2p_predictions__"
+            if predictions_key not in evidence_cache:
+                evidence_cache[predictions_key] = self._compact_broad_predictions(
+                    scale_results
+                )
+            broad_g2p_predictions = evidence_cache[predictions_key]
             groups_key = "__all_phenotype_groups__"
             if groups_key not in evidence_cache:
                 groups = self.retrieval.retrieve_all_phenotypes(scale_results)
@@ -309,29 +317,35 @@ class MultiScaleVQAPipeline:
                     )
                 evidence_cache[groups_key] = groups
             groups = evidence_cache[groups_key]
+            overview_key = "__overview_thumbnails__"
+            if overview_key not in evidence_cache:
+                evidence_cache[overview_key] = self.cropper.overview_thumbnails(
+                    plan.case_id
+                )
+            overview_paths = evidence_cache[overview_key]
             pathology_key = f"__pathology_all__:{plan.question}"
             if pathology_key not in evidence_cache:
                 evidence_cache[pathology_key] = self.pathology.describe(
                     plan.question,
                     "all_phenotype_attention_fallback",
                     groups,
+                    overview_paths=overview_paths,
                 )
             pathology = evidence_cache[pathology_key]
             pathology["primary_field"] = None
             pathology["structured_fields_covered"] = []
             pathology["retrieval_mode"] = "all_phenotype_attention"
+            pathology["thumbnail_paths"] = list(overview_paths)
         else:
-            pathology = {
-                "backend": "unavailable",
-                "description": "The question requires non-visual information that WSI patches cannot establish.",
-                "image_count": 0,
-                "primary_field": None,
-                "structured_fields_covered": [],
-                "retrieval_mode": "nonvisual",
-            }
+            raise ValueError(f"Unsupported evidence route: {evidence_route}")
 
         answer, structured = self.fusion.answer_with_summary(
-            plan, choices, predictions, relations_by_field, pathology
+            plan,
+            choices,
+            predictions,
+            relations_by_field,
+            pathology,
+            broad_g2p_predictions=broad_g2p_predictions,
         )
         first_prediction = predictions[0] if predictions else {}
         first_relation = relations_by_field.get(plan.target_phenotypes[0], {}) if plan.target_phenotypes else {}
@@ -356,6 +370,8 @@ class MultiScaleVQAPipeline:
             "phenotype_predictions": predictions,
             "relation_evidence": first_relation,
             "relation_evidence_by_field": relations_by_field,
+            "broad_g2p_predictions": broad_g2p_predictions or [],
+            "thumbnail_paths": list(overview_paths),
             "pathology_evidence": pathology,
             "agent_answer": answer,
             "answer_in_choices": answer.get("answer") in choices,
@@ -370,6 +386,45 @@ class MultiScaleVQAPipeline:
             "override_reason": answer.get("override_reason"),
             "structured_visual_conflict": answer.get("structured_visual_conflict", False),
         }
+
+    def _compact_broad_predictions(
+        self, scale_results: Dict[int, Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        rows = []
+        for field in self.registry.phenotype_fields:
+            prediction = self.g2p.fuse_task(scale_results, field)
+            fused = prediction.get("fused", {})
+            row = {
+                "prototype_id": self.registry.field_to_prototype_id[field],
+                "field": field,
+                "name": self.registry.field_to_name[field],
+                "confidence": None,
+            }
+            if "probability" in fused:
+                probability = float(fused["probability"])
+                predicted_class = int(fused["predicted_class"])
+                row.update({
+                    "predicted_class": predicted_class,
+                    "predicted_label": fused.get("predicted_label"),
+                    "positive_probability": probability,
+                    "confidence": (
+                        probability if predicted_class == 1 else 1.0 - probability
+                    ),
+                })
+            elif "probabilities" in fused:
+                probabilities = [float(value) for value in fused["probabilities"]]
+                row.update({
+                    "predicted_class": int(fused["predicted_class"]),
+                    "predicted_label": fused.get("predicted_label"),
+                    "probabilities": probabilities,
+                    "confidence": max(probabilities) if probabilities else None,
+                })
+            elif "risk" in fused:
+                row["risk"] = float(fused["risk"])
+            elif "value" in fused:
+                row["value"] = float(fused["value"])
+            rows.append(row)
+        return rows
 
     @staticmethod
     def _completed_keys(path: Path) -> set:

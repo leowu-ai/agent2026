@@ -71,10 +71,9 @@ def write_router_audit(
         "phenotype_direct/direct": counts["phenotype_direct/direct"],
         "phenotype_direct/partial": counts["phenotype_direct/partial"],
         "morphology_only": counts["morphology_only"],
-        "nonvisual": counts["nonvisual"],
         "route_counts": {
             route: counts[route]
-            for route in ("phenotype_direct", "morphology_only", "nonvisual")
+            for route in ("phenotype_direct", "morphology_only")
         },
         "support_type_counts": {
             support_type: support_type_counts[support_type]

@@ -8,14 +8,6 @@ from .clients import OpenAICompatibleClient, parse_json_response
 from .schemas import ExecutionPlan
 
 
-NONVISUAL_HINTS = (
-    "tumor size", "surgical margin", "margin status", "treatment", "chemotherapy",
-    "radiotherapy", "radiation therapy", "exact survival", "survival time", "how many days",
-    "patient age", "medical history", "clinical history", "mention", "documented",
-    "report", "record",
-)
-
-
 class ToolBankRegistry:
     def __init__(self, scale_dirs: Dict[int, Path]):
         self.scale_dirs = {int(k): Path(v) for k, v in scale_dirs.items()}
@@ -232,7 +224,7 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
         if not prototype_ids or coverage == "none":
             coverage = "none"
             prototype_ids = []
-            route = "morphology_only" if local_morphology_useful else "nonvisual"
+            route = "morphology_only"
             task_match = "none"
         else:
             route = "phenotype_direct"
@@ -260,7 +252,7 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
             name = self.registry.field_to_name[fields[0]]
             task_type = vocab.get("phenotype_task_types", {}).get(name, "unknown")
         else:
-            task_type = "morphology" if route == "morphology_only" else "nonvisual"
+            task_type = "morphology"
 
         return ExecutionPlan(
             case_id=case_id,
@@ -276,8 +268,6 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
             use_pathology_agent=(
                 True
                 if route == "morphology_only"
-                else False
-                if route == "nonvisual"
                 else True
                 if task_match == "partial"
                 else self._as_bool(parsed.get("use_pathology_agent", True))
@@ -299,29 +289,22 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
         return False
 
     def _rule_plan(self, case_id: str, question: str, choices: Iterable[str]) -> ExecutionPlan:
-        lowered = question.lower()
-        route = (
-            "nonvisual"
-            if any(term in lowered for term in NONVISUAL_HINTS)
-            else "morphology_only"
-        )
         return ExecutionPlan(
             case_id=case_id,
             question=question,
             target_phenotypes=[],
-            task_type="nonvisual" if route == "nonvisual" else "morphology",
+            task_type="morphology",
             metrics=[],
             answer_mode="multiple_choice" if list(choices) else "open",
             supported=False,
             support_reason=(
-                "The question requires non-visual information unavailable from WSI."
-                if route == "nonvisual"
-                else "No numbered phenotype prototype was selected; use diverse all-phenotype visual evidence."
+                "No numbered phenotype prototype was selected; use broad G2P and "
+                "diverse all-phenotype visual evidence."
             ),
             task_match="none",
             phenotype_relevance_score=0.0,
-            use_pathology_agent=route == "morphology_only",
-            evidence_route=route,
+            use_pathology_agent=True,
+            evidence_route="morphology_only",
             selected_prototype_ids=[],
         )
 

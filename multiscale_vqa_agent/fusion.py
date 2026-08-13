@@ -14,12 +14,10 @@ from .fusion_evidence import (
 from .schemas import ExecutionPlan
 
 
-MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions with limited evidence.
+MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions using broad WSI-derived context.
 Select exactly one supplied option ID. Do not return null, refuse, or invent measurements.
-Use only the question, indexed choices, and directly available visual summary.
-For report/documentation questions, images cannot prove whether something was mentioned.
-Do not default to not mentioned, not specified, or cannot be determined merely because evidence is absent; those choices make distinct claims and are not generic fallbacks.
-If evidence is insufficient, choose the most defensible supplied option ID with low confidence and say it is not confirmed.
+There is no Router-selected direct phenotype prototype. Broad G2P phenotype predictions are contextual WSI-derived predictions, not measured assays and not direct target evidence. Patho-R1 is a fallible summary of directly visible morphology. Combine broad G2P context with visual morphology and choose the most defensible option. Do not treat an unrelated phenotype prediction as a measurement of the requested target.
+If evidence is weak, choose with low confidence and say it is not confirmed.
 Output only JSON: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
 
 
@@ -54,9 +52,11 @@ class FusionVerificationAgent:
         phenotype_results: Any,
         relations: Any,
         pathology: Dict[str, Any],
+        broad_g2p_predictions: Any = None,
     ) -> Dict[str, Any]:
         answer, _ = self.answer_with_summary(
-            plan, choices, phenotype_results, relations, pathology
+            plan, choices, phenotype_results, relations, pathology,
+            broad_g2p_predictions=broad_g2p_predictions,
         )
         return answer
 
@@ -67,11 +67,13 @@ class FusionVerificationAgent:
         phenotype_results: Any,
         relations: Any,
         pathology: Dict[str, Any],
+        broad_g2p_predictions: Any = None,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         structured = build_structured_summary(plan, choices, phenotype_results)
         self._attach_option_alignment(plan, choices, structured)
         answer = self._answer_prepared(
-            plan, choices, structured, relations, pathology
+            plan, choices, structured, relations, pathology,
+            broad_g2p_predictions,
         )
         return answer, structured
 
@@ -82,8 +84,12 @@ class FusionVerificationAgent:
         structured: Dict[str, Any],
         relations: Any,
         pathology: Dict[str, Any],
+        broad_g2p_predictions: Any = None,
     ) -> Dict[str, Any]:
-        evidence = self._build_evidence_packet(plan, choices, structured, relations, pathology)
+        evidence = self._build_evidence_packet(
+            plan, choices, structured, relations, pathology,
+            broad_g2p_predictions,
+        )
         system_prompt = MINIMAL_NONE_SYSTEM if structured.get("task_match") == "none" else load_fusion_prompt()
         if not self.client.enabled:
             return self._fallback(plan, choices, structured, None, "mock_fallback", 0)
@@ -119,6 +125,8 @@ class FusionVerificationAgent:
                 "question": plan.question,
                 "choices": indexed_choices(choices),
                 "task_match": structured.get("task_match"),
+                "evidence_route": evidence.get("evidence_route"),
+                "broad_g2p_predictions": evidence.get("broad_g2p_predictions", []),
                 "structured_candidate": evidence.get("structured_candidate"),
                 "structured_evidence_summary": {
                     "answer_unit": evidence.get("answer_unit"),
@@ -174,6 +182,7 @@ class FusionVerificationAgent:
         structured: Dict[str, Any],
         relations: Any,
         pathology: Dict[str, Any],
+        broad_g2p_predictions: Any = None,
     ) -> Dict[str, Any]:
         visual = self._visual_summary(pathology.get("description"))
         if structured.get("task_match") == "none":
@@ -181,15 +190,11 @@ class FusionVerificationAgent:
                 "question": plan.question,
                 "choices": indexed_choices(choices),
                 "task_match": "none",
-                "evidence_route": getattr(plan, "evidence_route", "nonvisual"),
+                "evidence_route": getattr(plan, "evidence_route", "morphology_only"),
                 "selected_prototype_ids": list(getattr(plan, "selected_prototype_ids", [])),
+                "broad_g2p_predictions": list(broad_g2p_predictions or []),
                 "available_visual_summary": visual,
-                "evidence_availability": (
-                    "visual_only"
-                    if getattr(plan, "evidence_route", "nonvisual") == "morphology_only"
-                    else "insufficient"
-                ),
-                "documentation_rule": "Images cannot prove whether a report or record mentions a fact.",
+                "evidence_availability": "broad_g2p_plus_visual",
             }
         primary_fields = set(structured.get("primary_fields", []))
         supporting_fields = set(structured.get("supporting_fields", []))
