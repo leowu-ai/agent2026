@@ -1,0 +1,34 @@
+direction,case_id,question,gold,old_answer,new_answer,task_match
+wrong_to_correct,TCGA-A1-A0SF,what is the grade of the invasive tumor in the breast?,grade 2,grade 3,grade 2,direct
+wrong_to_correct,TCGA-A2-A259,what type of carcinoma was present along with invasive ductal carcinoma?,invasive lobular carcinoma,carcinoid tumor,invasive lobular carcinoma,direct
+correct_to_wrong,TCGA-A2-A259,what was the grade of the invasive ductal carcinoma present in the patient's breast?,grade 2,grade 2,grade 3,partial
+wrong_to_correct,TCGA-A2-A25A,what type of carcinoma was observed in the breast?,lobular carcinoma,ductal carcinoma,lobular carcinoma,direct
+correct_to_wrong,TCGA-A2-A3XU,what is the grade of the tumor?,grade iii,grade iii,grade ii,direct
+wrong_to_correct,TCGA-A2-A3XY,is there any necrosis present in the tumor?,"yes, necrosis is present in both invasive and ductal carcinoma in situ.","no, there is no necrosis in either invasive or ductal carcinoma in situ","yes, necrosis is present in both invasive and ductal carcinoma in situ.",direct
+wrong_to_correct,TCGA-A8-A07U,what type of tumor is the breast carcinoma?,invasive ductal carcinoma,medullary carcinoma,invasive ductal carcinoma,direct
+wrong_to_correct,TCGA-AC-A2FG,what is the elston modification of bloom-richardson grade?,grade 2/3,grade 1/3,grade 2/3,direct
+correct_to_wrong,TCGA-AN-A0XS,what is the grade of the tumor?,grade 2,grade 2,grade 3,partial
+wrong_to_correct,TCGA-AO-A03T,what does the slide confirm about the diagnosis?,involvement of the skin by the carcinoma,size and location of the tumor within the breast,involvement of the skin by the carcinoma,direct
+correct_to_wrong,TCGA-AO-A0JE,what additional findings are present in the tumor?,calcifications and microvascular invasion,calcifications and microvascular invasion,no additional findings,partial
+wrong_to_correct,TCGA-AO-A1KP,what is the nuclear grade of the invasive ductal carcinoma?,moderate,high,moderate,direct
+correct_to_wrong,TCGA-AQ-A7U7,what is the histologic grade of the tumor?,grade 2,grade 2,grade 3,direct
+wrong_to_correct,TCGA-AR-A1AU,what was the grade of the infiltrating ductal carcinoma?,nottingham grade iii,nottingham grade ii,nottingham grade iii,partial
+correct_to_wrong,TCGA-AR-A24S,what type of breast tissue changes were observed?,no observable changes,no observable changes,proliferative fibrocystic changes,none
+correct_to_wrong,TCGA-B6-A0RO,what non-neoplastic changes were observed in the breast tissue?,apocrine metaplasia,apocrine metaplasia,fibrosis,none
+wrong_to_correct,TCGA-B6-A0WZ,what subtype of infiltrating ductal carcinoma is present?,tubulolobular subtype,lobular cacinoma,tubulolobular subtype,direct
+correct_to_wrong,TCGA-BH-A0BV,what is the tumor type of the ductal carcinoma in situ?,solid and cribriform,solid and cribriform,infiltrating and lobular,direct
+wrong_to_correct,TCGA-BH-A0DD,what is the histological finding of the breast simple mastectomy?,"adipose breast tissue,","ductal carcinoma in situ,","adipose breast tissue,",direct
+correct_to_wrong,TCGA-BH-A0DG,what is the hormonal receptor status of the tumor?,"er-positive, pr-positive, her-2-negative","er-positive, pr-positive, her-2-negative","er-negative, pr-negative, her-2-positive",direct
+wrong_to_correct,TCGA-BH-A0HX,what is the nottingham grade for the ductal carcinoma in the breast?,grade 3,grade 2,grade 3,direct
+correct_to_wrong,TCGA-BH-A42U,what is the status of lymphatic or vascular invasion?,negative,negative,positive,direct
+correct_to_wrong,TCGA-C8-A135,what are some features observed in the tumor?,nuclear atypia,nuclear atypia,adenocarcinoma,partial
+wrong_to_correct,TCGA-D8-A27M,does the cancer have estrogen and progesterone receptors?,no,the slide doesn't mention it,no,direct
+correct_to_wrong,TCGA-D8-A73U,what type of carcinoma was identified microscopically?,invasive ductal carcinoma,invasive ductal carcinoma,invasive lobular carcinoma,direct
+correct_to_wrong,TCGA-EW-A1PF,what is the grade of the invasive ductal carcinoma?,grade 2,grade 2,grade 3,direct
+correct_to_wrong,TCGA-EW-A2FW,what is the histological grade of the invasive carcinoma?,grade 3,grade 3,grade 2,partial
+wrong_to_correct,TCGA-GM-A2D9,are there any lymphatic/vascular invasions found in the slide?,no,yes,no,direct
+wrong_to_correct,TCGA-LD-A74U,what is the patient's diagnosis?,invasive lobular carcinoma,invasive ductal carcinoma,invasive lobular carcinoma,direct
+correct_to_wrong,TCGA-LL-A442,what is the histologic grade of the infiltrating ductal carcinoma?,grade 2,grade 2,grade 3,direct
+wrong_to_correct,TCGA-LL-A7T0,what was the tumor grade based on the nottingham histologic score?,grade 3,grade 2,grade 3,direct
+wrong_to_correct,TCGA-OL-A5RX,was there any blood vessel or lymphatic invasion identified in the mastectomy specimen?,no,yes,no,direct
+wrong_to_correct,TCGA-OL-A5RX,what type of changes were found in the breast tissue of the patient?,all of the above,"columnar cell changes, duct ectasia, and fibroadenoma",all of the above,none

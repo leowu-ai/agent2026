@@ -1,0 +1,16 @@
+direction,case_id,question,gold,old_answer,new_answer,task_match
+correct_to_wrong,TCGA-A2-A259,what was the grade of the invasive ductal carcinoma present in the patient's breast?,grade 2,grade 2,grade 3,partial
+correct_to_wrong,TCGA-A2-A3XU,what is the grade of the tumor?,grade iii,grade iii,grade ii,direct
+correct_to_wrong,TCGA-AN-A0XS,what is the grade of the tumor?,grade 2,grade 2,grade 3,partial
+correct_to_wrong,TCGA-AO-A0JE,what additional findings are present in the tumor?,calcifications and microvascular invasion,calcifications and microvascular invasion,no additional findings,partial
+correct_to_wrong,TCGA-AQ-A7U7,what is the histologic grade of the tumor?,grade 2,grade 2,grade 3,direct
+correct_to_wrong,TCGA-AR-A24S,what type of breast tissue changes were observed?,no observable changes,no observable changes,proliferative fibrocystic changes,none
+correct_to_wrong,TCGA-B6-A0RO,what non-neoplastic changes were observed in the breast tissue?,apocrine metaplasia,apocrine metaplasia,fibrosis,none
+correct_to_wrong,TCGA-BH-A0BV,what is the tumor type of the ductal carcinoma in situ?,solid and cribriform,solid and cribriform,infiltrating and lobular,direct
+correct_to_wrong,TCGA-BH-A0DG,what is the hormonal receptor status of the tumor?,"er-positive, pr-positive, her-2-negative","er-positive, pr-positive, her-2-negative","er-negative, pr-negative, her-2-positive",direct
+correct_to_wrong,TCGA-BH-A42U,what is the status of lymphatic or vascular invasion?,negative,negative,positive,direct
+correct_to_wrong,TCGA-C8-A135,what are some features observed in the tumor?,nuclear atypia,nuclear atypia,adenocarcinoma,partial
+correct_to_wrong,TCGA-D8-A73U,what type of carcinoma was identified microscopically?,invasive ductal carcinoma,invasive ductal carcinoma,invasive lobular carcinoma,direct
+correct_to_wrong,TCGA-EW-A1PF,what is the grade of the invasive ductal carcinoma?,grade 2,grade 2,grade 3,direct
+correct_to_wrong,TCGA-EW-A2FW,what is the histological grade of the invasive carcinoma?,grade 3,grade 3,grade 2,partial
+correct_to_wrong,TCGA-LL-A442,what is the histologic grade of the infiltrating ductal carcinoma?,grade 2,grade 2,grade 3,direct

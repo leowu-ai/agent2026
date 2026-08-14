@@ -166,10 +166,13 @@ class PathologyAgent:
 
     @staticmethod
     def _select_entries(entries: List[Dict[str, Any]], limit: int) -> List[Dict[str, Any]]:
-        if len(entries) <= limit:
-            return list(entries)
-
         overviews = [entry for entry in entries if entry["kind"] == "overview"]
+        if len(entries) <= limit:
+            selected = list(entries)
+            if not overviews:
+                selected.sort(key=lambda item: (-item["scale"], item["group_id"]))
+            return selected
+
         patches = [entry for entry in entries if entry["kind"] == "patch"]
         by_group: Dict[int, List[Dict[str, Any]]] = {}
         for entry in patches:
@@ -203,4 +206,6 @@ class PathologyAgent:
         for entry in overviews[2:] + patches:
             add(entry)
 
+        if not overviews:
+            selected.sort(key=lambda item: (-item["scale"], item["group_id"]))
         return selected

@@ -100,9 +100,13 @@ class FusionVerificationAgent:
             raw = self.client.chat(
                 system_prompt,
                 json.dumps(evidence, ensure_ascii=False),
-                max_tokens=700 if structured.get("task_match") == "none" else 900,
+                temperature=0.6,
+                max_tokens=4096,
                 response_format={"type": "json_object"},
                 retries=2,
+                enable_thinking=True,
+                top_p=0.95,
+                top_k=20,
             )
             parsed = parse_json_response(raw)
             result = self._validate(parsed, choices, structured, raw, "parsed", retry_count)
@@ -147,9 +151,11 @@ class FusionVerificationAgent:
             retry_raw = self.client.chat(
                 REPAIR_SYSTEM,
                 retry_prompt,
+                temperature=0.0,
                 max_tokens=260,
                 response_format={"type": "json_object"},
                 retries=2,
+                enable_thinking=False,
             )
             parsed = parse_json_response(retry_raw)
             result = self._validate(

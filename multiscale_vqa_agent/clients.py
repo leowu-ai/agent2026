@@ -33,6 +33,9 @@ class OpenAICompatibleClient:
         response_format: Optional[Dict[str, Any]] = None,
         retries: int = 2,
         image_max_size: Optional[int] = None,
+        enable_thinking: Optional[bool] = None,
+        top_p: Optional[float] = None,
+        top_k: Optional[int] = None,
     ) -> Optional[str]:
         if not self.enabled:
             return None
@@ -71,8 +74,19 @@ class OpenAICompatibleClient:
             "temperature": temperature,
             "max_tokens": max_tokens,
         }
-        if self.enable_thinking is not None:
-            payload["chat_template_kwargs"] = {"enable_thinking": self.enable_thinking}
+        request_enable_thinking = (
+            self.enable_thinking
+            if enable_thinking is None
+            else enable_thinking
+        )
+        if request_enable_thinking is not None:
+            payload["chat_template_kwargs"] = {
+                "enable_thinking": request_enable_thinking
+            }
+        if top_p is not None:
+            payload["top_p"] = top_p
+        if top_k is not None:
+            payload["top_k"] = top_k
         if response_format:
             payload["response_format"] = response_format
         def make_request() -> urllib.request.Request:

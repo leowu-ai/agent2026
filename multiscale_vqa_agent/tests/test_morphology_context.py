@@ -70,6 +70,13 @@ class MorphologyFusionTest(unittest.TestCase):
         self.assertEqual(structured["task_match"], "none")
         self.assertIsNone(structured.get("structured_candidate_answer"))
         self.assertEqual(len(client.calls), 2)
+        self.assertEqual(client.calls[0]["temperature"], 0.6)
+        self.assertEqual(client.calls[0]["max_tokens"], 4096)
+        self.assertIs(client.calls[0]["enable_thinking"], True)
+        self.assertEqual(client.calls[0]["top_p"], 0.95)
+        self.assertEqual(client.calls[0]["top_k"], 20)
+        self.assertEqual(client.calls[1]["temperature"], 0.0)
+        self.assertIs(client.calls[1]["enable_thinking"], False)
         initial = json.loads(client.calls[0]["user"])
         repair = json.loads(client.calls[1]["user"])
         self.assertEqual(initial["broad_g2p_predictions"], broad)
@@ -134,6 +141,35 @@ class PathologyImageSelectionTest(unittest.TestCase):
         self.assertEqual(
             [(row["group_id"], row["scale"]) for row in selected[2:6]],
             [(1, 4096), (2, 4096), (3, 4096), (4, 4096)],
+        )
+
+    def test_direct_patches_restore_scale_then_group_order(self):
+        entries = [
+            {
+                "kind": "patch",
+                "group_id": 1,
+                "scale": 1024,
+                "image_path": "/tmp/group1_1024.jpg",
+            },
+            {
+                "kind": "patch",
+                "group_id": 1,
+                "scale": 4096,
+                "image_path": "/tmp/group1_4096.jpg",
+            },
+            {
+                "kind": "patch",
+                "group_id": 2,
+                "scale": 2048,
+                "image_path": "/tmp/group2_2048.jpg",
+            },
+        ]
+
+        selected = PathologyAgent._select_entries(entries, 8)
+
+        self.assertEqual(
+            [(row["scale"], row["group_id"]) for row in selected],
+            [(4096, 1), (2048, 2), (1024, 1)],
         )
 
 

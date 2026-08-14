@@ -1,0 +1,84 @@
+{
+  "old": {
+    "gold_answerable_correct": 90,
+    "gold_answerable_n": 186,
+    "gold_answerable_accuracy": 0.4838709677419355,
+    "selective_accuracy": 0.5595238095238095,
+    "overall_correct": 94,
+    "direct": {
+      "correct": 74,
+      "processed": 125,
+      "accuracy": 0.592
+    },
+    "partial": {
+      "correct": 15,
+      "processed": 27,
+      "accuracy": 0.5555555555555556
+    },
+    "morphology_only": {
+      "correct": 5,
+      "processed": 16,
+      "accuracy": 0.3125
+    },
+    "structured_overrides": 23,
+    "override_structured_accuracy": 0.5652173913043478,
+    "override_agent_accuracy": 0.30434782608695654
+  },
+  "new": {
+    "gold_answerable_correct": 93,
+    "gold_answerable_n": 186,
+    "gold_answerable_accuracy": 0.5,
+    "selective_accuracy": 0.5773809523809523,
+    "overall_correct": 97,
+    "direct": {
+      "correct": 82,
+      "processed": 125,
+      "accuracy": 0.656
+    },
+    "partial": {
+      "correct": 11,
+      "processed": 27,
+      "accuracy": 0.4074074074074074
+    },
+    "morphology_only": {
+      "correct": 4,
+      "processed": 16,
+      "accuracy": 0.25
+    },
+    "structured_overrides": 22,
+    "override_structured_accuracy": 0.5,
+    "override_agent_accuracy": 0.2727272727272727
+  },
+  "delta_new_minus_old": {
+    "gold_answerable_correct": 3,
+    "gold_answerable_accuracy": 0.016129032258064502,
+    "selective_accuracy": 0.017857142857142794,
+    "overall_correct": 3,
+    "structured_overrides": -1,
+    "override_structured_accuracy": -0.06521739130434778,
+    "override_agent_accuracy": -0.031620553359683834,
+    "direct": {
+      "correct": 8,
+      "processed": 0,
+      "accuracy": 0.06400000000000006
+    },
+    "partial": {
+      "correct": -4,
+      "processed": 0,
+      "accuracy": -0.1481481481481482
+    },
+    "morphology_only": {
+      "correct": -1,
+      "processed": 0,
+      "accuracy": -0.0625
+    }
+  },
+  "wrong_to_correct": 18,
+  "correct_to_wrong": 15,
+  "net_gain": 3,
+  "change_files": {
+    "all": "answer_changes.csv",
+    "wrong_to_correct": "wrong_to_correct.csv",
+    "correct_to_wrong": "correct_to_wrong.csv"
+  }
+}
