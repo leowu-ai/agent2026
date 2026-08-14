@@ -327,7 +327,7 @@ class FusionVerificationAgent:
         override_rejected = False
         if (
             proposed_override
-            and self._high_trust_candidate(structured)
+            and structured.get("task_match") == "direct"
             and not self._valid_counterevidence(parsed, structured)
         ):
             answer_id = candidate_id
@@ -340,7 +340,7 @@ class FusionVerificationAgent:
             limitations = " ".join(str(value) for value in limitations)
         explanation = self._limit(parsed.get("explanation", ""), 600)
         if override_rejected:
-            explanation = "Retained the high-confidence structured candidate because the proposed visual override lacked validated decisive counterevidence."
+            explanation = "Retained the direct structured candidate because the proposed visual override lacked validated decisive counterevidence."
             limitations = f"Visual conflict was reported but did not satisfy override evidence requirements. {limitations}"
         result = {
             "answer_id": answer_id,

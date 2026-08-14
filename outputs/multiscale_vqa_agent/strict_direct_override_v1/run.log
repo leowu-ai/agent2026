@@ -1,0 +1,433 @@
+nohup: ignoring input
+fusion_only selected=390 completed=0 remaining=390
+refusion 1/390 acc=0.0000 supported_acc=nan errors=0 last_correct=False
+refusion 2/390 acc=0.5000 supported_acc=1.0000 errors=0 last_correct=True
+refusion 3/390 acc=0.3333 supported_acc=0.5000 errors=0 last_correct=False
+refusion 4/390 acc=0.5000 supported_acc=0.6667 errors=0 last_correct=True
+refusion 5/390 acc=0.4000 supported_acc=0.6667 errors=0 last_correct=False
+refusion 6/390 acc=0.3333 supported_acc=0.6667 errors=0 last_correct=False
+refusion 7/390 acc=0.2857 supported_acc=0.5000 errors=0 last_correct=False
+refusion 8/390 acc=0.2500 supported_acc=0.5000 errors=0 last_correct=False
+refusion 9/390 acc=0.2222 supported_acc=0.5000 errors=0 last_correct=False
+refusion 10/390 acc=0.3000 supported_acc=0.6000 errors=0 last_correct=True
+refusion 11/390 acc=0.2727 supported_acc=0.6000 errors=0 last_correct=False
+refusion 12/390 acc=0.2500 supported_acc=0.6000 errors=0 last_correct=False
+refusion 13/390 acc=0.2308 supported_acc=0.6000 errors=0 last_correct=False
+refusion 14/390 acc=0.2143 supported_acc=0.6000 errors=0 last_correct=False
+refusion 15/390 acc=0.2000 supported_acc=0.5000 errors=0 last_correct=False
+refusion 16/390 acc=0.1875 supported_acc=0.5000 errors=0 last_correct=False
+refusion 17/390 acc=0.1765 supported_acc=0.5000 errors=0 last_correct=False
+refusion 18/390 acc=0.1667 supported_acc=0.5000 errors=0 last_correct=False
+refusion 19/390 acc=0.1579 supported_acc=0.5000 errors=0 last_correct=False
+refusion 20/390 acc=0.1500 supported_acc=0.5000 errors=0 last_correct=False
+refusion 21/390 acc=0.1429 supported_acc=0.5000 errors=0 last_correct=False
+refusion 22/390 acc=0.1364 supported_acc=0.5000 errors=0 last_correct=False
+refusion 23/390 acc=0.1304 supported_acc=0.5000 errors=0 last_correct=False
+refusion 24/390 acc=0.1667 supported_acc=0.5714 errors=0 last_correct=True
+refusion 25/390 acc=0.1600 supported_acc=0.5714 errors=0 last_correct=False
+refusion 26/390 acc=0.1538 supported_acc=0.5714 errors=0 last_correct=False
+refusion 27/390 acc=0.1481 supported_acc=0.5714 errors=0 last_correct=False
+refusion 28/390 acc=0.1429 supported_acc=0.5714 errors=0 last_correct=False
+refusion 29/390 acc=0.1379 supported_acc=0.5000 errors=0 last_correct=False
+refusion 30/390 acc=0.1333 supported_acc=0.5000 errors=0 last_correct=False
+refusion 31/390 acc=0.1290 supported_acc=0.5000 errors=0 last_correct=False
+refusion 32/390 acc=0.1250 supported_acc=0.5000 errors=0 last_correct=False
+refusion 33/390 acc=0.1212 supported_acc=0.5000 errors=0 last_correct=False
+refusion 34/390 acc=0.1471 supported_acc=0.5556 errors=0 last_correct=True
+refusion 35/390 acc=0.1429 supported_acc=0.5000 errors=0 last_correct=False
+refusion 36/390 acc=0.1389 supported_acc=0.5000 errors=0 last_correct=False
+refusion 37/390 acc=0.1351 supported_acc=0.5000 errors=0 last_correct=False
+refusion 38/390 acc=0.1316 supported_acc=0.5000 errors=0 last_correct=False
+refusion 39/390 acc=0.1538 supported_acc=0.5455 errors=0 last_correct=True
+refusion 40/390 acc=0.1750 supported_acc=0.5833 errors=0 last_correct=True
+refusion 41/390 acc=0.1707 supported_acc=0.5833 errors=0 last_correct=False
+refusion 42/390 acc=0.1905 supported_acc=0.6154 errors=0 last_correct=True
+refusion 43/390 acc=0.1860 supported_acc=0.5714 errors=0 last_correct=False
+refusion 44/390 acc=0.1818 supported_acc=0.5333 errors=0 last_correct=False
+refusion 45/390 acc=0.1778 supported_acc=0.5333 errors=0 last_correct=False
+refusion 46/390 acc=0.1739 supported_acc=0.5333 errors=0 last_correct=False
+refusion 47/390 acc=0.1702 supported_acc=0.5333 errors=0 last_correct=False
+refusion 48/390 acc=0.1875 supported_acc=0.5625 errors=0 last_correct=True
+refusion 49/390 acc=0.1837 supported_acc=0.5294 errors=0 last_correct=False
+refusion 50/390 acc=0.1800 supported_acc=0.5294 errors=0 last_correct=False
+refusion 51/390 acc=0.1765 supported_acc=0.5294 errors=0 last_correct=False
+refusion 52/390 acc=0.1731 supported_acc=0.5294 errors=0 last_correct=False
+refusion 53/390 acc=0.1887 supported_acc=0.5556 errors=0 last_correct=True
+refusion 54/390 acc=0.1852 supported_acc=0.5263 errors=0 last_correct=False
+refusion 55/390 acc=0.1818 supported_acc=0.5263 errors=0 last_correct=False
+refusion 56/390 acc=0.1786 supported_acc=0.5263 errors=0 last_correct=False
+refusion 57/390 acc=0.1930 supported_acc=0.5500 errors=0 last_correct=True
+refusion 58/390 acc=0.1897 supported_acc=0.5238 errors=0 last_correct=False
+refusion 59/390 acc=0.1864 supported_acc=0.5238 errors=0 last_correct=False
+refusion 60/390 acc=0.1833 supported_acc=0.5238 errors=0 last_correct=False
+refusion 61/390 acc=0.1803 supported_acc=0.5000 errors=0 last_correct=False
+refusion 62/390 acc=0.1935 supported_acc=0.5217 errors=0 last_correct=True
+refusion 63/390 acc=0.1905 supported_acc=0.5217 errors=0 last_correct=False
+refusion 64/390 acc=0.1875 supported_acc=0.5217 errors=0 last_correct=False
+refusion 65/390 acc=0.1846 supported_acc=0.5217 errors=0 last_correct=False
+refusion 66/390 acc=0.1970 supported_acc=0.5417 errors=0 last_correct=True
+refusion 67/390 acc=0.1940 supported_acc=0.5417 errors=0 last_correct=False
+refusion 68/390 acc=0.1912 supported_acc=0.5417 errors=0 last_correct=False
+refusion 69/390 acc=0.1884 supported_acc=0.5417 errors=0 last_correct=False
+refusion 70/390 acc=0.1857 supported_acc=0.5417 errors=0 last_correct=False
+refusion 71/390 acc=0.1831 supported_acc=0.5417 errors=0 last_correct=False
+refusion 72/390 acc=0.1806 supported_acc=0.5200 errors=0 last_correct=False
+refusion 73/390 acc=0.1918 supported_acc=0.5385 errors=0 last_correct=True
+refusion 74/390 acc=0.1892 supported_acc=0.5385 errors=0 last_correct=False
+refusion 75/390 acc=0.1867 supported_acc=0.5385 errors=0 last_correct=False
+refusion 76/390 acc=0.1974 supported_acc=0.5556 errors=0 last_correct=True
+refusion 77/390 acc=0.2078 supported_acc=0.5714 errors=0 last_correct=True
+refusion 78/390 acc=0.2051 supported_acc=0.5517 errors=0 last_correct=False
+refusion 79/390 acc=0.2025 supported_acc=0.5517 errors=0 last_correct=False
+refusion 80/390 acc=0.2000 supported_acc=0.5333 errors=0 last_correct=False
+refusion 81/390 acc=0.1975 supported_acc=0.5161 errors=0 last_correct=False
+refusion 82/390 acc=0.2073 supported_acc=0.5312 errors=0 last_correct=True
+refusion 83/390 acc=0.2169 supported_acc=0.5455 errors=0 last_correct=True
+refusion 84/390 acc=0.2143 supported_acc=0.5455 errors=0 last_correct=False
+refusion 85/390 acc=0.2235 supported_acc=0.5588 errors=0 last_correct=True
+refusion 86/390 acc=0.2209 supported_acc=0.5588 errors=0 last_correct=False
+refusion 87/390 acc=0.2184 supported_acc=0.5588 errors=0 last_correct=False
+refusion 88/390 acc=0.2159 supported_acc=0.5588 errors=0 last_correct=False
+refusion 89/390 acc=0.2247 supported_acc=0.5714 errors=0 last_correct=True
+refusion 90/390 acc=0.2333 supported_acc=0.5833 errors=0 last_correct=True
+refusion 91/390 acc=0.2308 supported_acc=0.5833 errors=0 last_correct=False
+refusion 92/390 acc=0.2283 supported_acc=0.5833 errors=0 last_correct=False
+refusion 93/390 acc=0.2258 supported_acc=0.5833 errors=0 last_correct=False
+refusion 94/390 acc=0.2340 supported_acc=0.5946 errors=0 last_correct=True
+refusion 95/390 acc=0.2316 supported_acc=0.5946 errors=0 last_correct=False
+refusion 96/390 acc=0.2292 supported_acc=0.5946 errors=0 last_correct=False
+refusion 97/390 acc=0.2371 supported_acc=0.6053 errors=0 last_correct=True
+refusion 98/390 acc=0.2347 supported_acc=0.5897 errors=0 last_correct=False
+refusion 99/390 acc=0.2323 supported_acc=0.5750 errors=0 last_correct=False
+refusion 100/390 acc=0.2400 supported_acc=0.5854 errors=0 last_correct=True
+refusion 101/390 acc=0.2376 supported_acc=0.5854 errors=0 last_correct=False
+refusion 102/390 acc=0.2353 supported_acc=0.5854 errors=0 last_correct=False
+refusion 103/390 acc=0.2330 supported_acc=0.5854 errors=0 last_correct=False
+refusion 104/390 acc=0.2308 supported_acc=0.5714 errors=0 last_correct=False
+refusion 105/390 acc=0.2381 supported_acc=0.5814 errors=0 last_correct=True
+refusion 106/390 acc=0.2358 supported_acc=0.5814 errors=0 last_correct=False
+refusion 107/390 acc=0.2336 supported_acc=0.5814 errors=0 last_correct=False
+refusion 108/390 acc=0.2315 supported_acc=0.5814 errors=0 last_correct=False
+refusion 109/390 acc=0.2294 supported_acc=0.5814 errors=0 last_correct=False
+refusion 110/390 acc=0.2273 supported_acc=0.5682 errors=0 last_correct=False
+refusion 111/390 acc=0.2252 supported_acc=0.5556 errors=0 last_correct=False
+refusion 112/390 acc=0.2232 supported_acc=0.5556 errors=0 last_correct=False
+refusion 113/390 acc=0.2212 supported_acc=0.5435 errors=0 last_correct=False
+refusion 114/390 acc=0.2193 supported_acc=0.5435 errors=0 last_correct=False
+refusion 115/390 acc=0.2261 supported_acc=0.5532 errors=0 last_correct=True
+refusion 116/390 acc=0.2328 supported_acc=0.5625 errors=0 last_correct=True
+refusion 117/390 acc=0.2308 supported_acc=0.5625 errors=0 last_correct=False
+refusion 118/390 acc=0.2288 supported_acc=0.5625 errors=0 last_correct=False
+refusion 119/390 acc=0.2269 supported_acc=0.5625 errors=0 last_correct=False
+refusion 120/390 acc=0.2333 supported_acc=0.5714 errors=0 last_correct=True
+refusion 121/390 acc=0.2397 supported_acc=0.5800 errors=0 last_correct=True
+refusion 122/390 acc=0.2377 supported_acc=0.5800 errors=0 last_correct=False
+refusion 123/390 acc=0.2358 supported_acc=0.5800 errors=0 last_correct=False
+refusion 124/390 acc=0.2339 supported_acc=0.5686 errors=0 last_correct=False
+refusion 125/390 acc=0.2320 supported_acc=0.5686 errors=0 last_correct=False
+refusion 126/390 acc=0.2302 supported_acc=0.5686 errors=0 last_correct=False
+refusion 127/390 acc=0.2283 supported_acc=0.5686 errors=0 last_correct=False
+refusion 128/390 acc=0.2266 supported_acc=0.5577 errors=0 last_correct=False
+refusion 129/390 acc=0.2248 supported_acc=0.5577 errors=0 last_correct=False
+refusion 130/390 acc=0.2231 supported_acc=0.5577 errors=0 last_correct=False
+refusion 131/390 acc=0.2290 supported_acc=0.5660 errors=0 last_correct=True
+refusion 132/390 acc=0.2273 supported_acc=0.5556 errors=0 last_correct=False
+refusion 133/390 acc=0.2331 supported_acc=0.5636 errors=0 last_correct=True
+refusion 134/390 acc=0.2313 supported_acc=0.5636 errors=0 last_correct=False
+refusion 135/390 acc=0.2296 supported_acc=0.5636 errors=0 last_correct=False
+refusion 136/390 acc=0.2279 supported_acc=0.5636 errors=0 last_correct=False
+refusion 137/390 acc=0.2263 supported_acc=0.5636 errors=0 last_correct=False
+refusion 138/390 acc=0.2246 supported_acc=0.5536 errors=0 last_correct=False
+refusion 139/390 acc=0.2230 supported_acc=0.5536 errors=0 last_correct=False
+refusion 140/390 acc=0.2286 supported_acc=0.5614 errors=0 last_correct=True
+refusion 141/390 acc=0.2270 supported_acc=0.5517 errors=0 last_correct=False
+refusion 142/390 acc=0.2254 supported_acc=0.5424 errors=0 last_correct=False
+refusion 143/390 acc=0.2238 supported_acc=0.5424 errors=0 last_correct=False
+refusion 144/390 acc=0.2222 supported_acc=0.5424 errors=0 last_correct=False
+refusion 145/390 acc=0.2276 supported_acc=0.5500 errors=0 last_correct=True
+refusion 146/390 acc=0.2260 supported_acc=0.5410 errors=0 last_correct=False
+refusion 147/390 acc=0.2313 supported_acc=0.5484 errors=0 last_correct=True
+refusion 148/390 acc=0.2297 supported_acc=0.5484 errors=0 last_correct=False
+refusion 149/390 acc=0.2282 supported_acc=0.5484 errors=0 last_correct=False
+refusion 150/390 acc=0.2267 supported_acc=0.5484 errors=0 last_correct=False
+refusion 151/390 acc=0.2318 supported_acc=0.5556 errors=0 last_correct=True
+refusion 152/390 acc=0.2303 supported_acc=0.5556 errors=0 last_correct=False
+refusion 153/390 acc=0.2288 supported_acc=0.5556 errors=0 last_correct=False
+refusion 154/390 acc=0.2338 supported_acc=0.5625 errors=0 last_correct=True
+refusion 155/390 acc=0.2323 supported_acc=0.5538 errors=0 last_correct=False
+refusion 156/390 acc=0.2372 supported_acc=0.5606 errors=0 last_correct=True
+refusion 157/390 acc=0.2357 supported_acc=0.5606 errors=0 last_correct=False
+refusion 158/390 acc=0.2342 supported_acc=0.5606 errors=0 last_correct=False
+refusion 159/390 acc=0.2327 supported_acc=0.5606 errors=0 last_correct=False
+refusion 160/390 acc=0.2313 supported_acc=0.5606 errors=0 last_correct=False
+refusion 161/390 acc=0.2298 supported_acc=0.5606 errors=0 last_correct=False
+refusion 162/390 acc=0.2284 supported_acc=0.5606 errors=0 last_correct=False
+refusion 163/390 acc=0.2270 supported_acc=0.5606 errors=0 last_correct=False
+refusion 164/390 acc=0.2317 supported_acc=0.5672 errors=0 last_correct=True
+refusion 165/390 acc=0.2364 supported_acc=0.5735 errors=0 last_correct=True
+refusion 166/390 acc=0.2349 supported_acc=0.5735 errors=0 last_correct=False
+refusion 167/390 acc=0.2335 supported_acc=0.5735 errors=0 last_correct=False
+refusion 168/390 acc=0.2321 supported_acc=0.5735 errors=0 last_correct=False
+refusion 169/390 acc=0.2308 supported_acc=0.5735 errors=0 last_correct=False
+refusion 170/390 acc=0.2353 supported_acc=0.5797 errors=0 last_correct=True
+refusion 171/390 acc=0.2398 supported_acc=0.5797 errors=0 last_correct=True
+refusion 172/390 acc=0.2384 supported_acc=0.5797 errors=0 last_correct=False
+refusion 173/390 acc=0.2370 supported_acc=0.5797 errors=0 last_correct=False
+refusion 174/390 acc=0.2356 supported_acc=0.5797 errors=0 last_correct=False
+refusion 175/390 acc=0.2343 supported_acc=0.5714 errors=0 last_correct=False
+refusion 176/390 acc=0.2330 supported_acc=0.5634 errors=0 last_correct=False
+refusion 177/390 acc=0.2316 supported_acc=0.5634 errors=0 last_correct=False
+refusion 178/390 acc=0.2303 supported_acc=0.5634 errors=0 last_correct=False
+refusion 179/390 acc=0.2291 supported_acc=0.5634 errors=0 last_correct=False
+refusion 180/390 acc=0.2278 supported_acc=0.5634 errors=0 last_correct=False
+refusion 181/390 acc=0.2320 supported_acc=0.5694 errors=0 last_correct=True
+refusion 182/390 acc=0.2363 supported_acc=0.5753 errors=0 last_correct=True
+refusion 183/390 acc=0.2350 supported_acc=0.5753 errors=0 last_correct=False
+refusion 184/390 acc=0.2337 supported_acc=0.5753 errors=0 last_correct=False
+refusion 185/390 acc=0.2378 supported_acc=0.5811 errors=0 last_correct=True
+refusion 186/390 acc=0.2419 supported_acc=0.5867 errors=0 last_correct=True
+refusion 187/390 acc=0.2460 supported_acc=0.5921 errors=0 last_correct=True
+refusion 188/390 acc=0.2500 supported_acc=0.5974 errors=0 last_correct=True
+refusion 189/390 acc=0.2487 supported_acc=0.5974 errors=0 last_correct=False
+refusion 190/390 acc=0.2474 supported_acc=0.5974 errors=0 last_correct=False
+refusion 191/390 acc=0.2461 supported_acc=0.5974 errors=0 last_correct=False
+refusion 192/390 acc=0.2500 supported_acc=0.6026 errors=0 last_correct=True
+refusion 193/390 acc=0.2487 supported_acc=0.5949 errors=0 last_correct=False
+refusion 194/390 acc=0.2526 supported_acc=0.6000 errors=0 last_correct=True
+refusion 195/390 acc=0.2513 supported_acc=0.6000 errors=0 last_correct=False
+refusion 196/390 acc=0.2500 supported_acc=0.6000 errors=0 last_correct=False
+refusion 197/390 acc=0.2487 supported_acc=0.6000 errors=0 last_correct=False
+refusion 198/390 acc=0.2475 supported_acc=0.5926 errors=0 last_correct=False
+refusion 199/390 acc=0.2462 supported_acc=0.5926 errors=0 last_correct=False
+refusion 200/390 acc=0.2450 supported_acc=0.5854 errors=0 last_correct=False
+refusion 201/390 acc=0.2438 supported_acc=0.5783 errors=0 last_correct=False
+refusion 202/390 acc=0.2475 supported_acc=0.5833 errors=0 last_correct=True
+refusion 203/390 acc=0.2463 supported_acc=0.5833 errors=0 last_correct=False
+refusion 204/390 acc=0.2451 supported_acc=0.5833 errors=0 last_correct=False
+refusion 205/390 acc=0.2439 supported_acc=0.5833 errors=0 last_correct=False
+refusion 206/390 acc=0.2427 supported_acc=0.5833 errors=0 last_correct=False
+refusion 207/390 acc=0.2464 supported_acc=0.5882 errors=0 last_correct=True
+refusion 208/390 acc=0.2452 supported_acc=0.5882 errors=0 last_correct=False
+refusion 209/390 acc=0.2440 supported_acc=0.5882 errors=0 last_correct=False
+refusion 210/390 acc=0.2429 supported_acc=0.5882 errors=0 last_correct=False
+refusion 211/390 acc=0.2417 supported_acc=0.5882 errors=0 last_correct=False
+refusion 212/390 acc=0.2453 supported_acc=0.5930 errors=0 last_correct=True
+refusion 213/390 acc=0.2441 supported_acc=0.5930 errors=0 last_correct=False
+refusion 214/390 acc=0.2430 supported_acc=0.5930 errors=0 last_correct=False
+refusion 215/390 acc=0.2419 supported_acc=0.5930 errors=0 last_correct=False
+refusion 216/390 acc=0.2454 supported_acc=0.5977 errors=0 last_correct=True
+refusion 217/390 acc=0.2488 supported_acc=0.6023 errors=0 last_correct=True
+refusion 218/390 acc=0.2477 supported_acc=0.6023 errors=0 last_correct=False
+refusion 219/390 acc=0.2466 supported_acc=0.6023 errors=0 last_correct=False
+refusion 220/390 acc=0.2455 supported_acc=0.6023 errors=0 last_correct=False
+refusion 221/390 acc=0.2489 supported_acc=0.6067 errors=0 last_correct=True
+refusion 222/390 acc=0.2477 supported_acc=0.6000 errors=0 last_correct=False
+refusion 223/390 acc=0.2511 supported_acc=0.6000 errors=0 last_correct=True
+refusion 224/390 acc=0.2500 supported_acc=0.6000 errors=0 last_correct=False
+refusion 225/390 acc=0.2489 supported_acc=0.6000 errors=0 last_correct=False
+refusion 226/390 acc=0.2478 supported_acc=0.6000 errors=0 last_correct=False
+refusion 227/390 acc=0.2511 supported_acc=0.6044 errors=0 last_correct=True
+refusion 228/390 acc=0.2544 supported_acc=0.6087 errors=0 last_correct=True
+refusion 229/390 acc=0.2533 supported_acc=0.6087 errors=0 last_correct=False
+refusion 230/390 acc=0.2522 supported_acc=0.6087 errors=0 last_correct=False
+refusion 231/390 acc=0.2511 supported_acc=0.6087 errors=0 last_correct=False
+refusion 232/390 acc=0.2500 supported_acc=0.6087 errors=0 last_correct=False
+refusion 233/390 acc=0.2532 supported_acc=0.6129 errors=0 last_correct=True
+refusion 234/390 acc=0.2521 supported_acc=0.6129 errors=0 last_correct=False
+refusion 235/390 acc=0.2511 supported_acc=0.6129 errors=0 last_correct=False
+refusion 236/390 acc=0.2542 supported_acc=0.6170 errors=0 last_correct=True
+refusion 237/390 acc=0.2574 supported_acc=0.6211 errors=0 last_correct=True
+refusion 238/390 acc=0.2605 supported_acc=0.6250 errors=0 last_correct=True
+refusion 239/390 acc=0.2594 supported_acc=0.6250 errors=0 last_correct=False
+refusion 240/390 acc=0.2583 supported_acc=0.6250 errors=0 last_correct=False
+refusion 241/390 acc=0.2573 supported_acc=0.6250 errors=0 last_correct=False
+refusion 242/390 acc=0.2562 supported_acc=0.6250 errors=0 last_correct=False
+refusion 243/390 acc=0.2551 supported_acc=0.6250 errors=0 last_correct=False
+refusion 244/390 acc=0.2541 supported_acc=0.6250 errors=0 last_correct=False
+refusion 245/390 acc=0.2531 supported_acc=0.6250 errors=0 last_correct=False
+refusion 246/390 acc=0.2520 supported_acc=0.6250 errors=0 last_correct=False
+refusion 247/390 acc=0.2510 supported_acc=0.6186 errors=0 last_correct=False
+refusion 248/390 acc=0.2540 supported_acc=0.6224 errors=0 last_correct=True
+refusion 249/390 acc=0.2570 supported_acc=0.6224 errors=0 last_correct=True
+refusion 250/390 acc=0.2560 supported_acc=0.6224 errors=0 last_correct=False
+refusion 251/390 acc=0.2590 supported_acc=0.6263 errors=0 last_correct=True
+refusion 252/390 acc=0.2619 supported_acc=0.6300 errors=0 last_correct=True
+refusion 253/390 acc=0.2609 supported_acc=0.6238 errors=0 last_correct=False
+refusion 254/390 acc=0.2638 supported_acc=0.6275 errors=0 last_correct=True
+refusion 255/390 acc=0.2627 supported_acc=0.6275 errors=0 last_correct=False
+refusion 256/390 acc=0.2656 supported_acc=0.6311 errors=0 last_correct=True
+refusion 257/390 acc=0.2685 supported_acc=0.6346 errors=0 last_correct=True
+refusion 258/390 acc=0.2713 supported_acc=0.6381 errors=0 last_correct=True
+refusion 259/390 acc=0.2741 supported_acc=0.6415 errors=0 last_correct=True
+refusion 260/390 acc=0.2731 supported_acc=0.6415 errors=0 last_correct=False
+refusion 261/390 acc=0.2720 supported_acc=0.6415 errors=0 last_correct=False
+refusion 262/390 acc=0.2710 supported_acc=0.6415 errors=0 last_correct=False
+refusion 263/390 acc=0.2700 supported_acc=0.6355 errors=0 last_correct=False
+refusion 264/390 acc=0.2689 supported_acc=0.6355 errors=0 last_correct=False
+refusion 265/390 acc=0.2679 supported_acc=0.6355 errors=0 last_correct=False
+refusion 266/390 acc=0.2669 supported_acc=0.6355 errors=0 last_correct=False
+refusion 267/390 acc=0.2659 supported_acc=0.6355 errors=0 last_correct=False
+refusion 268/390 acc=0.2649 supported_acc=0.6355 errors=0 last_correct=False
+refusion 269/390 acc=0.2639 supported_acc=0.6355 errors=0 last_correct=False
+refusion 270/390 acc=0.2667 supported_acc=0.6389 errors=0 last_correct=True
+refusion 271/390 acc=0.2657 supported_acc=0.6330 errors=0 last_correct=False
+refusion 272/390 acc=0.2647 supported_acc=0.6330 errors=0 last_correct=False
+refusion 273/390 acc=0.2674 supported_acc=0.6364 errors=0 last_correct=True
+refusion 274/390 acc=0.2664 supported_acc=0.6306 errors=0 last_correct=False
+refusion 275/390 acc=0.2691 supported_acc=0.6339 errors=0 last_correct=True
+refusion 276/390 acc=0.2681 supported_acc=0.6339 errors=0 last_correct=False
+refusion 277/390 acc=0.2671 supported_acc=0.6339 errors=0 last_correct=False
+refusion 278/390 acc=0.2698 supported_acc=0.6372 errors=0 last_correct=True
+refusion 279/390 acc=0.2688 supported_acc=0.6316 errors=0 last_correct=False
+refusion 280/390 acc=0.2679 supported_acc=0.6316 errors=0 last_correct=False
+refusion 281/390 acc=0.2669 supported_acc=0.6316 errors=0 last_correct=False
+refusion 282/390 acc=0.2660 supported_acc=0.6316 errors=0 last_correct=False
+refusion 283/390 acc=0.2686 supported_acc=0.6348 errors=0 last_correct=True
+refusion 284/390 acc=0.2676 supported_acc=0.6348 errors=0 last_correct=False
+refusion 285/390 acc=0.2667 supported_acc=0.6348 errors=0 last_correct=False
+refusion 286/390 acc=0.2657 supported_acc=0.6348 errors=0 last_correct=False
+refusion 287/390 acc=0.2648 supported_acc=0.6348 errors=0 last_correct=False
+refusion 288/390 acc=0.2639 supported_acc=0.6348 errors=0 last_correct=False
+refusion 289/390 acc=0.2630 supported_acc=0.6348 errors=0 last_correct=False
+refusion 290/390 acc=0.2621 supported_acc=0.6348 errors=0 last_correct=False
+refusion 291/390 acc=0.2612 supported_acc=0.6348 errors=0 last_correct=False
+refusion 292/390 acc=0.2603 supported_acc=0.6348 errors=0 last_correct=False
+refusion 293/390 acc=0.2594 supported_acc=0.6348 errors=0 last_correct=False
+refusion 294/390 acc=0.2619 supported_acc=0.6379 errors=0 last_correct=True
+refusion 295/390 acc=0.2610 supported_acc=0.6379 errors=0 last_correct=False
+refusion 296/390 acc=0.2601 supported_acc=0.6379 errors=0 last_correct=False
+refusion 297/390 acc=0.2593 supported_acc=0.6379 errors=0 last_correct=False
+refusion 298/390 acc=0.2584 supported_acc=0.6379 errors=0 last_correct=False
+refusion 299/390 acc=0.2609 supported_acc=0.6410 errors=0 last_correct=True
+refusion 300/390 acc=0.2600 supported_acc=0.6410 errors=0 last_correct=False
+refusion 301/390 acc=0.2591 supported_acc=0.6410 errors=0 last_correct=False
+refusion 302/390 acc=0.2583 supported_acc=0.6410 errors=0 last_correct=False
+refusion 303/390 acc=0.2607 supported_acc=0.6441 errors=0 last_correct=True
+refusion 304/390 acc=0.2632 supported_acc=0.6441 errors=0 last_correct=True
+refusion 305/390 acc=0.2656 supported_acc=0.6471 errors=0 last_correct=True
+refusion 306/390 acc=0.2647 supported_acc=0.6471 errors=0 last_correct=False
+refusion 307/390 acc=0.2638 supported_acc=0.6471 errors=0 last_correct=False
+refusion 308/390 acc=0.2630 supported_acc=0.6471 errors=0 last_correct=False
+refusion 309/390 acc=0.2654 supported_acc=0.6500 errors=0 last_correct=True
+refusion 310/390 acc=0.2677 supported_acc=0.6529 errors=0 last_correct=True
+refusion 311/390 acc=0.2669 supported_acc=0.6475 errors=0 last_correct=False
+refusion 312/390 acc=0.2660 supported_acc=0.6475 errors=0 last_correct=False
+refusion 313/390 acc=0.2652 supported_acc=0.6475 errors=0 last_correct=False
+refusion 314/390 acc=0.2643 supported_acc=0.6475 errors=0 last_correct=False
+refusion 315/390 acc=0.2667 supported_acc=0.6504 errors=0 last_correct=True
+refusion 316/390 acc=0.2658 supported_acc=0.6452 errors=0 last_correct=False
+refusion 317/390 acc=0.2650 supported_acc=0.6452 errors=0 last_correct=False
+refusion 318/390 acc=0.2642 supported_acc=0.6452 errors=0 last_correct=False
+refusion 319/390 acc=0.2633 supported_acc=0.6400 errors=0 last_correct=False
+refusion 320/390 acc=0.2656 supported_acc=0.6429 errors=0 last_correct=True
+refusion 321/390 acc=0.2648 supported_acc=0.6378 errors=0 last_correct=False
+refusion 322/390 acc=0.2640 supported_acc=0.6378 errors=0 last_correct=False
+refusion 323/390 acc=0.2632 supported_acc=0.6378 errors=0 last_correct=False
+refusion 324/390 acc=0.2623 supported_acc=0.6378 errors=0 last_correct=False
+refusion 325/390 acc=0.2615 supported_acc=0.6378 errors=0 last_correct=False
+refusion 326/390 acc=0.2607 supported_acc=0.6378 errors=0 last_correct=False
+refusion 327/390 acc=0.2599 supported_acc=0.6378 errors=0 last_correct=False
+refusion 328/390 acc=0.2591 supported_acc=0.6378 errors=0 last_correct=False
+refusion 329/390 acc=0.2584 supported_acc=0.6328 errors=0 last_correct=False
+refusion 330/390 acc=0.2576 supported_acc=0.6328 errors=0 last_correct=False
+refusion 331/390 acc=0.2568 supported_acc=0.6328 errors=0 last_correct=False
+refusion 332/390 acc=0.2560 supported_acc=0.6328 errors=0 last_correct=False
+refusion 333/390 acc=0.2553 supported_acc=0.6279 errors=0 last_correct=False
+refusion 334/390 acc=0.2545 supported_acc=0.6279 errors=0 last_correct=False
+refusion 335/390 acc=0.2537 supported_acc=0.6279 errors=0 last_correct=False
+refusion 336/390 acc=0.2560 supported_acc=0.6308 errors=0 last_correct=True
+refusion 337/390 acc=0.2582 supported_acc=0.6336 errors=0 last_correct=True
+refusion 338/390 acc=0.2574 supported_acc=0.6336 errors=0 last_correct=False
+refusion 339/390 acc=0.2566 supported_acc=0.6336 errors=0 last_correct=False
+refusion 340/390 acc=0.2559 supported_acc=0.6336 errors=0 last_correct=False
+refusion 341/390 acc=0.2581 supported_acc=0.6364 errors=0 last_correct=True
+refusion 342/390 acc=0.2602 supported_acc=0.6364 errors=0 last_correct=True
+refusion 343/390 acc=0.2595 supported_acc=0.6316 errors=0 last_correct=False
+refusion 344/390 acc=0.2587 supported_acc=0.6316 errors=0 last_correct=False
+refusion 345/390 acc=0.2580 supported_acc=0.6316 errors=0 last_correct=False
+refusion 346/390 acc=0.2572 supported_acc=0.6316 errors=0 last_correct=False
+refusion 347/390 acc=0.2594 supported_acc=0.6343 errors=0 last_correct=True
+refusion 348/390 acc=0.2615 supported_acc=0.6370 errors=0 last_correct=True
+refusion 349/390 acc=0.2636 supported_acc=0.6397 errors=0 last_correct=True
+refusion 350/390 acc=0.2629 supported_acc=0.6397 errors=0 last_correct=False
+refusion 351/390 acc=0.2621 supported_acc=0.6397 errors=0 last_correct=False
+refusion 352/390 acc=0.2614 supported_acc=0.6397 errors=0 last_correct=False
+refusion 353/390 acc=0.2606 supported_acc=0.6397 errors=0 last_correct=False
+refusion 354/390 acc=0.2599 supported_acc=0.6350 errors=0 last_correct=False
+refusion 355/390 acc=0.2592 supported_acc=0.6350 errors=0 last_correct=False
+refusion 356/390 acc=0.2584 supported_acc=0.6350 errors=0 last_correct=False
+refusion 357/390 acc=0.2577 supported_acc=0.6350 errors=0 last_correct=False
+refusion 358/390 acc=0.2598 supported_acc=0.6377 errors=0 last_correct=True
+refusion 359/390 acc=0.2618 supported_acc=0.6403 errors=0 last_correct=True
+refusion 360/390 acc=0.2611 supported_acc=0.6403 errors=0 last_correct=False
+refusion 361/390 acc=0.2604 supported_acc=0.6357 errors=0 last_correct=False
+refusion 362/390 acc=0.2597 supported_acc=0.6312 errors=0 last_correct=False
+refusion 363/390 acc=0.2590 supported_acc=0.6312 errors=0 last_correct=False
+refusion 364/390 acc=0.2582 supported_acc=0.6312 errors=0 last_correct=False
+refusion 365/390 acc=0.2575 supported_acc=0.6312 errors=0 last_correct=False
+refusion 366/390 acc=0.2596 supported_acc=0.6338 errors=0 last_correct=True
+refusion 367/390 acc=0.2589 supported_acc=0.6338 errors=0 last_correct=False
+refusion 368/390 acc=0.2582 supported_acc=0.6338 errors=0 last_correct=False
+refusion 369/390 acc=0.2602 supported_acc=0.6364 errors=0 last_correct=True
+refusion 370/390 acc=0.2622 supported_acc=0.6389 errors=0 last_correct=True
+refusion 371/390 acc=0.2615 supported_acc=0.6389 errors=0 last_correct=False
+refusion 372/390 acc=0.2608 supported_acc=0.6389 errors=0 last_correct=False
+refusion 373/390 acc=0.2601 supported_acc=0.6389 errors=0 last_correct=False
+refusion 374/390 acc=0.2594 supported_acc=0.6389 errors=0 last_correct=False
+refusion 375/390 acc=0.2587 supported_acc=0.6345 errors=0 last_correct=False
+refusion 376/390 acc=0.2580 supported_acc=0.6345 errors=0 last_correct=False
+refusion 377/390 acc=0.2573 supported_acc=0.6345 errors=0 last_correct=False
+refusion 378/390 acc=0.2593 supported_acc=0.6370 errors=0 last_correct=True
+refusion 379/390 acc=0.2586 supported_acc=0.6327 errors=0 last_correct=False
+refusion 380/390 acc=0.2605 supported_acc=0.6351 errors=0 last_correct=True
+refusion 381/390 acc=0.2598 supported_acc=0.6351 errors=0 last_correct=False
+refusion 382/390 acc=0.2592 supported_acc=0.6351 errors=0 last_correct=False
+refusion 383/390 acc=0.2611 supported_acc=0.6376 errors=0 last_correct=True
+refusion 384/390 acc=0.2604 supported_acc=0.6333 errors=0 last_correct=False
+refusion 385/390 acc=0.2597 supported_acc=0.6333 errors=0 last_correct=False
+refusion 386/390 acc=0.2591 supported_acc=0.6333 errors=0 last_correct=False
+refusion 387/390 acc=0.2584 supported_acc=0.6333 errors=0 last_correct=False
+refusion 388/390 acc=0.2577 supported_acc=0.6333 errors=0 last_correct=False
+refusion 389/390 acc=0.2596 supported_acc=0.6358 errors=0 last_correct=True
+refusion 390/390 acc=0.2590 supported_acc=0.6316 errors=0 last_correct=False
+Saved: outputs/multiscale_vqa_agent/strict_direct_override_v1/mc_answers.jsonl
+{
+  "dataset": {
+    "gold_total": 390,
+    "gold_valid": 382,
+    "gold_excluded": 8,
+    "gold_can_answer": 186,
+    "gold_cannot_answer": 196
+  },
+  "answerability": {
+    "accuracy": 0.9109947643979057,
+    "precision": 0.9523809523809523,
+    "recall": 0.8602150537634409,
+    "f1": 0.903954802259887,
+    "specificity": 0.9591836734693877,
+    "balanced_accuracy": 0.9096993636164143,
+    "auroc": 0.9254855167873601,
+    "tp": 160,
+    "fp": 8,
+    "fn": 26,
+    "tn": 188
+  },
+  "vqa": {
+    "gold_answerable_n": 186,
+    "gold_answerable_correct": 97,
+    "gold_answerable_accuracy": 0.521505376344086,
+    "answered_n": 168,
+    "abstained_n": 214,
+    "selective_accuracy": 0.6011904761904762,
+    "coverage": 0.4397905759162304,
+    "overall_correct": 101,
+    "overall_accuracy": 0.2643979057591623
+  },
+  "integrity": {
+    "prediction_total": 390,
+    "missing_predictions": 0,
+    "extra_predictions": 0,
+    "duplicate_predictions": 0,
+    "legacy_conversions": 0
+  }
+}

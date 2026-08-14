@@ -75,15 +75,54 @@ def main():
             row = dict(source)
             old_answer = row.get("agent_answer")
             try:
+                if row.get("abstained", False):
+                    output.write(json.dumps(row, ensure_ascii=False) + "\n")
+                    output.flush()
+                    evaluation = tracker.update(row)
+                    snapshot = tracker.snapshot()
+                    accuracy = snapshot["accuracy"]
+                    supported = snapshot["supported_accuracy"]
+                    accuracy_text = "nan" if accuracy is None else f"{accuracy:.4f}"
+                    supported_text = (
+                        "nan" if supported is None else f"{supported:.4f}"
+                    )
+                    print(
+                        f"refusion {snapshot['processed']}/{snapshot['selected_total']} "
+                        f"acc={accuracy_text} supported_acc={supported_text} "
+                        f"errors={snapshot['errors']} "
+                        f"last_correct={evaluation['correct']}",
+                        flush=True,
+                    )
+                    continue
                 plan = ExecutionPlan(**row["plan"])
-                new_answer, structured = fusion.answer_with_summary(
-                    plan,
-                    list(row.get("choices", [])),
-                    row.get("phenotype_predictions", row.get("phenotype_prediction", {})),
-                    row.get("relation_evidence_by_field", row.get("relation_evidence", {})),
-                    row["pathology_evidence"],
-                    broad_g2p_predictions=row.get("broad_g2p_predictions"),
-                )
+                structured = row.get("structured_evidence")
+                if isinstance(structured, dict):
+                    new_answer = fusion._answer_prepared(
+                        plan,
+                        list(row.get("choices", [])),
+                        structured,
+                        row.get(
+                            "relation_evidence_by_field",
+                            row.get("relation_evidence", {}),
+                        ),
+                        row["pathology_evidence"],
+                        broad_g2p_predictions=row.get("broad_g2p_predictions"),
+                    )
+                else:
+                    new_answer, structured = fusion.answer_with_summary(
+                        plan,
+                        list(row.get("choices", [])),
+                        row.get(
+                            "phenotype_predictions",
+                            row.get("phenotype_prediction", {}),
+                        ),
+                        row.get(
+                            "relation_evidence_by_field",
+                            row.get("relation_evidence", {}),
+                        ),
+                        row["pathology_evidence"],
+                        broad_g2p_predictions=row.get("broad_g2p_predictions"),
+                    )
                 row["previous_agent_answer"] = old_answer
                 row["agent_answer"] = new_answer
                 row.update({
@@ -110,11 +149,12 @@ def main():
                 })
                 row.pop("error", None)
                 row["refusion"] = {
-                    "version": "semantic_alignment_arbiter_v2",
+                    "version": "strict_direct_override_v1",
                     "timestamp": datetime.now().astimezone().isoformat(timespec="seconds"),
                     "reused_g2p": True,
                     "reused_relations": True,
                     "reused_pathology_description": True,
+                    "reused_structured_evidence": True,
                 }
             except Exception as error:
                 row["error"] = f"{type(error).__name__}: {error}"
