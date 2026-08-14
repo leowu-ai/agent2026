@@ -3,7 +3,10 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from multiscale_vqa_agent.answerability import AnswerabilityAgent
+from multiscale_vqa_agent.answerability import (
+    ANSWERABILITY_SYSTEM_PROMPT,
+    AnswerabilityAgent,
+)
 from multiscale_vqa_agent.answerability_evaluation import evaluate_answerability
 from multiscale_vqa_agent.live_metrics import LiveAccuracyTracker
 from multiscale_vqa_agent.mc_pipeline import MultipleChoiceVQAPipeline
@@ -184,6 +187,29 @@ class AnswerabilityPipelineTest(unittest.TestCase):
         combined = f"{client.system}\n{client.user}".lower()
         for forbidden in ("gold", "reference answer", "reason_code", "label_source"):
             self.assertNotIn(forbidden, combined)
+
+    def test_prompt_defines_target_granularity_contract(self):
+        prompt = ANSWERABILITY_SYSTEM_PROMPT
+        self.assertIn("Classify the information TARGET", prompt)
+        self.assertIn(
+            'Words such as "test", "testing", "staining", '
+            '"immunohistochemistry", "IHC"',
+            prompt,
+        )
+        self.assertIn("do NOT by themselves make", prompt)
+        self.assertIn(
+            'B. "Was HER2 positive or negative by immunohistochemistry?"',
+            prompt,
+        )
+        self.assertIn(
+            'E. "Was HER2 gene amplification detected by FISH?"',
+            prompt,
+        )
+        self.assertIn('F. "What is the Nottingham grade?"', prompt)
+        self.assertIn(
+            'G. "Was the Nottingham score determined in the report?"',
+            prompt,
+        )
 
     def test_fallback_is_true_with_zero_confidence(self):
         result = AnswerabilityAgent(CapturingClient("not json")).predict("q", ["A"])
