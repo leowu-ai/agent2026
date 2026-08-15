@@ -1,0 +1,28 @@
+{
+  "source_vqa_json": "/home/wl/agent_2026/dataset/WsiVQA_test.json",
+  "checkpoint": "/data_nas2/zd/paper1/models/conch/pytorch_model.bin",
+  "checkpoint_sha256": "40a9644b9ba0e83a74576e0a5e5f7313599fa9c9cdaf3c20f8a3e271b0e9ae7c",
+  "model": "CONCH v1 conch_ViT-B-16",
+  "row_count": 735,
+  "unique_question_count": 389,
+  "mc_only": false,
+  "features": {
+    "projected_512": {
+      "shape": [
+        389,
+        512
+      ],
+      "l2_normalized": true,
+      "meaning": "Official CONCH v1 image-text contrastive space."
+    },
+    "preprojection_768": {
+      "shape": [
+        389,
+        768
+      ],
+      "l2_normalized": true,
+      "meaning": "CONCH v1 pooled text state before text_projection. It is not trained or validated against CONCH v1.5 patch features."
+    }
+  },
+  "mapping": "question_to_unique maps each VQA row to a row in projected_512 and preprojection_768."
+}

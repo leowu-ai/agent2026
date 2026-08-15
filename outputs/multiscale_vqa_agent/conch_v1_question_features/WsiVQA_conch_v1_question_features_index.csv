@@ -1,0 +1,736 @@
+row_index,case_id,question,unique_feature_index,is_multiple_choice
+0,TCGA-LD-A74U,what is the patient's diagnosis?,0,True
+1,TCGA-LD-A74U,what is the tumor size approximately?,1,True
+2,TCGA-LD-A74U,what is the nuclear grade of the tumor?,2,True
+3,TCGA-LD-A74U,is there any in-situ component in the tumor?,3,True
+4,TCGA-AR-A1AI,what type of breast cancer does jeb have?,4,True
+5,TCGA-AR-A1AI,what was the size of the mass in jeb's breast?,5,True
+6,TCGA-AR-A1AI,what was the status of the surgical margins in jeb's case?,6,True
+7,TCGA-AR-A1AI,"From the slide, can you infer the histological_type?",7,False
+8,TCGA-AR-A1AI,what is the result of progesterone_receptor in the slide?,8,False
+9,TCGA-AR-A1AI,what is her2 according to the slide?,9,False
+10,TCGA-AR-A1AI,what is the result of vital_status in the slide?,10,False
+11,TCGA-AR-A1AI,"From the slide, can you infer the survival time?",11,False
+12,TCGA-B6-A0WZ,what is the size of the tumor?,12,True
+13,TCGA-B6-A0WZ,what subtype of infiltrating ductal carcinoma is present?,13,True
+14,TCGA-B6-A0WZ,is there evidence of multifocal tumor?,14,True
+15,TCGA-B6-A0WZ,what are the preliminary results of the hormone receptor analysis?,15,True
+16,TCGA-B6-A0WZ,Can you help the pathologist to predict histological_type?,16,False
+17,TCGA-B6-A0WZ,please predict progesterone_receptor?,17,False
+18,TCGA-B6-A0WZ,Can you help the pathologist to predict vital_status?,18,False
+19,TCGA-B6-A0WZ,what is the result of survival time in the slide?,19,False
+20,TCGA-BH-A5IZ,what is the size of the tumor?,12,True
+21,TCGA-BH-A5IZ,what percentage of the tumor volume constitutes ductal carcinoma in situ (dcis)?,20,True
+22,TCGA-BH-A5IZ,what is the nottingham score for the tumor?,21,True
+23,TCGA-BH-A5IZ,what are the hormone receptor status of the tumor?,22,True
+24,TCGA-BH-A5IZ,what type of non-neoplastic breast tissue changes were observed?,23,True
+25,TCGA-BH-A5IZ,Can you help the pathologist to predict histological_type?,16,False
+26,TCGA-BH-A5IZ,what is the result of progesterone_receptor in the slide?,8,False
+27,TCGA-BH-A5IZ,Could you predict vital_status?,24,False
+28,TCGA-BH-A5IZ,"From the slide, can you infer the survival time?",11,False
+29,TCGA-BH-A0AZ,what is the tumor size range?,25,True
+30,TCGA-BH-A0AZ,what is the nottingham score?,26,True
+31,TCGA-BH-A0AZ,what percentage of tumor volume does ductal carcinoma in situ (dcis) represent?,27,True
+32,TCGA-BH-A0AZ,what were the results of the immunohistochemical staining?,28,True
+33,TCGA-BH-A0AZ,Can you help the pathologist to predict histological_type?,16,False
+34,TCGA-BH-A0AZ,Could you predict progesterone_receptor?,29,False
+35,TCGA-BH-A0AZ,please predict vital_status?,30,False
+36,TCGA-BH-A0AZ,please predict survival time?,31,False
+37,TCGA-EW-A1PF,what is the total size of the tumor?,32,True
+38,TCGA-EW-A1PF,what is the grade of the invasive ductal carcinoma?,33,True
+39,TCGA-EW-A1PF,what is the size of the comedo necrosis in the ductal carcinoma in situ?,34,True
+40,TCGA-EW-A1PF,what is the pending immunohistochemistry for?,35,True
+41,TCGA-EW-A1PF,please predict histological_type?,36,False
+42,TCGA-EW-A1PF,Could you predict progesterone_receptor?,29,False
+43,TCGA-EW-A1PF,Can you help the pathologist to predict vital_status?,18,False
+44,TCGA-EW-A1PF,what is the result of survival time in the slide?,19,False
+45,TCGA-BH-A0BV,what is the size of the infiltrating ductal carcinoma in the breast?,37,True
+46,TCGA-BH-A0BV,what is the nottingham score of the infiltrating ductal carcinoma?,38,True
+47,TCGA-BH-A0BV,what is the closest margin of resection for the infiltrating ductal carcinoma?,39,True
+48,TCGA-BH-A0BV,what is the tumor type of the ductal carcinoma in situ?,40,True
+49,TCGA-BH-A0BV,what is the pathological stage of the breast cancer?,41,True
+50,TCGA-BH-A0BV,please predict histological_type?,36,False
+51,TCGA-BH-A0BV,what is progesterone_receptor according to the slide?,42,False
+52,TCGA-BH-A0BV,what is her2 according to the slide?,9,False
+53,TCGA-BH-A0BV,what is vital_status according to the slide?,43,False
+54,TCGA-BH-A0BV,please predict survival time?,31,False
+55,TCGA-BH-A202,what was the size of the primary invasive carcinoma?,44,True
+56,TCGA-BH-A202,what was the score for estrogen receptors?,45,True
+57,TCGA-BH-A202,what type of carcinoma was found in the breast segmental mastectomy?,46,True
+58,TCGA-BH-A202,was lymphovascular invasion identified?,47,True
+59,TCGA-BH-A202,what was the pathologic stage?,48,True
+60,TCGA-BH-A202,was there amplification of the her2/neu gene?,49,True
+61,TCGA-BH-A202,what is histological_type according to the slide?,50,False
+62,TCGA-BH-A202,Could you predict progesterone_receptor?,29,False
+63,TCGA-BH-A202,"From the slide, can you infer the vital_status?",51,False
+64,TCGA-BH-A202,what is the result of survival time in the slide?,19,False
+65,TCGA-AR-A0U3,what type of cancer was found in the breast?,52,True
+66,TCGA-AR-A0U3,what was the size of the tumor?,53,True
+67,TCGA-AR-A0U3,what was the stage classification of the tumor?,54,True
+68,TCGA-AR-A0U3,how much of the tumor was accounted for by ductal carcinoma in-situ?,55,True
+69,TCGA-AR-A0U3,what was the result of the estrogen receptor (er) staining?,56,True
+70,TCGA-AR-A0U3,what is histological_type according to the slide?,50,False
+71,TCGA-AR-A0U3,please predict progesterone_receptor?,17,False
+72,TCGA-AR-A0U3,please predict her2?,57,False
+73,TCGA-AR-A0U3,please predict vital_status?,30,False
+74,TCGA-AR-A0U3,what is the result of survival time in the slide?,19,False
+75,TCGA-AO-A0JE,what is the grade of the invasive ductal carcinoma?,33,True
+76,TCGA-AO-A0JE,what additional findings are present in the tumor?,58,True
+77,TCGA-AO-A0JE,what is found in the surrounding breast tissue?,59,True
+78,TCGA-AO-A0JE,where were receptor studies performed?,60,True
+79,TCGA-AO-A0JE,"From the slide, can you infer the histological_type?",7,False
+80,TCGA-AO-A0JE,what is the result of progesterone_receptor in the slide?,8,False
+81,TCGA-AO-A0JE,Could you predict her2?,61,False
+82,TCGA-AO-A0JE,what is the result of vital_status in the slide?,10,False
+83,TCGA-AO-A0JE,Could you predict survival time?,62,False
+84,TCGA-A1-A0SF,what is the size of the infiltrating ductal carcinoma in the breast?,37,True
+85,TCGA-A1-A0SF,what is the grade of the invasive tumor in the breast?,63,True
+86,TCGA-A1-A0SF,what is the result of her2/neu testing?,64,True
+87,TCGA-A1-A0SF,what is the pathological finding in the soft tissue in the breast?,65,True
+88,TCGA-A1-A0SF,what is the pathological finding in the ovary?,66,True
+89,TCGA-A1-A0SF,please predict histological_type?,36,False
+90,TCGA-A1-A0SF,Can you help the pathologist to predict progesterone_receptor?,67,False
+91,TCGA-EW-A1P7,what was the grade assigned to the breast cancer according to the nottingham score?,68,True
+92,TCGA-EW-A1P7,what was the nuclear grade of the ductal adenocarcinoma found in the breast mass?,69,True
+93,TCGA-EW-A1P7,what were the results of the tumor margin assessment?,70,True
+94,TCGA-EW-A1P7,what was the receptor status for estrogen receptor (er) and progesterone receptor (pr)?,71,True
+95,TCGA-EW-A1P7,what was the receptor status for her 2-neu?,72,True
+96,TCGA-EW-A1P7,"From the slide, can you infer the histological_type?",7,False
+97,TCGA-EW-A1P7,please predict progesterone_receptor?,17,False
+98,TCGA-EW-A1P7,please predict her2?,57,False
+99,TCGA-EW-A1P7,Could you predict vital_status?,24,False
+100,TCGA-EW-A1P7,"From the slide, can you infer the survival time?",11,False
+101,TCGA-BH-A0DG,what is the pathological stage of the tumor?,73,True
+102,TCGA-BH-A0DG,what percentage of the tumor volume comprises the in situ component?,74,True
+103,TCGA-BH-A0DG,what is the grade of the tumor according to the nottingham score?,75,True
+104,TCGA-BH-A0DG,what is the hormonal receptor status of the tumor?,76,True
+105,TCGA-BH-A0DG,what type of breast tissue is present besides the tumor?,77,True
+106,TCGA-BH-A0DG,Can you help the pathologist to predict histological_type?,16,False
+107,TCGA-BH-A0DG,please predict progesterone_receptor?,17,False
+108,TCGA-BH-A0DG,Could you predict vital_status?,24,False
+109,TCGA-BH-A0DG,Can you help the pathologist to predict survival time?,78,False
+110,TCGA-BH-A0DD,what is the histological finding of the breast simple mastectomy?,79,True
+111,TCGA-BH-A0DD,what is the histological finding of the modified radical mastectomy?,80,True
+112,TCGA-BH-A0DD,what is the classification of the invasive component of the tumor?,81,True
+113,TCGA-BH-A0DD,what is the receptor status mentioned in the slide?,82,True
+114,TCGA-BH-A0DD,please predict histological_type?,36,False
+115,TCGA-BH-A0DD,Can you help the pathologist to predict progesterone_receptor?,67,False
+116,TCGA-BH-A0DD,what is the result of vital_status in the slide?,10,False
+117,TCGA-BH-A0DD,Can you help the pathologist to predict survival time?,78,False
+118,TCGA-B6-A0IA,what type of carcinoma was found in the patient's breast biopsy?,83,True
+119,TCGA-B6-A0IA,what is the size of the tumor found in the patient's breast?,84,True
+120,TCGA-B6-A0IA,what other changes were found in the patient's breast?,85,True
+121,TCGA-B6-A0IA,was there any residual carcinoma in the previous biopsy site?,86,True
+122,TCGA-B6-A0IA,what is histological_type according to the slide?,50,False
+123,TCGA-B6-A0IA,"From the slide, can you infer the progesterone_receptor?",87,False
+124,TCGA-B6-A0IA,Can you help the pathologist to predict vital_status?,18,False
+125,TCGA-B6-A0IA,please predict survival time?,31,False
+126,TCGA-AC-A2FF,what type of carcinoma did the patient have?,88,True
+127,TCGA-AC-A2FF,where was the metastatic involvement found?,89,True
+128,TCGA-AC-A2FF,what type of procedure did the patient undergo?,90,True
+129,TCGA-AC-A2FF,what additional tests were performed?,91,True
+130,TCGA-AC-A2FF,what does the surgical slide provide information on?,92,True
+131,TCGA-AC-A2FF,what type of node was involved in the metastatic carcinoma?,93,True
+132,TCGA-AC-A2FF,what is histological_type according to the slide?,50,False
+133,TCGA-AC-A2FF,what is the result of progesterone_receptor in the slide?,8,False
+134,TCGA-AC-A2FF,please predict vital_status?,30,False
+135,TCGA-AC-A2FF,please predict survival time?,31,False
+136,TCGA-AC-A2FG,what is the histological type of the breast tumor?,94,True
+137,TCGA-AC-A2FG,what is the size of the tumor?,12,True
+138,TCGA-AC-A2FG,what is the elston modification of bloom-richardson grade?,95,True
+139,TCGA-AC-A2FG,what is the status of the surgical margins?,96,True
+140,TCGA-AC-A2FG,what other findings were observed in the pathological slide?,97,True
+141,TCGA-AC-A2FG,what is the result of histological_type in the slide?,98,False
+142,TCGA-AC-A2FG,please predict progesterone_receptor?,17,False
+143,TCGA-AC-A2FG,what is vital_status according to the slide?,43,False
+144,TCGA-AC-A2FG,"From the slide, can you infer the survival time?",11,False
+145,TCGA-A2-A259,what was the grade of the invasive ductal carcinoma present in the patient's breast?,99,True
+146,TCGA-A2-A259,what were the findings related to her2 neu in the patient's breast tissue?,100,True
+147,TCGA-A2-A259,what was the size of the patient's tumor?,101,True
+148,TCGA-A2-A259,which hormone receptors were positive in the patient's breast tissue?,102,True
+149,TCGA-A2-A259,what type of carcinoma was present along with invasive ductal carcinoma?,103,True
+150,TCGA-A2-A259,what is histological_type according to the slide?,50,False
+151,TCGA-A2-A259,Can you help the pathologist to predict progesterone_receptor?,67,False
+152,TCGA-A2-A259,Can you help the pathologist to predict vital_status?,18,False
+153,TCGA-A2-A259,"From the slide, can you infer the survival time?",11,False
+154,TCGA-A1-A0SJ,what is the pathological finding of the breast?,104,True
+155,TCGA-A1-A0SJ,what is the immunohistochemical finding of the tumor?,105,True
+156,TCGA-A1-A0SJ,"From the slide, can you infer the histological_type?",7,False
+157,TCGA-A1-A0SJ,what is progesterone_receptor according to the slide?,42,False
+158,TCGA-A1-A0SJ,Can you help the pathologist to predict her2?,106,False
+159,TCGA-E9-A1N6,what was the size of the breast tumor?,107,True
+160,TCGA-E9-A1N6,was the tumor well-differentiated or poorly differentiated?,108,True
+161,TCGA-E9-A1N6,what type of carcinoma was identified in the tumor?,109,True
+162,TCGA-E9-A1N6,what was the missing data preventing the determination of the nottingham histologic score?,110,True
+163,TCGA-E9-A1N6,was any information provided on neo-adjuvant treatment?,111,True
+164,TCGA-E9-A1N6,please predict histological_type?,36,False
+165,TCGA-E9-A1N6,please predict progesterone_receptor?,17,False
+166,TCGA-E9-A1N6,what is the result of vital_status in the slide?,10,False
+167,TCGA-E9-A1N6,Could you predict survival time?,62,False
+168,TCGA-LL-A5YP,what was the size of the high-grade ductal carcinoma in situ (dcis) in the breast?,112,True
+169,TCGA-LL-A5YP,what was the grade of the invasive ductal carcinoma in the breast?,113,True
+170,TCGA-LL-A5YP,were the margins involved with tumor?,114,True
+171,TCGA-LL-A5YP,what additional findings were noted apart from the carcinomas?,115,True
+172,TCGA-LL-A5YP,please predict histological_type?,36,False
+173,TCGA-LL-A5YP,"From the slide, can you infer the progesterone_receptor?",87,False
+174,TCGA-LL-A5YP,Could you predict her2?,61,False
+175,TCGA-LL-A5YP,"From the slide, can you infer the vital_status?",51,False
+176,TCGA-LL-A5YP,Could you predict survival time?,62,False
+177,TCGA-AO-A03T,what type of cancer is mentioned in the slide?,116,True
+178,TCGA-AO-A03T,where has the tumor spread to?,117,True
+179,TCGA-AO-A03T,what type of tissue changes are mentioned in the slide?,118,True
+180,TCGA-AO-A03T,which hormone receptors show positivity in the tissue?,119,True
+181,TCGA-AO-A03T,what does the slide confirm about the diagnosis?,120,True
+182,TCGA-AO-A03T,what stains were performed on the tissue?,121,True
+183,TCGA-AO-A03T,"From the slide, can you infer the histological_type?",7,False
+184,TCGA-AO-A03T,Can you help the pathologist to predict progesterone_receptor?,67,False
+185,TCGA-AO-A03T,please predict her2?,57,False
+186,TCGA-AO-A03T,"From the slide, can you infer the vital_status?",51,False
+187,TCGA-AO-A03T,please predict survival time?,31,False
+188,TCGA-C8-A3M7,what is the histological grade of the primary tumor?,122,True
+189,TCGA-C8-A3M7,what is the patient's karnofsky performance scale score indicating?,123,True
+190,TCGA-C8-A3M7,what type of carcinoma is the primary tumor?,124,True
+191,TCGA-C8-A3M7,is the patient currently on any medications?,125,True
+192,TCGA-C8-A3M7,is there any information about the presence of distant metastasis?,126,True
+193,TCGA-C8-A3M7,what is the result of histological_type in the slide?,98,False
+194,TCGA-C8-A3M7,Could you predict progesterone_receptor?,29,False
+195,TCGA-C8-A3M7,what is vital_status according to the slide?,43,False
+196,TCGA-C8-A3M7,Can you help the pathologist to predict survival time?,78,False
+197,TCGA-E9-A227,what was the size of the tumor?,53,True
+198,TCGA-E9-A227,what is histological_type according to the slide?,50,False
+199,TCGA-E9-A227,"From the slide, can you infer the progesterone_receptor?",87,False
+200,TCGA-E9-A227,what is vital_status according to the slide?,43,False
+201,TCGA-E9-A227,what is the result of survival time in the slide?,19,False
+202,TCGA-EW-A1IY,what were the findings of the examination of the sentinel node #3?,127,True
+203,TCGA-EW-A1IY,what is the size of the infiltrating ductal carcinoma in the breast?,37,True
+204,TCGA-EW-A1IY,what is the nuclear grade of the infiltrating ductal carcinoma?,128,True
+205,TCGA-EW-A1IY,were there any lymphovascular invasions observed?,129,True
+206,TCGA-EW-A1IY,which immunostain was positive in the tumor cells?,130,True
+207,TCGA-EW-A1IY,please predict histological_type?,36,False
+208,TCGA-EW-A1IY,please predict progesterone_receptor?,17,False
+209,TCGA-EW-A1IY,what is the result of vital_status in the slide?,10,False
+210,TCGA-EW-A1IY,Could you predict survival time?,62,False
+211,TCGA-LL-A442,what is the histologic grade of the infiltrating ductal carcinoma?,131,True
+212,TCGA-LL-A442,is there any invasive tumor seen at the surgical margins?,132,True
+213,TCGA-LL-A442,what is the size of the breast tumor?,133,True
+214,TCGA-LL-A442,what is the histologic type of the breast tumor?,134,True
+215,TCGA-LL-A442,does the slide provide information about the hormonal receptor status of the breast cancer?,135,True
+216,TCGA-EW-A2FW,what is the size of the tumor?,12,True
+217,TCGA-EW-A2FW,what is the histological grade of the invasive carcinoma?,136,True
+218,TCGA-EW-A2FW,what is the presence of estrogen and progesterone receptors in tumor cells?,137,True
+219,TCGA-EW-A2FW,what is the final pathologic stage of the tumor?,138,True
+220,TCGA-EW-A2FW,what is the status of her2?,139,True
+221,TCGA-EW-A2FW,what is the result of histological_type in the slide?,98,False
+222,TCGA-EW-A2FW,please predict progesterone_receptor?,17,False
+223,TCGA-EW-A2FW,please predict her2?,57,False
+224,TCGA-EW-A2FW,what is the result of vital_status in the slide?,10,False
+225,TCGA-EW-A2FW,what is the result of survival time in the slide?,19,False
+226,TCGA-E2-A105,what size was the stellate mass found in the breast?,140,True
+227,TCGA-E2-A105,what is the final diagnosis?,141,True
+228,TCGA-E2-A105,are the surgical margins free of tumor?,142,True
+229,TCGA-E2-A105,please predict histological_type?,36,False
+230,TCGA-E2-A105,please predict progesterone_receptor?,17,False
+231,TCGA-E2-A105,"From the slide, can you infer the her2?",143,False
+232,TCGA-E2-A105,"From the slide, can you infer the vital_status?",51,False
+233,TCGA-E2-A105,what is the result of survival time in the slide?,19,False
+234,TCGA-AR-A255,what was the size of the mass that was excised?,144,True
+235,TCGA-AR-A255,what is histological_type according to the slide?,50,False
+236,TCGA-AR-A255,please predict progesterone_receptor?,17,False
+237,TCGA-AR-A255,what is her2 according to the slide?,9,False
+238,TCGA-AR-A255,"From the slide, can you infer the vital_status?",51,False
+239,TCGA-AR-A255,what is survival time according to the slide?,145,False
+240,TCGA-A2-A0EW,what was the final pathological stage of the patient's cancer?,146,True
+241,TCGA-A2-A0EW,where in the patient's breast were the two tumors found?,147,True
+242,TCGA-A2-A0EW,what were the tumors positive for and negative for?,148,True
+243,TCGA-A2-A0EW,Can you help the pathologist to predict histological_type?,16,False
+244,TCGA-A2-A0EW,"From the slide, can you infer the progesterone_receptor?",87,False
+245,TCGA-A2-A0EW,please predict her2?,57,False
+246,TCGA-A2-A0EW,"From the slide, can you infer the vital_status?",51,False
+247,TCGA-A2-A0EW,Could you predict survival time?,62,False
+248,TCGA-A8-A08R,what is the final tumor classification for the breast?,149,True
+249,TCGA-A8-A08R,what is the tumor diameter in the breast?,150,True
+250,TCGA-A8-A08R,what is the type of carcinoma found in the breast?,151,True
+251,TCGA-A8-A08R,"is there any lymphatic, vascular, or perineural invasion present?",152,True
+252,TCGA-A8-A08R,what is the grade of the tumor in the breast?,153,True
+253,TCGA-A8-A08R,what is the result of histological_type in the slide?,98,False
+254,TCGA-A8-A08R,what is the result of progesterone_receptor in the slide?,8,False
+255,TCGA-A8-A08R,what is the result of her2 in the slide?,154,False
+256,TCGA-BH-A0HL,what is the size of the tumor?,12,True
+257,TCGA-BH-A0HL,what was found in the breast tissue besides invasive ductal carcinoma?,155,True
+258,TCGA-BH-A0HL,what percentage of the tumor mass accounts for ductal carcinoma in situ?,156,True
+259,TCGA-BH-A0HL,what is the closest margin to the tumor?,157,True
+260,TCGA-BH-A0HL,what is the t stage of the tumor?,158,True
+261,TCGA-BH-A0HL,"From the slide, can you infer the histological_type?",7,False
+262,TCGA-BH-A0HL,"From the slide, can you infer the progesterone_receptor?",87,False
+263,TCGA-BH-A0HL,Could you predict her2?,61,False
+264,TCGA-BH-A0HL,Can you help the pathologist to predict vital_status?,18,False
+265,TCGA-BH-A0HL,Could you predict survival time?,62,False
+266,TCGA-E2-A15E,what is the size of the invasive ductal carcinoma in the breast?,159,True
+267,TCGA-E2-A15E,what is the grade of the invasive ductal carcinoma in the breast?,160,True
+268,TCGA-E2-A15E,which type of carcinoma shows necrosis?,161,True
+269,TCGA-E2-A15E,"what are the results for er, pr, and her2?",162,True
+270,TCGA-E2-A15E,Can you help the pathologist to predict histological_type?,16,False
+271,TCGA-E2-A15E,what is the result of progesterone_receptor in the slide?,8,False
+272,TCGA-E2-A15E,"From the slide, can you infer the vital_status?",51,False
+273,TCGA-E2-A15E,Could you predict survival time?,62,False
+274,TCGA-B6-A0WV,what is the size of the infiltrating tumor in the breast?,163,True
+275,TCGA-B6-A0WV,what is the histologic grade of the infiltrating ductal carcinoma?,131,True
+276,TCGA-B6-A0WV,is there any residual carcinoma in the mastectomy specimen?,164,True
+277,TCGA-B6-A0WV,what type of proliferative changes were observed in the breast?,165,True
+278,TCGA-B6-A0WV,is there any vascular invasion identified in the biopsied sample?,166,True
+279,TCGA-B6-A0WV,"From the slide, can you infer the histological_type?",7,False
+280,TCGA-B6-A0WV,Can you help the pathologist to predict progesterone_receptor?,67,False
+281,TCGA-B6-A0WV,Could you predict vital_status?,24,False
+282,TCGA-B6-A0WV,Could you predict survival time?,62,False
+283,TCGA-E9-A1RA,what type of carcinoma was observed?,167,True
+284,TCGA-E9-A1RA,what was the size of the lump in the breast?,168,True
+285,TCGA-E9-A1RA,were there any specific histological details provided?,169,True
+286,TCGA-E9-A1RA,what is the extent of the tumor?,170,True
+287,TCGA-E9-A1RA,Can you help the pathologist to predict histological_type?,16,False
+288,TCGA-E9-A1RA,please predict vital_status?,30,False
+289,TCGA-E9-A1RA,what is the result of survival time in the slide?,19,False
+290,TCGA-BH-A0BT,what were the characteristics of the invasive ductal carcinoma in the breast segmental mastectomy?,171,True
+291,TCGA-BH-A0BT,what is the result in the medial new margin?,172,True
+292,TCGA-BH-A0BT,"From the slide, can you infer the histological_type?",7,False
+293,TCGA-BH-A0BT,please predict progesterone_receptor?,17,False
+294,TCGA-BH-A0BT,please predict vital_status?,30,False
+295,TCGA-BH-A0BT,what is the result of survival time in the slide?,19,False
+296,TCGA-BH-A0HX,what is the nottingham grade for the ductal carcinoma in the breast?,173,True
+297,TCGA-BH-A0HX,what is the hormone receptor status of the tumor in the breast?,174,True
+298,TCGA-BH-A0HX,what is the grade of lobular carcinoma in the breast?,175,True
+299,TCGA-BH-A0HX,what findings are mentioned in the breast?,176,True
+300,TCGA-BH-A0HX,Could you predict histological_type?,177,False
+301,TCGA-BH-A0HX,please predict progesterone_receptor?,17,False
+302,TCGA-BH-A0HX,Could you predict vital_status?,24,False
+303,TCGA-BH-A0HX,"From the slide, can you infer the survival time?",11,False
+304,TCGA-A8-A08Z,what is the diameter of the tumor?,178,True
+305,TCGA-A8-A08Z,what is the classification of the tumor?,179,True
+306,TCGA-A8-A08Z,what is the status of the dorsal resection margin?,180,True
+307,TCGA-A8-A08Z,what is the level of angioinvasion in the tumor?,181,True
+308,TCGA-A8-A08Z,Can you help the pathologist to predict histological_type?,16,False
+309,TCGA-A8-A08Z,what is the result of progesterone_receptor in the slide?,8,False
+310,TCGA-A8-A08Z,please predict her2?,57,False
+311,TCGA-D8-A1JL,what is the final diagnosis of the patient's breast condition?,182,True
+312,TCGA-D8-A1JL,what was the size of the tumor found in the patient's breast?,183,True
+313,TCGA-D8-A1JL,which hormone receptors were found to be absent in the neoplastic cell nuclei?,184,True
+314,TCGA-D8-A1JL,what is the type of breast cancer indicated by the examination?,185,True
+315,TCGA-D8-A1JL,what type of lesion was found in the glandular tissue surrounding the tumor?,186,True
+316,TCGA-D8-A1JL,please predict histological_type?,36,False
+317,TCGA-D8-A1JL,Can you help the pathologist to predict progesterone_receptor?,67,False
+318,TCGA-D8-A1JL,"From the slide, can you infer the her2?",143,False
+319,TCGA-D8-A1JL,"From the slide, can you infer the vital_status?",51,False
+320,TCGA-D8-A1JL,"From the slide, can you infer the survival time?",11,False
+321,TCGA-B6-A0RO,what was the size of the mass in the medial portion of the specimen?,187,True
+322,TCGA-B6-A0RO,what is the histological type of the carcinoma?,188,True
+323,TCGA-B6-A0RO,what percentage of the carcinoma is comprised of intraductal carcinoma?,189,True
+324,TCGA-B6-A0RO,was there any tumor seen in the deep surgical margin?,190,True
+325,TCGA-B6-A0RO,what non-neoplastic changes were observed in the breast tissue?,191,True
+326,TCGA-B6-A0RO,what is histological_type according to the slide?,50,False
+327,TCGA-B6-A0RO,what is progesterone_receptor according to the slide?,42,False
+328,TCGA-B6-A0RO,Can you help the pathologist to predict vital_status?,18,False
+329,TCGA-B6-A0RO,what is the result of survival time in the slide?,19,False
+330,TCGA-GM-A2D9,what is the size of the tumor?,12,True
+331,TCGA-GM-A2D9,what is the nuclear grade of the invasive ductal carcinoma?,192,True
+332,TCGA-GM-A2D9,what percentage of the total tumor comprises focal intraductal carcinoma?,193,True
+333,TCGA-GM-A2D9,are there any lymphatic/vascular invasions found in the slide?,194,True
+334,TCGA-GM-A2D9,what is the ki-67 proliferation index of the invasive carcinoma?,195,True
+335,TCGA-GM-A2D9,"From the slide, can you infer the histological_type?",7,False
+336,TCGA-GM-A2D9,what is progesterone_receptor according to the slide?,42,False
+337,TCGA-GM-A2D9,please predict vital_status?,30,False
+338,TCGA-GM-A2D9,what is survival time according to the slide?,145,False
+339,TCGA-A2-A0T6,what type of procedure did the patient have?,196,True
+340,TCGA-A2-A0T6,in which breast did the slide find a benign sentinel node?,197,True
+341,TCGA-A2-A0T6,what size was the benign sentinel node?,198,True
+342,TCGA-A2-A0T6,what was found in the breast?,199,True
+343,TCGA-A2-A0T6,what was the size of the irregular fibrous nodule found in the slide?,200,True
+344,TCGA-A2-A0T6,what does the slide suggest about the presence of breast cancer?,201,True
+345,TCGA-A2-A0T6,Could you predict histological_type?,177,False
+346,TCGA-A2-A0T6,what is the result of progesterone_receptor in the slide?,8,False
+347,TCGA-A2-A0T6,Can you help the pathologist to predict her2?,106,False
+348,TCGA-A2-A0T6,what is the result of vital_status in the slide?,10,False
+349,TCGA-A2-A0T6,"From the slide, can you infer the survival time?",11,False
+350,TCGA-AQ-A7U7,what is the classification of the tumor?,179,True
+351,TCGA-AQ-A7U7,what is the histologic grade of the tumor?,202,True
+352,TCGA-AQ-A7U7,what is the size of the tumor?,12,True
+353,TCGA-AQ-A7U7,is lymphovascular invasion present?,203,True
+354,TCGA-AQ-A7U7,what additional condition is present along with invasive lobular carcinoma?,204,True
+355,TCGA-AQ-A7U7,what is the stage of breast cancer for the patient?,205,True
+356,TCGA-AN-A0XS,what type of cancer does the patient have?,206,True
+357,TCGA-AN-A0XS,what is the grade of the tumor?,207,True
+358,TCGA-AN-A0XS,what is the stage of the tumor?,208,True
+359,TCGA-AN-A0XS,has any treatment been administered yet?,209,True
+360,TCGA-AN-A0XS,what type of carcinoma is the tumor?,210,True
+361,TCGA-AN-A0XS,what was obtained in addition to the tumor sample?,211,True
+362,TCGA-AN-A0XS,please predict histological_type?,36,False
+363,TCGA-AN-A0XS,"From the slide, can you infer the progesterone_receptor?",87,False
+364,TCGA-AN-A0XS,"From the slide, can you infer the vital_status?",51,False
+365,TCGA-AN-A0XS,"From the slide, can you infer the survival time?",11,False
+366,TCGA-E9-A2JS,what type of tumor was identified in the breast specimen?,212,True
+367,TCGA-E9-A2JS,what is the size of the tumor in the breast?,213,True
+368,TCGA-E9-A2JS,what is the histologic score for the tumor?,214,True
+369,TCGA-E9-A2JS,was there any evidence of neo-adjuvant treatment?,215,True
+370,TCGA-E9-A2JS,what is the result of histological_type in the slide?,98,False
+371,TCGA-E9-A2JS,what is vital_status according to the slide?,43,False
+372,TCGA-E9-A2JS,what is the result of survival time in the slide?,19,False
+373,TCGA-BH-A0DK,what is the grade of the invasive ductal carcinoma in the patient's breast tissue?,216,True
+374,TCGA-BH-A0DK,what is the size of the invasive tumor in the patient's breast tissue?,217,True
+375,TCGA-BH-A0DK,what type of changes are observed in the patient's breast tissue?,218,True
+376,TCGA-BH-A0DK,is there evidence of lymphovascular invasion in the patient's breast tissue?,219,True
+377,TCGA-BH-A0DK,Could you predict histological_type?,177,False
+378,TCGA-BH-A0DK,Can you help the pathologist to predict progesterone_receptor?,67,False
+379,TCGA-BH-A0DK,"From the slide, can you infer the her2?",143,False
+380,TCGA-BH-A0DK,"From the slide, can you infer the vital_status?",51,False
+381,TCGA-BH-A0DK,Can you help the pathologist to predict survival time?,78,False
+382,TCGA-C8-A8HR,what is the patient's age?,220,True
+383,TCGA-C8-A8HR,what type of consent did the patient provide?,221,True
+384,TCGA-C8-A8HR,what is the staging of the tumor?,222,True
+385,TCGA-C8-A8HR,what does the pathological description indicate about the tumor?,223,True
+386,TCGA-C8-A8HR,who signed the slide?,224,True
+387,TCGA-C8-A8HR,please predict histological_type?,36,False
+388,TCGA-C8-A8HR,what is the result of vital_status in the slide?,10,False
+389,TCGA-C8-A8HR,Can you help the pathologist to predict survival time?,78,False
+390,TCGA-E9-A22H,what was the size of the tumor in the patient's breast?,225,True
+391,TCGA-E9-A22H,what type of breast cancer was identified in the patient?,226,True
+392,TCGA-E9-A22H,was the nottingham histologic score determined for the patient?,227,True
+393,TCGA-E9-A22H,did the patient receive neo-adjuvant treatment?,228,True
+394,TCGA-E9-A22H,were there any additional pathologic findings slideed apart from breast cancer?,229,True
+395,TCGA-E9-A22H,please predict histological_type?,36,False
+396,TCGA-E9-A22H,what is the result of progesterone_receptor in the slide?,8,False
+397,TCGA-E9-A22H,"From the slide, can you infer the vital_status?",51,False
+398,TCGA-E9-A22H,what is survival time according to the slide?,145,False
+399,TCGA-LL-A7T0,what was the size of the largest invasive carcinoma?,230,True
+400,TCGA-LL-A7T0,what was the depth of the closest margin for the invasive carcinoma?,231,True
+401,TCGA-LL-A7T0,what was the tumor grade based on the nottingham histologic score?,232,True
+402,TCGA-LL-A7T0,what were the results of the estrogen receptor and progesterone receptor tests?,233,True
+403,TCGA-LL-A7T0,what were the results of the her2 test?,234,True
+404,TCGA-LL-A7T0,what is the result of histological_type in the slide?,98,False
+405,TCGA-LL-A7T0,what is progesterone_receptor according to the slide?,42,False
+406,TCGA-LL-A7T0,"From the slide, can you infer the her2?",143,False
+407,TCGA-LL-A7T0,Could you predict vital_status?,24,False
+408,TCGA-LL-A7T0,what is the result of survival time in the slide?,19,False
+409,TCGA-C8-A135,what additional markers are mentioned in the slide?,235,True
+410,TCGA-C8-A135,what does the slide describe about the microscopic appearance of the tumor?,236,True
+411,TCGA-C8-A135,what does the slide include information on?,237,True
+412,TCGA-C8-A135,what are some features observed in the tumor?,238,True
+413,TCGA-C8-A135,what are the comments or notes from the pathologist in the slide?,239,True
+414,TCGA-C8-A135,what is the histological diagnosis based on?,240,True
+415,TCGA-C8-A135,what is histological_type according to the slide?,50,False
+416,TCGA-C8-A135,please predict progesterone_receptor?,17,False
+417,TCGA-C8-A135,Can you help the pathologist to predict her2?,106,False
+418,TCGA-C8-A135,what is the result of vital_status in the slide?,10,False
+419,TCGA-C8-A135,Can you help the pathologist to predict survival time?,78,False
+420,TCGA-A8-A08L,what type of breast cancer does the patient have?,241,True
+421,TCGA-A8-A08L,what is the size of the tumor?,12,True
+422,TCGA-A8-A08L,how far has the tumor invaded?,242,True
+423,TCGA-A8-A08L,what is the tumor grade?,243,True
+424,TCGA-A8-A08L,what is the cancer stage?,244,True
+425,TCGA-A8-A08L,"From the slide, can you infer the histological_type?",7,False
+426,TCGA-A8-A08L,what is progesterone_receptor according to the slide?,42,False
+427,TCGA-A8-A08L,Could you predict her2?,61,False
+428,TCGA-A8-A08L,what is vital_status according to the slide?,43,False
+429,TCGA-A8-A08L,please predict survival time?,31,False
+430,TCGA-AO-A0J9,"what is the size of the labeled ""right breast"" specimen received?",245,True
+431,TCGA-AO-A0J9,what is the measurement of the biopsy cavity?,246,True
+432,TCGA-AO-A0J9,which sections are included in the pathological slide?,247,True
+433,TCGA-AO-A0J9,what does the pathology slide confirm the presence of in the breast?,248,True
+434,TCGA-AO-A0J9,what are the recommendations for further evaluation and staging?,249,True
+435,TCGA-AO-A0J9,what is the result of histological_type in the slide?,98,False
+436,TCGA-AO-A0J9,"From the slide, can you infer the progesterone_receptor?",87,False
+437,TCGA-AO-A0J9,Can you help the pathologist to predict vital_status?,18,False
+438,TCGA-AO-A0J9,what is the result of survival time in the slide?,19,False
+439,TCGA-D8-A1JK,what is the histopathological diagnosis of the breast?,250,True
+440,TCGA-D8-A1JK,which hormone receptors were found in the neoplastic cell nuclei?,251,True
+441,TCGA-D8-A1JK,what was the reaction of the her2 protein test in the invasive cancerous cells?,252,True
+442,TCGA-D8-A1JK,what is the tumor grade of the breast?,253,True
+443,TCGA-D8-A1JK,what is the pathological tumor size of the breast?,254,True
+444,TCGA-D8-A1JK,"From the slide, can you infer the histological_type?",7,False
+445,TCGA-D8-A1JK,please predict progesterone_receptor?,17,False
+446,TCGA-D8-A1JK,"From the slide, can you infer the her2?",143,False
+447,TCGA-D8-A1JK,what is the result of vital_status in the slide?,10,False
+448,TCGA-D8-A1JK,please predict survival time?,31,False
+449,TCGA-A2-A0CK,what was the size of the tumor?,53,True
+450,TCGA-A2-A0CK,what was the pre-operative diagnosis?,255,True
+451,TCGA-A2-A0CK,what was the ajcc staging determined for this case?,256,True
+452,TCGA-A2-A0CK,what was the result of the evaluation for her2-neu overexpression?,257,True
+453,TCGA-A2-A0CK,what was the result of the her2/neu fish analysis?,258,True
+454,TCGA-A2-A0CK,what was the result of the er/pr immunostains?,259,True
+455,TCGA-A2-A0CK,what is histological_type according to the slide?,50,False
+456,TCGA-A2-A0CK,"From the slide, can you infer the progesterone_receptor?",87,False
+457,TCGA-A2-A0CK,please predict vital_status?,30,False
+458,TCGA-A2-A0CK,what is the result of survival time in the slide?,19,False
+459,TCGA-OL-A5RX,what was the grade of the invasive ductal carcinoma found in the patient?,260,True
+460,TCGA-OL-A5RX,was there any blood vessel or lymphatic invasion identified in the mastectomy specimen?,261,True
+461,TCGA-OL-A5RX,what is the ptnm staging of the tumor in the patient?,262,True
+462,TCGA-OL-A5RX,what type of changes were found in the breast tissue of the patient?,263,True
+463,TCGA-OL-A5RX,were the excisional biopsy margins free of tumor?,264,True
+464,TCGA-OL-A5RX,please predict histological_type?,36,False
+465,TCGA-OL-A5RX,Could you predict progesterone_receptor?,29,False
+466,TCGA-OL-A5RX,please predict vital_status?,30,False
+467,TCGA-OL-A5RX,Could you predict survival time?,62,False
+468,TCGA-A2-A3XY,what is the final diagnosis of the patient?,265,True
+469,TCGA-A2-A3XY,what is the nuclear grade of the ductal carcinoma in situ?,266,True
+470,TCGA-A2-A3XY,what are the hormone receptors of the patient?,267,True
+471,TCGA-A2-A3XY,is there any necrosis present in the tumor?,268,True
+472,TCGA-A2-A3XY,how big is the unifocal tumor?,269,True
+473,TCGA-A2-A3XY,please predict histological_type?,36,False
+474,TCGA-A2-A3XY,please predict progesterone_receptor?,17,False
+475,TCGA-A2-A3XY,"From the slide, can you infer the vital_status?",51,False
+476,TCGA-A2-A3XY,Could you predict survival time?,62,False
+477,TCGA-D8-A27M,what type of cancer has the patient been diagnosed with?,270,True
+478,TCGA-D8-A27M,what is the size of the tumor?,12,True
+479,TCGA-D8-A27M,does the cancer have estrogen and progesterone receptors?,271,True
+480,TCGA-D8-A27M,was the her2 protein staining positive or negative?,272,True
+481,TCGA-D8-A27M,what is the assigned histopathological grade?,273,True
+482,TCGA-D8-A27M,"From the slide, can you infer the histological_type?",7,False
+483,TCGA-D8-A27M,"From the slide, can you infer the progesterone_receptor?",87,False
+484,TCGA-D8-A27M,what is the result of vital_status in the slide?,10,False
+485,TCGA-D8-A27M,Can you help the pathologist to predict survival time?,78,False
+486,TCGA-AO-A1KP,what is the recommended treatment for the patient?,274,True
+487,TCGA-AO-A1KP,what is the diagnosis of the patient based on?,275,True
+488,TCGA-AO-A1KP,what is the nuclear grade of the invasive ductal carcinoma?,192,True
+489,TCGA-AO-A1KP,are all the tumor masses well-circumscribed and firm?,276,True
+490,TCGA-AO-A1KP,Can you help the pathologist to predict histological_type?,16,False
+491,TCGA-AO-A1KP,what is progesterone_receptor according to the slide?,42,False
+492,TCGA-AO-A1KP,what is her2 according to the slide?,9,False
+493,TCGA-AO-A1KP,Could you predict vital_status?,24,False
+494,TCGA-AO-A1KP,what is the result of survival time in the slide?,19,False
+495,TCGA-OL-A66P,what is the finding in the superior mastectomy flap?,277,True
+496,TCGA-OL-A66P,how many foci of invasive ductal carcinoma are found in the breast simple mastectomy?,278,True
+497,TCGA-OL-A66P,what is one of the changes mentioned in the slide outside the primary finding?,279,True
+498,TCGA-OL-A66P,please predict histological_type?,36,False
+499,TCGA-OL-A66P,what is progesterone_receptor according to the slide?,42,False
+500,TCGA-OL-A66P,"From the slide, can you infer the vital_status?",51,False
+501,TCGA-OL-A66P,what is survival time according to the slide?,145,False
+502,TCGA-D8-A73U,what is the clinical diagnosis of the patient?,280,True
+503,TCGA-D8-A73U,what is the histopathological examination result of the tumor?,281,True
+504,TCGA-D8-A73U,what was the size of the tumor?,53,True
+505,TCGA-D8-A73U,what type of carcinoma was identified microscopically?,282,True
+506,TCGA-D8-A73U,what percentage of neoplastic cell nuclei had estrogen and progesterone receptors?,283,True
+507,TCGA-D8-A73U,please predict histological_type?,36,False
+508,TCGA-D8-A73U,"From the slide, can you infer the progesterone_receptor?",87,False
+509,TCGA-D8-A73U,Could you predict her2?,61,False
+510,TCGA-D8-A73U,please predict vital_status?,30,False
+511,TCGA-D8-A73U,what is the result of survival time in the slide?,19,False
+512,TCGA-AO-A12D,what does the pathological slide indicate about the biopsy of the breast?,284,True
+513,TCGA-AO-A12D,what other findings are mentioned in the pathological slide?,285,True
+514,TCGA-AO-A12D,what additional tests are pending according to the slide?,286,True
+515,TCGA-AO-A12D,is the diagnosis of carcinoma confirmed by the pathological slide?,287,True
+516,TCGA-AO-A12D,please predict histological_type?,36,False
+517,TCGA-AO-A12D,what is progesterone_receptor according to the slide?,42,False
+518,TCGA-AO-A12D,Can you help the pathologist to predict her2?,106,False
+519,TCGA-AO-A12D,Could you predict vital_status?,24,False
+520,TCGA-AO-A12D,Can you help the pathologist to predict survival time?,78,False
+521,TCGA-E9-A1RE,what was the size of the tumor found in the breast?,288,True
+522,TCGA-E9-A1RE,what type of carcinoma was found?,289,True
+523,TCGA-E9-A1RE,were the margins of the tumor involved?,290,True
+524,TCGA-E9-A1RE,was there evidence of venous invasion?,291,True
+525,TCGA-E9-A1RE,Can you help the pathologist to predict histological_type?,16,False
+526,TCGA-E9-A1RE,Could you predict vital_status?,24,False
+527,TCGA-E9-A1RE,"From the slide, can you infer the survival time?",11,False
+528,TCGA-D8-A1JB,what was the size of the tumor in the breast?,292,True
+529,TCGA-D8-A1JB,what additional lesions were found in the glandular tissue?,293,True
+530,TCGA-D8-A1JB,what was the diagnosis of the cancer in the breast?,294,True
+531,TCGA-D8-A1JB,what was the immunophenotype of the neoplastic cells?,295,True
+532,TCGA-D8-A1JB,what is the result of histological_type in the slide?,98,False
+533,TCGA-D8-A1JB,please predict progesterone_receptor?,17,False
+534,TCGA-D8-A1JB,what is the result of her2 in the slide?,154,False
+535,TCGA-D8-A1JB,"From the slide, can you infer the vital_status?",51,False
+536,TCGA-D8-A1JB,what is the result of survival time in the slide?,19,False
+537,TCGA-C8-A1HJ,what is the chief complaint of the patient?,296,True
+538,TCGA-C8-A1HJ,what are the symptoms slideed by the patient?,297,True
+539,TCGA-C8-A1HJ,what is the performance scale of the patient?,298,True
+540,TCGA-C8-A1HJ,what is the menopausal status of the patient?,299,True
+541,TCGA-C8-A1HJ,what methods of birth control does the patient use?,300,True
+542,TCGA-C8-A1HJ,what information is not provided in the caption?,301,True
+543,TCGA-C8-A1HJ,Can you help the pathologist to predict histological_type?,16,False
+544,TCGA-C8-A1HJ,Can you help the pathologist to predict progesterone_receptor?,67,False
+545,TCGA-A2-A1FW,what kind of cancer did the patient have?,302,True
+546,TCGA-A2-A1FW,what surgical procedures did the patient undergo?,303,True
+547,TCGA-A2-A1FW,what was the size of the tumor?,53,True
+548,TCGA-A2-A1FW,what is the final pathological stage of the cancer?,304,True
+549,TCGA-A2-A1FW,what additional findings were noted on examination?,305,True
+550,TCGA-A2-A1FW,"From the slide, can you infer the histological_type?",7,False
+551,TCGA-A2-A1FW,"From the slide, can you infer the progesterone_receptor?",87,False
+552,TCGA-A2-A1FW,please predict vital_status?,30,False
+553,TCGA-A2-A1FW,"From the slide, can you infer the survival time?",11,False
+554,TCGA-A2-A25A,what type of carcinoma was observed in the breast?,306,True
+555,TCGA-A2-A25A,what type of hyperplasia was observed in the breast?,307,True
+556,TCGA-A2-A25A,what was the percentage of nuclear staining for progesterone receptors in the patient's breast?,308,True
+557,TCGA-A2-A25A,was her2/neu amplification observed in the patient's slide?,309,True
+558,TCGA-A2-A25A,what significant findings were observed in the patient's slide apart from breast carcinoma?,310,True
+559,TCGA-A2-A25A,which breast was scheduled for sentinel node biopsy?,311,True
+560,TCGA-A8-A09Q,what is the size of the breast tumor mentioned in the slide?,312,True
+561,TCGA-A8-A09Q,what is the invasive status of the tumor mentioned in the slide?,313,True
+562,TCGA-A8-A09Q,which breast tissue is affected by fibrolipomatous changes?,314,True
+563,TCGA-A8-A09Q,what is the grade of differentiation of the tumor mentioned in the slide?,315,True
+564,TCGA-A8-A09Q,what is the recommended next step mentioned in the slide?,316,True
+565,TCGA-A8-A09Q,please predict histological_type?,36,False
+566,TCGA-A8-A09Q,please predict progesterone_receptor?,17,False
+567,TCGA-A8-A09Q,please predict vital_status?,30,False
+568,TCGA-A8-A09Q,Could you predict survival time?,62,False
+569,TCGA-BH-A0EE,what is the diagnosis of the breast tumor?,317,True
+570,TCGA-BH-A0EE,what is the size of the tumor?,12,True
+571,TCGA-BH-A0EE,what is the nottingham score of the tumor?,318,True
+572,TCGA-BH-A0EE,what is the hormone receptor status of the tumor?,319,True
+573,TCGA-BH-A0EE,what is the her-2/neu status of the tumor?,320,True
+574,TCGA-BH-A0EE,what is the final pathological stage of the tumor?,321,True
+575,TCGA-BH-A0EE,Can you help the pathologist to predict histological_type?,16,False
+576,TCGA-BH-A0EE,what is the result of progesterone_receptor in the slide?,8,False
+577,TCGA-BH-A0EE,please predict her2?,57,False
+578,TCGA-BH-A0EE,Could you predict vital_status?,24,False
+579,TCGA-BH-A0EE,Could you predict survival time?,62,False
+580,TCGA-BH-A0EA,Could you predict histological_type?,177,False
+581,TCGA-BH-A0EA,please predict progesterone_receptor?,17,False
+582,TCGA-BH-A0EA,what is the result of vital_status in the slide?,10,False
+583,TCGA-BH-A0EA,Could you predict survival time?,62,False
+584,TCGA-A2-A0CZ,what type of breast cancer did the patient have?,322,True
+585,TCGA-A2-A0CZ,was there any tumor necrosis or microcalcifications?,323,True
+586,TCGA-A2-A0CZ,what was the final pathologic stage of the cancer?,324,True
+587,TCGA-A2-A0CZ,was her-2 positive or negative by immunohistochemistry?,325,True
+588,TCGA-A2-A0CZ,what type of additional pathologic changes were mentioned?,326,True
+589,TCGA-A2-A0CZ,Could you predict histological_type?,177,False
+590,TCGA-A2-A0CZ,please predict progesterone_receptor?,17,False
+591,TCGA-A2-A0CZ,what is the result of her2 in the slide?,154,False
+592,TCGA-A2-A0CZ,what is the result of vital_status in the slide?,10,False
+593,TCGA-A2-A0CZ,Could you predict survival time?,62,False
+594,TCGA-AQ-A54N,what was the size of the tumor?,53,True
+595,TCGA-AQ-A54N,was lymphovascular invasion present?,327,True
+596,TCGA-AQ-A54N,what was the grade of the tumor?,328,True
+597,TCGA-AQ-A54N,was the tumor multifocal or unifocal?,329,True
+598,TCGA-AQ-A54N,were any microcalcifications identified?,330,True
+599,TCGA-AQ-A54N,Could you predict histological_type?,177,False
+600,TCGA-AQ-A54N,Can you help the pathologist to predict progesterone_receptor?,67,False
+601,TCGA-AQ-A54N,please predict her2?,57,False
+602,TCGA-AQ-A54N,"From the slide, can you infer the vital_status?",51,False
+603,TCGA-AQ-A54N,Can you help the pathologist to predict survival time?,78,False
+604,TCGA-D8-A13Z,what were the measurements of the tumor in the breast?,331,True
+605,TCGA-D8-A13Z,what were the results of the examination for estrogen and progesterone receptors?,332,True
+606,TCGA-D8-A13Z,what was the reaction of the her2 protein?,333,True
+607,TCGA-D8-A13Z,what size was the second tumor?,334,True
+608,TCGA-D8-A13Z,Could you predict histological_type?,177,False
+609,TCGA-D8-A13Z,Could you predict progesterone_receptor?,29,False
+610,TCGA-D8-A13Z,please predict her2?,57,False
+611,TCGA-D8-A13Z,"From the slide, can you infer the vital_status?",51,False
+612,TCGA-D8-A13Z,Could you predict survival time?,62,False
+613,TCGA-BH-A42U,what is the size of the tumor?,12,True
+614,TCGA-BH-A42U,what is the result of cadherin immunostaining?,335,True
+615,TCGA-BH-A42U,what is the status of lymphatic or vascular invasion?,336,True
+616,TCGA-BH-A42U,what is the stage classification of the tumor?,337,True
+617,TCGA-BH-A42U,Could you predict histological_type?,177,False
+618,TCGA-BH-A42U,what is progesterone_receptor according to the slide?,42,False
+619,TCGA-BH-A42U,"From the slide, can you infer the vital_status?",51,False
+620,TCGA-BH-A42U,please predict survival time?,31,False
+621,TCGA-AC-A3TM,what is the size of the invasive tumor in the breast?,338,True
+622,TCGA-AC-A3TM,what is the grade of the cancer according to the bloom-richardson grading system?,339,True
+623,TCGA-AC-A3TM,what is the tnm stage of the cancer?,340,True
+624,TCGA-AC-A3TM,are the surgical margins positive or negative?,341,True
+625,TCGA-AC-A3TM,please predict histological_type?,36,False
+626,TCGA-AC-A3TM,Can you help the pathologist to predict progesterone_receptor?,67,False
+627,TCGA-AC-A3TM,please predict her2?,57,False
+628,TCGA-AC-A3TM,what is vital_status according to the slide?,43,False
+629,TCGA-AC-A3TM,Can you help the pathologist to predict survival time?,78,False
+630,TCGA-A8-A07U,what is the size of the invasive ductal breast carcinoma?,342,True
+631,TCGA-A8-A07U,what type of tumor is the breast carcinoma?,343,True
+632,TCGA-A8-A07U,what is the grade of the tumor?,207,True
+633,TCGA-A8-A07U,what stage is the tumor classified as?,344,True
+634,TCGA-A8-A07U,what is histological_type according to the slide?,50,False
+635,TCGA-A8-A07U,Can you help the pathologist to predict progesterone_receptor?,67,False
+636,TCGA-A8-A07U,what is vital_status according to the slide?,43,False
+637,TCGA-A8-A07U,what is survival time according to the slide?,145,False
+638,TCGA-A2-A0EM,what is the ajcc staging for this case?,345,True
+639,TCGA-A2-A0EM,what is the size of the infiltrative ductal carcinoma?,346,True
+640,TCGA-A2-A0EM,what type of pattern does the infiltrative ductal carcinoma demonstrate?,347,True
+641,TCGA-A2-A0EM,what can be found in fibrocystic changes?,348,True
+642,TCGA-A2-A0EM,was lymphovascular space invasion identified?,349,True
+643,TCGA-A2-A0EM,what is the distance between the nearest margin and the tumor?,350,True
+644,TCGA-A2-A0EM,"From the slide, can you infer the histological_type?",7,False
+645,TCGA-A2-A0EM,please predict progesterone_receptor?,17,False
+646,TCGA-A2-A0EM,Could you predict vital_status?,24,False
+647,TCGA-A2-A0EM,what is survival time according to the slide?,145,False
+648,TCGA-A8-A097,what is the provisional tumor classification?,351,True
+649,TCGA-A8-A097,what is the size of the tumor?,12,True
+650,TCGA-A8-A097,what is the diagnosis given in the pathological slide?,352,True
+651,TCGA-A8-A097,what is the stage of the tumor?,208,True
+652,TCGA-A8-A097,what is the presence of micrometastasis?,353,True
+653,TCGA-A8-A097,what is the tumor grade?,243,True
+654,TCGA-A8-A097,what is histological_type according to the slide?,50,False
+655,TCGA-A8-A097,what is the result of progesterone_receptor in the slide?,8,False
+656,TCGA-A8-A097,Can you help the pathologist to predict her2?,106,False
+657,TCGA-A8-A097,Can you help the pathologist to predict vital_status?,18,False
+658,TCGA-A8-A097,please predict survival time?,31,False
+659,TCGA-A2-A1FX,what was the patient's pre-operative diagnosis?,354,True
+660,TCGA-A2-A1FX,what stains were performed to support the diagnosis?,355,True
+661,TCGA-A2-A1FX,what was the final diagnosis of the patient?,356,True
+662,TCGA-A2-A1FX,what was the patient’s tnm classification?,357,True
+663,TCGA-A2-A1FX,where was metastasis detected?,358,True
+664,TCGA-A2-A1FX,"From the slide, can you infer the histological_type?",7,False
+665,TCGA-A2-A1FX,Can you help the pathologist to predict progesterone_receptor?,67,False
+666,TCGA-A2-A1FX,"From the slide, can you infer the vital_status?",51,False
+667,TCGA-A2-A1FX,what is the result of survival time in the slide?,19,False
+668,TCGA-A2-A3XU,what was the size of the infiltrative ductal carcinoma?,359,True
+669,TCGA-A2-A3XU,what is the grade of the tumor?,207,True
+670,TCGA-A2-A3XU,is there any evidence of dcis?,360,True
+671,TCGA-A2-A3XU,in which margin(s) the surgical margins are involved?,361,True
+672,TCGA-A2-A3XU,what is the tnm classification of the tumor?,362,True
+673,TCGA-A2-A3XU,Can you help the pathologist to predict histological_type?,16,False
+674,TCGA-A2-A3XU,"From the slide, can you infer the progesterone_receptor?",87,False
+675,TCGA-A2-A3XU,Can you help the pathologist to predict vital_status?,18,False
+676,TCGA-A2-A3XU,what is the result of survival time in the slide?,19,False
+677,TCGA-AR-A24S,what was the grade of the tumor?,328,True
+678,TCGA-AR-A24S,was ductal carcinoma in situ present?,363,True
+679,TCGA-AR-A24S,what was the size of the tumor?,53,True
+680,TCGA-AR-A24S,did the biopsy site show any changes?,364,True
+681,TCGA-AR-A24S,what type of breast tissue changes were observed?,365,True
+682,TCGA-AR-A24S,what is histological_type according to the slide?,50,False
+683,TCGA-AR-A24S,what is progesterone_receptor according to the slide?,42,False
+684,TCGA-AR-A24S,what is the result of vital_status in the slide?,10,False
+685,TCGA-AR-A24S,please predict survival time?,31,False
+686,TCGA-AR-A1AU,what was the grade of the infiltrating ductal carcinoma?,366,True
+687,TCGA-AR-A1AU,was there any evidence of distant metastasis?,367,True
+688,TCGA-AR-A1AU,Could you predict histological_type?,177,False
+689,TCGA-AR-A1AU,what is progesterone_receptor according to the slide?,42,False
+690,TCGA-AR-A1AU,Can you help the pathologist to predict her2?,106,False
+691,TCGA-AR-A1AU,what is the result of vital_status in the slide?,10,False
+692,TCGA-AR-A1AU,Could you predict survival time?,62,False
+693,TCGA-E2-A14P,what is the size of the largest metastasis found?,368,True
+694,TCGA-E2-A14P,what type of carcinoma is found in the breast lumpectomy specimen?,369,True
+695,TCGA-E2-A14P,what is the size of the tumor found in the breast lumpectomy specimen?,370,True
+696,TCGA-E2-A14P,what is present in the breast lumpectomy specimen besides invasive ductal carcinoma?,371,True
+697,TCGA-E2-A14P,Can you help the pathologist to predict histological_type?,16,False
+698,TCGA-E2-A14P,"From the slide, can you infer the progesterone_receptor?",87,False
+699,TCGA-E2-A14P,what is the result of her2 in the slide?,154,False
+700,TCGA-E2-A14P,please predict vital_status?,30,False
+701,TCGA-E2-A14P,what is survival time according to the slide?,145,False
+702,TCGA-AC-A5XS,what was the size of the invasive lobular carcinoma in the breast?,372,True
+703,TCGA-AC-A5XS,what was the grade of the invasive lobular carcinoma?,373,True
+704,TCGA-AC-A5XS,what were the results of the sentinel node biopsy?,374,True
+705,TCGA-AC-A5XS,what were the results of the tumor receptor testing?,375,True
+706,TCGA-AC-A5XS,what were the margin of excision results?,376,True
+707,TCGA-BH-A0BQ,what was the total score for the excision of the breast?,377,True
+708,TCGA-BH-A0BQ,what type of tumor is the invasive component?,378,True
+709,TCGA-BH-A0BQ,was lymphovascular space invasion identified?,349,True
+710,TCGA-BH-A0BQ,what was the nottingham grade for the tumor type?,379,True
+711,TCGA-BH-A0BQ,were the surgical margins involved by the invasive component?,380,True
+712,TCGA-BH-A0BQ,"From the slide, can you infer the histological_type?",7,False
+713,TCGA-BH-A0BQ,what is progesterone_receptor according to the slide?,42,False
+714,TCGA-BH-A0BQ,Could you predict vital_status?,24,False
+715,TCGA-BH-A0BQ,what is the result of survival time in the slide?,19,False
+716,TCGA-AR-A0TP,what was the grade of the infiltrating ductal carcinoma?,366,True
+717,TCGA-AR-A0TP,what was the size of the tumor?,53,True
+718,TCGA-AR-A0TP,what percentage of the tumor was in situ?,381,True
+719,TCGA-AR-A0TP,was vascular invasion detected?,382,True
+720,TCGA-AR-A0TP,Could you predict histological_type?,177,False
+721,TCGA-AR-A0TP,Could you predict progesterone_receptor?,29,False
+722,TCGA-AR-A0TP,Could you predict vital_status?,24,False
+723,TCGA-AR-A0TP,"From the slide, can you infer the survival time?",11,False
+724,TCGA-AN-A0XW,what is the patient's cancer diagnosis?,383,True
+725,TCGA-AN-A0XW,what is the patient's cancer grade?,384,True
+726,TCGA-AN-A0XW,what is the tumor stage?,385,True
+727,TCGA-AN-A0XW,what is the patient's treatment status?,386,True
+728,TCGA-AN-A0XW,what is the anatomic site for the normal sample?,387,True
+729,TCGA-AN-A0XW,what is the specimen format for the normal sample?,388,True
+730,TCGA-AN-A0XW,please predict histological_type?,36,False
+731,TCGA-AN-A0XW,"From the slide, can you infer the progesterone_receptor?",87,False
+732,TCGA-AN-A0XW,"From the slide, can you infer the her2?",143,False
+733,TCGA-AN-A0XW,"From the slide, can you infer the vital_status?",51,False
+734,TCGA-AN-A0XW,please predict survival time?,31,False
