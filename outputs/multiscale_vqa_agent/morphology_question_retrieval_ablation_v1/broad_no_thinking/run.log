@@ -1,0 +1,66 @@
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+precomputed_answerability {"total": 19, "predicted_true": 19, "predicted_false": 0}
+multiple_choice selected=19 completed=0 remaining=19
+[1/19] gate TCGA-B6-A0WZ (1 MC questions)
+infer TCGA-B6-A0WZ (1 answerable MC questions)
+live_mc processed=1/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[2/19] gate TCGA-BH-A5IZ (1 MC questions)
+infer TCGA-BH-A5IZ (1 answerable MC questions)
+live_mc processed=2/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[3/19] gate TCGA-A1-A0SF (1 MC questions)
+infer TCGA-A1-A0SF (1 answerable MC questions)
+live_mc processed=3/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[4/19] gate TCGA-BH-A0DG (1 MC questions)
+infer TCGA-BH-A0DG (1 answerable MC questions)
+live_mc processed=4/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[5/19] gate TCGA-BH-A0DD (1 MC questions)
+infer TCGA-BH-A0DD (1 answerable MC questions)
+live_mc processed=5/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[6/19] gate TCGA-B6-A0IA (1 MC questions)
+infer TCGA-B6-A0IA (1 answerable MC questions)
+live_mc processed=6/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[7/19] gate TCGA-LL-A442 (1 MC questions)
+infer TCGA-LL-A442 (1 answerable MC questions)
+live_mc processed=7/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[8/19] gate TCGA-B6-A0WV (1 MC questions)
+infer TCGA-B6-A0WV (1 answerable MC questions)
+live_mc processed=8/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[9/19] gate TCGA-A8-A08Z (1 MC questions)
+infer TCGA-A8-A08Z (1 answerable MC questions)
+live_mc processed=9/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[10/19] gate TCGA-D8-A1JL (1 MC questions)
+infer TCGA-D8-A1JL (1 answerable MC questions)
+live_mc processed=10/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[11/19] gate TCGA-B6-A0RO (1 MC questions)
+infer TCGA-B6-A0RO (1 answerable MC questions)
+live_mc processed=11/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[12/19] gate TCGA-OL-A5RX (1 MC questions)
+infer TCGA-OL-A5RX (1 answerable MC questions)
+live_mc processed=12/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[13/19] gate TCGA-A2-A25A (1 MC questions)
+infer TCGA-A2-A25A (1 answerable MC questions)
+live_mc processed=13/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[14/19] gate TCGA-A8-A09Q (1 MC questions)
+infer TCGA-A8-A09Q (1 answerable MC questions)
+live_mc processed=14/19 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+[15/19] gate TCGA-AQ-A54N (1 MC questions)
+infer TCGA-AQ-A54N (1 answerable MC questions)
+live_mc processed=15/19 correct=1 errors=0 acc=0.0667 supported_acc=nan last_correct=True
+[16/19] gate TCGA-BH-A42U (1 MC questions)
+infer TCGA-BH-A42U (1 answerable MC questions)
+live_mc processed=16/19 correct=1 errors=0 acc=0.0625 supported_acc=nan last_correct=False
+[17/19] gate TCGA-A2-A0EM (1 MC questions)
+infer TCGA-A2-A0EM (1 answerable MC questions)
+live_mc processed=17/19 correct=2 errors=0 acc=0.1176 supported_acc=nan last_correct=True
+[18/19] gate TCGA-AR-A24S (1 MC questions)
+infer TCGA-AR-A24S (1 answerable MC questions)
+live_mc processed=18/19 correct=3 errors=0 acc=0.1667 supported_acc=nan last_correct=True
+[19/19] gate TCGA-BH-A0BQ (1 MC questions)
+infer TCGA-BH-A0BQ (1 answerable MC questions)
+live_mc processed=19/19 correct=3 errors=0 acc=0.1579 supported_acc=nan last_correct=False
+Saved answers: outputs/multiscale_vqa_agent/morphology_question_retrieval_ablation_v1/broad_no_thinking/mc_answers.jsonl

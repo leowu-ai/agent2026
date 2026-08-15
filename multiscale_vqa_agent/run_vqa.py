@@ -31,6 +31,12 @@ def main():
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
+        "--morphology_retrieval_mode",
+        choices=("broad", "question_similarity"),
+        default=None,
+        help="Optional override for morphology-only patch retrieval.",
+    )
+    parser.add_argument(
         "--answerability_labels",
         default=None,
         help="Optional Gold labels used only after inference for evaluation.",
@@ -41,6 +47,7 @@ def main():
         planner_only=args.planner_only,
         answerability_only=args.answerability_only,
         precomputed_answerability=args.precomputed_answerability,
+        morphology_retrieval_mode=args.morphology_retrieval_mode,
     )
     output = pipeline.run(
         vqa_path=args.vqa_json,

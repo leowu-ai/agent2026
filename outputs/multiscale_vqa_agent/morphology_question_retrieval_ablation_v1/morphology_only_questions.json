@@ -1,0 +1,211 @@
+[
+  {
+    "Id": "TCGA-B6-A0WZ",
+    "Question": "is there evidence of multifocal tumor?",
+    "Choice": [
+      "yes",
+      "no",
+      "cannot determine",
+      "not mentioned in the slide"
+    ],
+    "Answer": "no"
+  },
+  {
+    "Id": "TCGA-BH-A5IZ",
+    "Question": "what type of non-neoplastic breast tissue changes were observed?",
+    "Choice": [
+      "atypical ductal hyperplasia",
+      "fibrocystic changes",
+      "dermal lymphatic invasion",
+      "focal atypical ductal hyperplasia"
+    ],
+    "Answer": "focal atypical ductal hyperplasia"
+  },
+  {
+    "Id": "TCGA-A1-A0SF",
+    "Question": "what is the pathological finding in the ovary?",
+    "Choice": [
+      "benign paratubal cyst",
+      "malignant tumor",
+      "endometriosis",
+      "ovarian cyst"
+    ],
+    "Answer": "benign paratubal cyst"
+  },
+  {
+    "Id": "TCGA-BH-A0DG",
+    "Question": "what type of breast tissue is present besides the tumor?",
+    "Choice": [
+      "fibroadenoma only",
+      "fibrocystic change only",
+      "both fibrocystic change and fibroadenoma",
+      "non-neoplastic breast tissue"
+    ],
+    "Answer": "both fibrocystic change and fibroadenoma"
+  },
+  {
+    "Id": "TCGA-BH-A0DD",
+    "Question": "what is the receptor status mentioned in the slide?",
+    "Choice": [
+      "estrogen receptors are positive,",
+      "progesterone receptors are positive,",
+      "both estrogen and progesterone receptors are positive,",
+      "receptor status is not mentioned"
+    ],
+    "Answer": "estrogen receptors are positive,"
+  },
+  {
+    "Id": "TCGA-B6-A0IA",
+    "Question": "what other changes were found in the patient's breast?",
+    "Choice": [
+      "hyperplasia",
+      "fibrosis",
+      "metaplasia",
+      "dilated ducts"
+    ],
+    "Answer": "hyperplasia"
+  },
+  {
+    "Id": "TCGA-LL-A442",
+    "Question": "is there any invasive tumor seen at the surgical margins?",
+    "Choice": [
+      "yes",
+      "no",
+      "can't tell",
+      "none of the above"
+    ],
+    "Answer": "no"
+  },
+  {
+    "Id": "TCGA-B6-A0WV",
+    "Question": "is there any residual carcinoma in the mastectomy specimen?",
+    "Choice": [
+      "yes",
+      "no",
+      "not mentioned",
+      "not applicable"
+    ],
+    "Answer": "no"
+  },
+  {
+    "Id": "TCGA-A8-A08Z",
+    "Question": "what is the level of angioinvasion in the tumor?",
+    "Choice": [
+      "focal",
+      "extensive",
+      "no angioinvasion",
+      "not mentioned"
+    ],
+    "Answer": "focal"
+  },
+  {
+    "Id": "TCGA-D8-A1JL",
+    "Question": "what type of lesion was found in the glandular tissue surrounding the tumor?",
+    "Choice": [
+      "fibroadenoma.",
+      "mastitis.",
+      "mastopathy fibrosa et cystica.",
+      "ductal hyperplasia."
+    ],
+    "Answer": "mastopathy fibrosa et cystica."
+  },
+  {
+    "Id": "TCGA-B6-A0RO",
+    "Question": "what non-neoplastic changes were observed in the breast tissue?",
+    "Choice": [
+      "fibrosis",
+      "hyperplasia",
+      "apocrine metaplasia",
+      "adenosis"
+    ],
+    "Answer": "apocrine metaplasia"
+  },
+  {
+    "Id": "TCGA-OL-A5RX",
+    "Question": "what type of changes were found in the breast tissue of the patient?",
+    "Choice": [
+      "columnar cell changes, duct ectasia, and fibroadenoma",
+      "apocrine metaplasia, intraductal papilloma, and fragments of implant capsule",
+      "focal lactational changes and intraductal hyperplasia",
+      "all of the above"
+    ],
+    "Answer": "all of the above"
+  },
+  {
+    "Id": "TCGA-A2-A25A",
+    "Question": "what type of hyperplasia was observed in the breast?",
+    "Choice": [
+      "atypical lobular hyperplasia",
+      "atypical ductal hyperplasia",
+      "focal hyperplasia",
+      "ductal hyperplasia"
+    ],
+    "Answer": "atypical lobular hyperplasia"
+  },
+  {
+    "Id": "TCGA-A8-A09Q",
+    "Question": "which breast tissue is affected by fibrolipomatous changes?",
+    "Choice": [
+      "tumor",
+      "surrounding skin",
+      "axillary lymph nodes",
+      "rest of the breast tissue"
+    ],
+    "Answer": "rest of the breast tissue"
+  },
+  {
+    "Id": "TCGA-AQ-A54N",
+    "Question": "was the tumor multifocal or unifocal?",
+    "Choice": [
+      "multifocal",
+      "unifocal",
+      "not mentioned",
+      "unclear"
+    ],
+    "Answer": "unifocal"
+  },
+  {
+    "Id": "TCGA-BH-A42U",
+    "Question": "what is the result of cadherin immunostaining?",
+    "Choice": [
+      "positive",
+      "negative",
+      "equivocal",
+      "not mentioned"
+    ],
+    "Answer": "negative"
+  },
+  {
+    "Id": "TCGA-A2-A0EM",
+    "Question": "what can be found in fibrocystic changes?",
+    "Choice": [
+      "fibrosis,",
+      "cysts,",
+      "apocrine metaplasia,",
+      "all of the above"
+    ],
+    "Answer": "all of the above"
+  },
+  {
+    "Id": "TCGA-AR-A24S",
+    "Question": "what type of breast tissue changes were observed?",
+    "Choice": [
+      "nonproliferative fibrocystic changes",
+      "proliferative fibrocystic changes",
+      "epithelial hyperplasia",
+      "no observable changes"
+    ],
+    "Answer": "no observable changes"
+  },
+  {
+    "Id": "TCGA-BH-A0BQ",
+    "Question": "were the surgical margins involved by the invasive component?",
+    "Choice": [
+      "yes",
+      "no",
+      "not enough information",
+      "5 mm"
+    ],
+    "Answer": "no"
+  }
+]

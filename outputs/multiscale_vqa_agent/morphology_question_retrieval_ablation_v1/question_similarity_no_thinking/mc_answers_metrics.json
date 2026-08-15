@@ -1,0 +1,63 @@
+{
+  "updated_at": "2026-08-15T12:43:56+08:00",
+  "selected_total": 19,
+  "processed": 19,
+  "answered": 19,
+  "abstained": 0,
+  "coverage": 1.0,
+  "answered_correct": 5,
+  "selective_accuracy": 0.2631578947368421,
+  "remaining": 0,
+  "completion": 1.0,
+  "scorable": 19,
+  "correct": 5,
+  "errors": 0,
+  "accuracy": 0.2631578947368421,
+  "accuracy_scorable": 0.2631578947368421,
+  "supported_processed": 0,
+  "supported_correct": 0,
+  "supported_accuracy": null,
+  "unsupported_processed": 19,
+  "unsupported_correct": 5,
+  "unsupported_accuracy": 0.2631578947368421,
+  "json_parse_failures": 0,
+  "answers_outside_choices": 0,
+  "multifield_incomplete": 0,
+  "structured_overrides": 0,
+  "override_structured_accuracy": null,
+  "override_agent_accuracy": null,
+  "per_task_match": {
+    "none": {
+      "processed": 19,
+      "scorable": 19,
+      "correct": 5,
+      "errors": 0,
+      "accuracy": 0.2631578947368421,
+      "accuracy_scorable": 0.2631578947368421
+    }
+  },
+  "per_task": {
+    "unrouted": {
+      "processed": 19,
+      "scorable": 19,
+      "correct": 5,
+      "errors": 0,
+      "accuracy": 0.2631578947368421,
+      "accuracy_scorable": 0.2631578947368421
+    }
+  },
+  "last": {
+    "case_id": "TCGA-BH-A0BQ",
+    "question": "were the surgical margins involved by the invasive component?",
+    "task": "unrouted",
+    "task_match": "none",
+    "supported": false,
+    "correct": false,
+    "error": null,
+    "predicted": "yes",
+    "reference": "no",
+    "answer_in_choices": true,
+    "json_parse_success": true,
+    "override_occurred": false
+  }
+}

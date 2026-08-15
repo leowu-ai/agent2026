@@ -46,6 +46,9 @@ class MultiScaleRetrievalAgent:
         self.morphology_diverse_per_slide = int(
             config.get("morphology_diverse_patches_per_slide", 2)
         )
+        self.question_top_per_slide = int(
+            config.get("question_top_patches_per_slide", 4)
+        )
         self.max_groups = int(config.get("max_evidence_groups", 4))
         self.iou_threshold = float(config.get("same_scale_iou", 0.5))
         self.cosine_threshold = float(config.get("feature_cosine", 0.95))
@@ -113,6 +116,91 @@ class MultiScaleRetrievalAgent:
                 diversity,
             )
         return self._build_pyramids(by_scale)
+
+    def retrieve_by_question(
+        self,
+        question_feature: np.ndarray,
+        scale_results: Dict[int, Dict[str, Any]],
+    ) -> List[EvidenceGroup]:
+        question_feature = np.asarray(question_feature, dtype=np.float32)
+        if question_feature.ndim != 1:
+            raise ValueError(
+                f"Question feature must be 1D, got shape {question_feature.shape}"
+            )
+        question_norm = float(np.linalg.norm(question_feature))
+        if not np.isfinite(question_norm) or question_norm <= 1e-8:
+            raise ValueError("Question feature must be finite and non-zero")
+        question_feature = question_feature / question_norm
+
+        by_scale: Dict[int, List[PatchCandidate]] = {}
+        for scale, result in scale_results.items():
+            candidates = []
+            for slide in result["slides"]:
+                candidates.extend(self._from_question_similarity(
+                    scale, slide, question_feature
+                ))
+            by_scale[scale] = self._deduplicate(candidates)
+        return self._build_pyramids(by_scale)
+
+    def _from_question_similarity(
+        self,
+        scale: int,
+        slide: Dict[str, Any],
+        question_feature: np.ndarray,
+    ) -> List[PatchCandidate]:
+        features = np.asarray(slide["features"], dtype=np.float32)
+        if features.ndim != 2:
+            raise ValueError(
+                f"Patch features must be 2D for scale={scale}, "
+                f"slide={slide.get('slide_id')}: shape={features.shape}"
+            )
+        if features.shape[1] != question_feature.shape[0]:
+            raise ValueError(
+                "Patch/question feature dimension mismatch for "
+                f"scale={scale}, slide={slide.get('slide_id')}: "
+                f"patch_dim={features.shape[1]} question_dim={question_feature.shape[0]}"
+            )
+        if len(features) != len(slide["coords"]):
+            raise ValueError(
+                f"Patch feature/coordinate count mismatch for scale={scale}, "
+                f"slide={slide.get('slide_id')}"
+            )
+        if self.question_top_per_slide <= 0 or not len(features):
+            return []
+
+        norms = np.linalg.norm(features, axis=1)
+        valid = np.flatnonzero(
+            np.isfinite(norms) & (norms > 1e-8) & np.isfinite(features).all(axis=1)
+        )
+        if not len(valid):
+            return []
+        unit_features = features[valid] / norms[valid, None]
+        scores = unit_features @ question_feature
+        count = min(self.question_top_per_slide, len(valid))
+        order = np.argsort(scores)[::-1][:count]
+
+        candidates = []
+        for local_index in order.tolist():
+            patch_index = int(valid[local_index])
+            similarity = float(scores[local_index])
+            x, y, size = slide["coords"][patch_index]
+            candidates.append(PatchCandidate(
+                scale=scale,
+                slide_id=slide["slide_id"],
+                patch_index=patch_index,
+                x=x,
+                y=y,
+                size=size,
+                score=similarity,
+                sources=[{
+                    "type": "question_similarity",
+                    "name": "conch_v1_preprojection_768",
+                    "attention": similarity,
+                    "similarity": similarity,
+                }],
+                feature=features[patch_index],
+            ))
+        return candidates
 
     def _context_candidates(
         self,

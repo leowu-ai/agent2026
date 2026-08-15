@@ -1,0 +1,9 @@
+{
+  "selection_source": "outputs/multiscale_vqa_agent/gate_v2_strict_override_full_v1/mc_answers.jsonl",
+  "selection_rule": "evidence_route == morphology_only",
+  "uses_gold_for_selection": false,
+  "subset_size": 19,
+  "frozen_gate_true": 19,
+  "subset_path": "outputs/multiscale_vqa_agent/morphology_question_retrieval_ablation_v1/morphology_only_questions.json",
+  "gate_subset_path": "outputs/multiscale_vqa_agent/morphology_question_retrieval_ablation_v1/gate_predictions_morphology_only.jsonl"
+}

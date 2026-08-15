@@ -104,7 +104,7 @@ class FusionVerificationAgent:
                 max_tokens=4096,
                 response_format={"type": "json_object"},
                 retries=2,
-                enable_thinking=True,
+                enable_thinking=False,
                 top_p=0.95,
                 top_k=20,
             )

@@ -1,0 +1,11 @@
+{
+  "total": 19,
+  "broad_correct": 3,
+  "question_correct": 5,
+  "wrong_to_correct": 3,
+  "correct_to_wrong": 1,
+  "net_correct_change": 2,
+  "broad_json_parse_failures": 0,
+  "question_json_parse_failures": 0,
+  "route_changes": []
+}

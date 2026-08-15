@@ -13,6 +13,7 @@ from .fusion_evidence import indexed_choices
 from .g2p_runtime import MultiScaleG2PAgent
 from .pathology import PathologyAgent
 from .precomputed_answerability import PrecomputedAnswerabilityStore
+from .question_features import QuestionFeatureStore
 from .registry import PrototypeAwarePlanner, ToolBankRegistry
 from .relation import RelationReasoningAgent
 from .retrieval import MultiScaleRetrievalAgent, WSICropper
@@ -26,6 +27,7 @@ class MultiScaleVQAPipeline:
         planner_only: bool = False,
         answerability_only: bool = False,
         precomputed_answerability: Optional[str] = None,
+        morphology_retrieval_mode: Optional[str] = None,
     ):
         self.config_path = Path(config_path)
         with self.config_path.open(encoding="utf-8") as handle:
@@ -49,6 +51,24 @@ class MultiScaleVQAPipeline:
         self.g2p = MultiScaleG2PAgent(self.config, self.registry)
         self.relation = RelationReasoningAgent(self.registry, self.g2p, self.config["retrieval"])
         self.retrieval = MultiScaleRetrievalAgent(self.registry, self.config["retrieval"])
+        self.morphology_retrieval_mode = str(
+            morphology_retrieval_mode
+            or self.config["retrieval"].get("morphology_retrieval_mode", "broad")
+        )
+        if self.morphology_retrieval_mode not in {"broad", "question_similarity"}:
+            raise ValueError(
+                "morphology_retrieval_mode must be broad or question_similarity, got "
+                f"{self.morphology_retrieval_mode!r}"
+            )
+        self.question_features = None
+        if self.morphology_retrieval_mode == "question_similarity":
+            feature_path = self.config["retrieval"].get("question_feature_path")
+            if not feature_path:
+                raise ValueError(
+                    "question_similarity morphology retrieval requires "
+                    "retrieval.question_feature_path"
+                )
+            self.question_features = QuestionFeatureStore(feature_path)
         self.cropper = WSICropper(
             Path(self.config["wsi_root"]), Path(self.config["output_dir"]) / "evidence_patches"
         )
@@ -326,12 +346,25 @@ class MultiScaleVQAPipeline:
                     scale_results
                 )
             broad_g2p_predictions = evidence_cache[predictions_key]
-            groups_key = "__all_phenotype_groups__"
+            morphology_mode = self.morphology_retrieval_mode
+            groups_key = (
+                "__all_phenotype_groups__"
+                if morphology_mode == "broad"
+                else f"__question_groups__:{plan.question}"
+            )
             if groups_key not in evidence_cache:
-                groups = self.retrieval.retrieve_all_phenotypes(scale_results)
+                if morphology_mode == "broad":
+                    groups = self.retrieval.retrieve_all_phenotypes(scale_results)
+                    crop_label = "all_phenotypes"
+                else:
+                    question_feature = self.question_features.lookup(plan.question)
+                    groups = self.retrieval.retrieve_by_question(
+                        question_feature, scale_results
+                    )
+                    crop_label = plan.question
                 if crop_patches:
                     groups = self.cropper.crop_groups(
-                        plan.case_id, "all_phenotypes", groups
+                        plan.case_id, crop_label, groups
                     )
                 evidence_cache[groups_key] = groups
             groups = evidence_cache[groups_key]
@@ -352,7 +385,12 @@ class MultiScaleVQAPipeline:
             pathology = evidence_cache[pathology_key]
             pathology["primary_field"] = None
             pathology["structured_fields_covered"] = []
-            pathology["retrieval_mode"] = "all_phenotype_attention"
+            pathology["retrieval_mode"] = morphology_mode
+            if morphology_mode == "question_similarity":
+                pathology["question_feature_source"] = (
+                    QuestionFeatureStore.FEATURE_NAME
+                )
+                pathology["question_feature_dim"] = self.question_features.feature_dim
             pathology["thumbnail_paths"] = list(overview_paths)
         else:
             raise ValueError(f"Unsupported evidence route: {evidence_route}")

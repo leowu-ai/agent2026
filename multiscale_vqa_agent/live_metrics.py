@@ -217,7 +217,9 @@ class LiveAccuracyTracker:
         }
         exists = self.history_path.exists() and self.history_path.stat().st_size > 0
         with self.history_path.open("a", encoding="utf-8", newline="") as handle:
-            writer = csv.DictWriter(handle, fieldnames=list(row))
+            writer = csv.DictWriter(
+                handle, fieldnames=list(row), lineterminator="\n"
+            )
             if not exists:
                 writer.writeheader()
             writer.writerow(row)
