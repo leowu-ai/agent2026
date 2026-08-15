@@ -1,0 +1,37 @@
+{
+  "dataset": {
+    "total_questions": 390,
+    "valid_questions": 382,
+    "excluded_questions": 8
+  },
+  "precomputed_gate": {
+    "true_total": 190,
+    "false_total": 200,
+    "true_valid": 190,
+    "false_valid": 192,
+    "answerability_model_calls": 0
+  },
+  "downstream": {
+    "questions_entered": 190,
+    "router_calls": 190,
+    "g2p_question_routes": 190,
+    "g2p_patient_cases": 80,
+    "pathology_agent_questions": 190,
+    "pathor1_request_attempts": 190,
+    "final_fusion_calls": 190
+  },
+  "newly_accepted": {
+    "total": 29,
+    "gold_answerable": 21,
+    "gold_unanswerable": 8,
+    "answered_correct": 12,
+    "gold_answerable_correct": 11
+  },
+  "newly_rejected": {
+    "total": 7,
+    "gold_answerable": 3,
+    "old_correct": 3,
+    "old_gold_answerable_correct": 1
+  },
+  "transition_net_gold_answerable_correct": 10
+}

@@ -1,0 +1,30 @@
+case_id,question,reference_answer,gold_can_answer,old_gate,new_gate,route,task_match,structured_candidate,final_answer,correct,abstained
+TCGA-A1-A0SF,what is the pathological finding in the ovary?,benign paratubal cyst,False,False,True,morphology_only,none,,malignant tumor,False,False
+TCGA-A1-A0SF,what is the result of her2/neu testing?,not provided,True,False,True,phenotype_direct,direct,negative,negative,False,False
+TCGA-A2-A0CK,what was the result of the er/pr immunostains?,negative,True,False,True,phenotype_direct,direct,positive,positive,False,False
+TCGA-A2-A0CK,what was the result of the evaluation for her2-neu overexpression?,negative (1+),True,False,True,phenotype_direct,direct,negative (1+),negative (1+),True,False
+TCGA-A2-A1FW,what additional findings were noted on examination?,extensive angiolymphatic invasion and microcalcifications,True,False,True,phenotype_direct,partial,extensive angiolymphatic invasion and microcalcifications,extensive angiolymphatic invasion and microcalcifications,True,False
+TCGA-A8-A08Z,what is the level of angioinvasion in the tumor?,focal,True,False,True,morphology_only,none,,extensive,False,False
+TCGA-AC-A5XS,what were the results of the tumor receptor testing?,"negative for her2, positive for estrogen and progesterone receptors",True,False,True,phenotype_direct,direct,"negative for her2, positive for estrogen and progesterone receptors","negative for her2, positive for estrogen and progesterone receptors",True,False
+TCGA-AQ-A54N,was the tumor multifocal or unifocal?,unifocal,False,False,True,morphology_only,none,,multifocal,False,False
+TCGA-B6-A0WV,is there any residual carcinoma in the mastectomy specimen?,no,False,False,True,morphology_only,none,,yes,False,False
+TCGA-B6-A0WZ,what are the preliminary results of the hormone receptor analysis?,positive for estrogen receptors,True,False,True,phenotype_direct,direct,positive for estrogen receptors,positive for estrogen receptors,True,False
+TCGA-BH-A0AZ,what is the nottingham score?,6 out of 9,True,False,True,phenotype_direct,direct,,6 out of 9,True,False
+TCGA-BH-A0AZ,what were the results of the immunohistochemical staining?,equivocal estrogen and progesterone receptors,True,False,True,phenotype_direct,partial,positive estrogen and negative progesterone receptors,positive estrogen and negative progesterone receptors,False,False
+TCGA-BH-A0BQ,were the surgical margins involved by the invasive component?,no,False,False,True,morphology_only,none,,yes,False,False
+TCGA-BH-A0BV,what is the nottingham score of the infiltrating ductal carcinoma?,7/9,True,False,True,phenotype_direct,partial,,9/9,False,False
+TCGA-BH-A0DD,what is the histological finding of the modified radical mastectomy?,"lymphoplasmacytic infiltrate and necrosis,",True,False,True,phenotype_direct,direct,,"ductal carcinoma in situ,",False,False
+TCGA-BH-A0EE,what is the nottingham score of the tumor?,8/9,True,False,True,phenotype_direct,partial,,6/9,False,False
+TCGA-BH-A202,what was the score for estrogen receptors?,250,False,False,True,phenotype_direct,partial,negative,negative,False,False
+TCGA-BH-A42U,what is the result of cadherin immunostaining?,negative,False,False,True,morphology_only,none,,positive,False,False
+TCGA-BH-A5IZ,what is the nottingham score for the tumor?,negative for invasive carcinoma,True,False,True,phenotype_direct,direct,,9/9,False,False
+TCGA-D8-A13Z,what was the reaction of the her2 protein?,negative,True,False,True,phenotype_direct,direct,negative,negative,True,False
+TCGA-D8-A13Z,what were the results of the examination for estrogen and progesterone receptors?,negative,True,False,True,phenotype_direct,direct,negative,negative,True,False
+TCGA-D8-A1JB,what additional lesions were found in the glandular tissue?,lobular carcinoma in situ (lcs) and mastopathia fibrosa et cystica,True,False,True,phenotype_direct,partial,,columnar cell changes (ccc) and ductal carcinoma in situ (ocis),False,False
+TCGA-D8-A1JB,what was the immunophenotype of the neoplastic cells?,e-cadherin positive and ck7 positive,False,False,True,phenotype_direct,direct,estrogen receptors positive and progesterone receptors positive,estrogen receptors positive and progesterone receptors positive,False,False
+TCGA-D8-A1JK,what was the reaction of the her2 protein test in the invasive cancerous cells?,negative reaction,True,False,True,phenotype_direct,direct,negative reaction,negative reaction,True,False
+TCGA-D8-A1JL,which hormone receptors were found to be absent in the neoplastic cell nuclei?,both estrogen and progesterone receptors.,True,False,True,phenotype_direct,direct,both estrogen and progesterone receptors.,both estrogen and progesterone receptors.,True,False
+TCGA-E9-A2JS,what is the histologic score for the tumor?,nottingham histologic score is not determined,True,False,True,phenotype_direct,direct,low histologic score,low histologic score,False,False
+TCGA-LL-A5YP,what additional findings were noted apart from the carcinomas?,proliferative fibrocystic changes and neurofibromatosis,True,False,True,phenotype_direct,partial,,proliferative fibrocystic changes and neurofibromatosis,True,False
+TCGA-LL-A7T0,what were the results of the her2 test?,positive,True,False,True,phenotype_direct,direct,positive,positive,True,False
+TCGA-OL-A66P,what is the finding in the superior mastectomy flap?,fibroadipose tissue with focal fat necrosis;,False,False,True,phenotype_direct,partial,invasive ductal carcinoma;,fibroadipose tissue with focal fat necrosis;,True,False

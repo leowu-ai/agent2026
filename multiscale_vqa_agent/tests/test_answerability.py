@@ -11,6 +11,9 @@ from multiscale_vqa_agent.answerability_evaluation import evaluate_answerability
 from multiscale_vqa_agent.live_metrics import LiveAccuracyTracker
 from multiscale_vqa_agent.mc_pipeline import MultipleChoiceVQAPipeline
 from multiscale_vqa_agent.pipeline import MultiScaleVQAPipeline
+from multiscale_vqa_agent.precomputed_answerability import (
+    PrecomputedAnswerabilityStore,
+)
 from multiscale_vqa_agent.schemas import ExecutionPlan
 
 
@@ -29,6 +32,11 @@ class CountingGate:
             "reason": "test decision",
             "fallback_used": False,
         }
+
+
+class FailingGate:
+    def predict(self, question, choices):
+        raise AssertionError("Online AnswerabilityAgent must not be called")
 
 
 class CountingPlanner:
@@ -174,6 +182,84 @@ class AnswerabilityPipelineTest(unittest.TestCase):
         self.assertEqual(pipeline.calls["planner"], 2)
         self.assertEqual(pipeline.calls["fusion"], 2)
         self.assertEqual(sum(row["abstained"] for row in rows), 2)
+
+    def test_precomputed_gate_skips_online_agent_and_routes_only_true(self):
+        items = [self.item("q true"), self.item("q false")]
+        with tempfile.TemporaryDirectory() as directory:
+            directory = Path(directory)
+            source = directory / "questions.json"
+            output = directory / "answers.jsonl"
+            frozen = directory / "gate.jsonl"
+            source.write_text(json.dumps(items), encoding="utf-8")
+            frozen.write_text("".join(
+                json.dumps({
+                    "case_id": item["Id"],
+                    "question": item["Question"],
+                    "predicted_can_answer": decision,
+                    "answerability_confidence": 0.8,
+                    "answerability_reason": "frozen",
+                    "answerability_fallback_used": False,
+                }) + "\n"
+                for item, decision in zip(items, (True, False))
+            ), encoding="utf-8")
+            pipeline = self.make_pipeline({}, CountingMCPipeline)
+            pipeline.answerability = FailingGate()
+            pipeline.precomputed_answerability = PrecomputedAnswerabilityStore(
+                str(frozen)
+            )
+            pipeline.run_multiple_choice(
+                str(source), str(output), resume=False, crop_patches=False
+            )
+            rows = [json.loads(line) for line in output.read_text().splitlines()]
+        self.assertEqual(pipeline.calls["planner"], 1)
+        self.assertEqual(pipeline.calls["g2p"], 1)
+        self.assertEqual(pipeline.calls["fusion"], 1)
+        self.assertEqual(sum(row["abstained"] for row in rows), 1)
+
+    def test_missing_precomputed_key_is_fatal_without_online_fallback(self):
+        item = self.item("missing question")
+        with tempfile.TemporaryDirectory() as directory:
+            frozen = Path(directory) / "gate.jsonl"
+            frozen.write_text(json.dumps({
+                "case_id": item["Id"],
+                "question": "another question",
+                "predicted_can_answer": True,
+            }) + "\n", encoding="utf-8")
+            store = PrecomputedAnswerabilityStore(str(frozen))
+            with self.assertRaisesRegex(ValueError, "missing=1"):
+                store.validate_items([item])
+
+    def test_duplicate_precomputed_key_is_fatal(self):
+        row = {
+            "case_id": "TCGA-AA-0001",
+            "question": "same question",
+            "predicted_can_answer": True,
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            frozen = Path(directory) / "gate.jsonl"
+            frozen.write_text(
+                json.dumps(row) + "\n" + json.dumps(row) + "\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "Duplicate precomputed"):
+                PrecomputedAnswerabilityStore(str(frozen))
+
+    def test_precomputed_lookup_normalizes_case_and_whitespace_only(self):
+        with tempfile.TemporaryDirectory() as directory:
+            frozen = Path(directory) / "gate.jsonl"
+            frozen.write_text(json.dumps({
+                "case_id": "TCGA-AA-0001",
+                "question": "What   is the grade?",
+                "predicted_can_answer": True,
+                "answerability_confidence": 0.75,
+                "answerability_reason": "frozen",
+                "answerability_fallback_used": True,
+            }) + "\n", encoding="utf-8")
+            store = PrecomputedAnswerabilityStore(str(frozen))
+            result = store.lookup("tcga-aa-0001", "  what is THE grade? ")
+        self.assertTrue(result["can_answer"])
+        self.assertEqual(result["confidence"], 0.75)
+        self.assertTrue(result["fallback_used"])
 
     def test_prompt_contains_only_question_choices_and_schema(self):
         client = CapturingClient(json.dumps({

@@ -12,6 +12,7 @@ from .fusion import FusionVerificationAgent
 from .fusion_evidence import indexed_choices
 from .g2p_runtime import MultiScaleG2PAgent
 from .pathology import PathologyAgent
+from .precomputed_answerability import PrecomputedAnswerabilityStore
 from .registry import PrototypeAwarePlanner, ToolBankRegistry
 from .relation import RelationReasoningAgent
 from .retrieval import MultiScaleRetrievalAgent, WSICropper
@@ -24,12 +25,18 @@ class MultiScaleVQAPipeline:
         config_path: str,
         planner_only: bool = False,
         answerability_only: bool = False,
+        precomputed_answerability: Optional[str] = None,
     ):
         self.config_path = Path(config_path)
         with self.config_path.open(encoding="utf-8") as handle:
             self.config = json.load(handle)
         self.qwen = OpenAICompatibleClient(self.config["qwen"])
         self.answerability = AnswerabilityAgent(self.qwen)
+        self.precomputed_answerability = (
+            PrecomputedAnswerabilityStore(precomputed_answerability)
+            if precomputed_answerability
+            else None
+        )
         self.planner_only = planner_only
         self.answerability_only = answerability_only
         if answerability_only:
@@ -66,6 +73,15 @@ class MultiScaleVQAPipeline:
                 item for item in items
                 if item.get("Choice", item.get("choices"))
             ]
+        if getattr(self, "precomputed_answerability", None) is not None:
+            self.precomputed_answerability.validate_items(items)
+            print(
+                "precomputed_answerability "
+                + json.dumps(
+                    self.precomputed_answerability.summary(), ensure_ascii=False
+                ),
+                flush=True,
+            )
         if limit is not None:
             items = items[:limit]
         destination = Path(output_path or (Path(self.config["output_dir"]) / "answers.jsonl"))
@@ -173,7 +189,9 @@ class MultiScaleVQAPipeline:
         )
 
     def _predict_answerability(self, item: Dict[str, Any]) -> Dict[str, Any]:
-        _, question = self._item_key(item)
+        case_id, question = self._item_key(item)
+        if getattr(self, "precomputed_answerability", None) is not None:
+            return self.precomputed_answerability.lookup(case_id, question)
         choices = list(item.get("Choice", item.get("choices", [])) or [])
         return self.answerability.predict(question, choices)
 

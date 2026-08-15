@@ -1,0 +1,8 @@
+case_id,question,gold_can_answer,old_final_answer,old_correct,new_gate_decision
+TCGA-A2-A1FX,what was the final diagnosis of the patient?,True,infiltrating carcinoma in the left breast,False,False
+TCGA-AC-A2FF,what does the surgical slide provide information on?,False,tumor size and characteristics,True,False
+TCGA-AO-A12D,what other findings are mentioned in the pathological slide?,True,the biopsy is positive for carcinoma,False,False
+TCGA-AR-A24S,did the biopsy site show any changes?,False,yes,False,False
+TCGA-BH-A0HX,what findings are mentioned in the breast?,False,fibroglandular changes and associated microcalcifications,False,False
+TCGA-C8-A135,what is the histological diagnosis based on?,False,microscopic examination,True,False
+TCGA-LL-A442,does the slide provide information about the hormonal receptor status of the breast cancer?,True,yes,True,False

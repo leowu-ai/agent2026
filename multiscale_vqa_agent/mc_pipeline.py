@@ -23,6 +23,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         crop_patches: bool = True,
         resume: bool = True,
         answerability_labels: Optional[str] = None,
+        comparison_answers: Optional[str] = None,
     ) -> Path:
         if self.answerability_only:
             return super().run(
@@ -37,6 +38,15 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         with source.open(encoding="utf-8") as handle:
             all_items = json.load(handle)
         items = [item for item in all_items if item.get("Choice", item.get("choices"))]
+        if getattr(self, "precomputed_answerability", None) is not None:
+            self.precomputed_answerability.validate_items(items)
+            print(
+                "precomputed_answerability "
+                + json.dumps(
+                    self.precomputed_answerability.summary(), ensure_ascii=False
+                ),
+                flush=True,
+            )
         if limit is not None:
             items = items[:limit]
 
@@ -127,6 +137,22 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                     torch.cuda.empty_cache()
         tracker.save_snapshot()
         self._evaluate_if_requested(destination, answerability_labels)
+        if comparison_answers:
+            if not answerability_labels:
+                raise ValueError(
+                    "--comparison_answers requires --answerability_labels for "
+                    "post-inference transition analysis"
+                )
+            from .gate_run_analysis import write_gate_run_analysis
+
+            summary = write_gate_run_analysis(
+                destination, Path(comparison_answers), Path(answerability_labels)
+            )
+            print(
+                "Gate transition analysis: "
+                + json.dumps(summary, ensure_ascii=False),
+                flush=True,
+            )
         return destination
 
     @staticmethod

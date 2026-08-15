@@ -18,8 +18,24 @@ def main():
     parser.add_argument("--vqa_json", default=None)
     parser.add_argument("--output", default=None)
     parser.add_argument("--metrics", default=None)
+    parser.add_argument(
+        "--comparison_answers",
+        default=None,
+        help=(
+            "Optional prior full answer JSONL used only after inference to write "
+            "Gate transition audit CSV files."
+        ),
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--answerability_only", action="store_true")
+    parser.add_argument(
+        "--precomputed_answerability",
+        default=None,
+        help=(
+            "Optional frozen answerability JSONL. When provided, online "
+            "AnswerabilityAgent calls are disabled and missing keys are fatal."
+        ),
+    )
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
@@ -30,7 +46,9 @@ def main():
     args = parser.parse_args()
 
     pipeline = MultipleChoiceVQAPipeline(
-        args.config, answerability_only=args.answerability_only
+        args.config,
+        answerability_only=args.answerability_only,
+        precomputed_answerability=args.precomputed_answerability,
     )
     output = pipeline.run_multiple_choice(
         vqa_path=args.vqa_json,
@@ -40,6 +58,7 @@ def main():
         crop_patches=not args.no_crop,
         resume=not args.no_resume,
         answerability_labels=args.answerability_labels,
+        comparison_answers=args.comparison_answers,
     )
     print(f"Saved answers: {output}")
 
