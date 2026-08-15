@@ -1,0 +1,574 @@
+nohup: ignoring input
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+question_features count=389 dim=768 source=CONCH_v1_preprojection_768
+precomputed_answerability {"total": 390, "predicted_true": 190, "predicted_false": 200}
+multiple_choice selected=390 completed=0 remaining=390
+[1/85] gate TCGA-LD-A74U (4 MC questions)
+live_mc processed=1/390 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+infer TCGA-LD-A74U (3 answerable MC questions)
+live_mc processed=2/390 correct=0 errors=0 acc=0.0000 supported_acc=0.0000 last_correct=False
+live_mc processed=3/390 correct=0 errors=0 acc=0.0000 supported_acc=0.0000 last_correct=False
+live_mc processed=4/390 correct=1 errors=0 acc=0.2500 supported_acc=0.3333 last_correct=True
+[2/85] gate TCGA-AR-A1AI (3 MC questions)
+live_mc processed=5/390 correct=1 errors=0 acc=0.2000 supported_acc=0.3333 last_correct=False
+live_mc processed=6/390 correct=1 errors=0 acc=0.1667 supported_acc=0.3333 last_correct=False
+infer TCGA-AR-A1AI (1 answerable MC questions)
+live_mc processed=7/390 correct=1 errors=0 acc=0.1429 supported_acc=0.2500 last_correct=False
+[3/85] gate TCGA-B6-A0WZ (4 MC questions)
+live_mc processed=8/390 correct=1 errors=0 acc=0.1250 supported_acc=0.2500 last_correct=False
+infer TCGA-B6-A0WZ (3 answerable MC questions)
+live_mc processed=9/390 correct=1 errors=0 acc=0.1111 supported_acc=0.2000 last_correct=False
+live_mc processed=10/390 correct=2 errors=0 acc=0.2000 supported_acc=0.2000 last_correct=True
+live_mc processed=11/390 correct=3 errors=0 acc=0.2727 supported_acc=0.3333 last_correct=True
+[4/85] gate TCGA-BH-A5IZ (5 MC questions)
+live_mc processed=12/390 correct=3 errors=0 acc=0.2500 supported_acc=0.3333 last_correct=False
+live_mc processed=13/390 correct=3 errors=0 acc=0.2308 supported_acc=0.3333 last_correct=False
+infer TCGA-BH-A5IZ (3 answerable MC questions)
+live_mc processed=14/390 correct=3 errors=0 acc=0.2143 supported_acc=0.2857 last_correct=False
+live_mc processed=15/390 correct=3 errors=0 acc=0.2000 supported_acc=0.2500 last_correct=False
+live_mc processed=16/390 correct=3 errors=0 acc=0.1875 supported_acc=0.2500 last_correct=False
+[5/85] gate TCGA-BH-A0AZ (4 MC questions)
+live_mc processed=17/390 correct=3 errors=0 acc=0.1765 supported_acc=0.2500 last_correct=False
+live_mc processed=18/390 correct=3 errors=0 acc=0.1667 supported_acc=0.2500 last_correct=False
+infer TCGA-BH-A0AZ (2 answerable MC questions)
+live_mc processed=19/390 correct=4 errors=0 acc=0.2105 supported_acc=0.3333 last_correct=True
+live_mc processed=20/390 correct=4 errors=0 acc=0.2000 supported_acc=0.3000 last_correct=False
+[6/85] gate TCGA-EW-A1PF (4 MC questions)
+live_mc processed=21/390 correct=4 errors=0 acc=0.1905 supported_acc=0.3000 last_correct=False
+live_mc processed=22/390 correct=4 errors=0 acc=0.1818 supported_acc=0.3000 last_correct=False
+live_mc processed=23/390 correct=4 errors=0 acc=0.1739 supported_acc=0.3000 last_correct=False
+infer TCGA-EW-A1PF (1 answerable MC questions)
+live_mc processed=24/390 correct=4 errors=0 acc=0.1667 supported_acc=0.2727 last_correct=False
+[7/85] gate TCGA-BH-A0BV (5 MC questions)
+live_mc processed=25/390 correct=4 errors=0 acc=0.1600 supported_acc=0.2727 last_correct=False
+live_mc processed=26/390 correct=4 errors=0 acc=0.1538 supported_acc=0.2727 last_correct=False
+live_mc processed=27/390 correct=4 errors=0 acc=0.1481 supported_acc=0.2727 last_correct=False
+infer TCGA-BH-A0BV (2 answerable MC questions)
+live_mc processed=28/390 correct=4 errors=0 acc=0.1429 supported_acc=0.2500 last_correct=False
+live_mc processed=29/390 correct=5 errors=0 acc=0.1724 supported_acc=0.3077 last_correct=True
+[8/85] gate TCGA-BH-A202 (6 MC questions)
+live_mc processed=30/390 correct=5 errors=0 acc=0.1667 supported_acc=0.3077 last_correct=False
+live_mc processed=31/390 correct=5 errors=0 acc=0.1613 supported_acc=0.3077 last_correct=False
+live_mc processed=32/390 correct=5 errors=0 acc=0.1562 supported_acc=0.3077 last_correct=False
+infer TCGA-BH-A202 (3 answerable MC questions)
+live_mc processed=33/390 correct=5 errors=0 acc=0.1515 supported_acc=0.2857 last_correct=False
+live_mc processed=34/390 correct=6 errors=0 acc=0.1765 supported_acc=0.3333 last_correct=True
+live_mc processed=35/390 correct=6 errors=0 acc=0.1714 supported_acc=0.3125 last_correct=False
+[9/85] gate TCGA-AR-A0U3 (5 MC questions)
+live_mc processed=36/390 correct=6 errors=0 acc=0.1667 supported_acc=0.3125 last_correct=False
+live_mc processed=37/390 correct=6 errors=0 acc=0.1622 supported_acc=0.3125 last_correct=False
+live_mc processed=38/390 correct=6 errors=0 acc=0.1579 supported_acc=0.3125 last_correct=False
+infer TCGA-AR-A0U3 (2 answerable MC questions)
+live_mc processed=39/390 correct=7 errors=0 acc=0.1795 supported_acc=0.3529 last_correct=True
+live_mc processed=40/390 correct=7 errors=0 acc=0.1750 supported_acc=0.3333 last_correct=False
+[10/85] gate TCGA-AO-A0JE (4 MC questions)
+live_mc processed=41/390 correct=7 errors=0 acc=0.1707 supported_acc=0.3333 last_correct=False
+infer TCGA-AO-A0JE (3 answerable MC questions)
+live_mc processed=42/390 correct=8 errors=0 acc=0.1905 supported_acc=0.3684 last_correct=True
+live_mc processed=43/390 correct=9 errors=0 acc=0.2093 supported_acc=0.4000 last_correct=True
+live_mc processed=44/390 correct=10 errors=0 acc=0.2273 supported_acc=0.4286 last_correct=True
+[11/85] gate TCGA-A1-A0SF (5 MC questions)
+live_mc processed=45/390 correct=10 errors=0 acc=0.2222 supported_acc=0.4286 last_correct=False
+infer TCGA-A1-A0SF (4 answerable MC questions)
+live_mc processed=46/390 correct=11 errors=0 acc=0.2391 supported_acc=0.4545 last_correct=True
+live_mc processed=47/390 correct=11 errors=0 acc=0.2340 supported_acc=0.4348 last_correct=False
+live_mc processed=48/390 correct=11 errors=0 acc=0.2292 supported_acc=0.4167 last_correct=False
+live_mc processed=49/390 correct=11 errors=0 acc=0.2245 supported_acc=0.4167 last_correct=False
+[12/85] gate TCGA-EW-A1P7 (5 MC questions)
+live_mc processed=50/390 correct=11 errors=0 acc=0.2200 supported_acc=0.4167 last_correct=False
+live_mc processed=51/390 correct=11 errors=0 acc=0.2157 supported_acc=0.4167 last_correct=False
+live_mc processed=52/390 correct=11 errors=0 acc=0.2115 supported_acc=0.4167 last_correct=False
+infer TCGA-EW-A1P7 (2 answerable MC questions)
+live_mc processed=53/390 correct=12 errors=0 acc=0.2264 supported_acc=0.4400 last_correct=True
+live_mc processed=54/390 correct=12 errors=0 acc=0.2222 supported_acc=0.4231 last_correct=False
+[13/85] gate TCGA-BH-A0DG (5 MC questions)
+live_mc processed=55/390 correct=12 errors=0 acc=0.2182 supported_acc=0.4231 last_correct=False
+live_mc processed=56/390 correct=12 errors=0 acc=0.2143 supported_acc=0.4231 last_correct=False
+infer TCGA-BH-A0DG (3 answerable MC questions)
+live_mc processed=57/390 correct=13 errors=0 acc=0.2281 supported_acc=0.4444 last_correct=True
+live_mc processed=58/390 correct=13 errors=0 acc=0.2241 supported_acc=0.4286 last_correct=False
+live_mc processed=59/390 correct=13 errors=0 acc=0.2203 supported_acc=0.4286 last_correct=False
+[14/85] gate TCGA-BH-A0DD (4 MC questions)
+infer TCGA-BH-A0DD (4 answerable MC questions)
+live_mc processed=60/390 correct=13 errors=0 acc=0.2167 supported_acc=0.4138 last_correct=False
+live_mc processed=61/390 correct=13 errors=0 acc=0.2131 supported_acc=0.4000 last_correct=False
+live_mc processed=62/390 correct=14 errors=0 acc=0.2258 supported_acc=0.4194 last_correct=True
+live_mc processed=63/390 correct=14 errors=0 acc=0.2222 supported_acc=0.4194 last_correct=False
+[15/85] gate TCGA-B6-A0IA (4 MC questions)
+live_mc processed=64/390 correct=14 errors=0 acc=0.2188 supported_acc=0.4194 last_correct=False
+live_mc processed=65/390 correct=14 errors=0 acc=0.2154 supported_acc=0.4194 last_correct=False
+infer TCGA-B6-A0IA (2 answerable MC questions)
+live_mc processed=66/390 correct=15 errors=0 acc=0.2273 supported_acc=0.4375 last_correct=True
+live_mc processed=67/390 correct=15 errors=0 acc=0.2239 supported_acc=0.4375 last_correct=False
+[16/85] gate TCGA-AC-A2FF (6 MC questions)
+live_mc processed=68/390 correct=15 errors=0 acc=0.2206 supported_acc=0.4375 last_correct=False
+live_mc processed=69/390 correct=15 errors=0 acc=0.2174 supported_acc=0.4375 last_correct=False
+live_mc processed=70/390 correct=15 errors=0 acc=0.2143 supported_acc=0.4375 last_correct=False
+live_mc processed=71/390 correct=15 errors=0 acc=0.2113 supported_acc=0.4375 last_correct=False
+live_mc processed=72/390 correct=15 errors=0 acc=0.2083 supported_acc=0.4375 last_correct=False
+infer TCGA-AC-A2FF (1 answerable MC questions)
+live_mc processed=73/390 correct=15 errors=0 acc=0.2055 supported_acc=0.4242 last_correct=False
+[17/85] gate TCGA-AC-A2FG (5 MC questions)
+live_mc processed=74/390 correct=15 errors=0 acc=0.2027 supported_acc=0.4242 last_correct=False
+live_mc processed=75/390 correct=15 errors=0 acc=0.2000 supported_acc=0.4242 last_correct=False
+infer TCGA-AC-A2FG (3 answerable MC questions)
+live_mc processed=76/390 correct=15 errors=0 acc=0.1974 supported_acc=0.4118 last_correct=False
+live_mc processed=77/390 correct=16 errors=0 acc=0.2078 supported_acc=0.4286 last_correct=True
+live_mc processed=78/390 correct=16 errors=0 acc=0.2051 supported_acc=0.4167 last_correct=False
+[18/85] gate TCGA-A2-A259 (5 MC questions)
+live_mc processed=79/390 correct=16 errors=0 acc=0.2025 supported_acc=0.4167 last_correct=False
+infer TCGA-A2-A259 (4 answerable MC questions)
+live_mc processed=80/390 correct=16 errors=0 acc=0.2000 supported_acc=0.4054 last_correct=False
+live_mc processed=81/390 correct=16 errors=0 acc=0.1975 supported_acc=0.3947 last_correct=False
+live_mc processed=82/390 correct=17 errors=0 acc=0.2073 supported_acc=0.4103 last_correct=True
+live_mc processed=83/390 correct=18 errors=0 acc=0.2169 supported_acc=0.4250 last_correct=True
+[19/85] gate TCGA-A1-A0SJ (2 MC questions)
+live_mc processed=84/390 correct=18 errors=0 acc=0.2143 supported_acc=0.4250 last_correct=False
+infer TCGA-A1-A0SJ (1 answerable MC questions)
+live_mc processed=85/390 correct=19 errors=0 acc=0.2235 supported_acc=0.4390 last_correct=True
+[20/85] gate TCGA-E9-A1N6 (5 MC questions)
+live_mc processed=86/390 correct=19 errors=0 acc=0.2209 supported_acc=0.4390 last_correct=False
+live_mc processed=87/390 correct=19 errors=0 acc=0.2184 supported_acc=0.4390 last_correct=False
+live_mc processed=88/390 correct=19 errors=0 acc=0.2159 supported_acc=0.4390 last_correct=False
+infer TCGA-E9-A1N6 (2 answerable MC questions)
+live_mc processed=89/390 correct=20 errors=0 acc=0.2247 supported_acc=0.4524 last_correct=True
+live_mc processed=90/390 correct=21 errors=0 acc=0.2333 supported_acc=0.4651 last_correct=True
+[21/85] gate TCGA-LL-A5YP (4 MC questions)
+live_mc processed=91/390 correct=21 errors=0 acc=0.2308 supported_acc=0.4651 last_correct=False
+live_mc processed=92/390 correct=21 errors=0 acc=0.2283 supported_acc=0.4651 last_correct=False
+infer TCGA-LL-A5YP (2 answerable MC questions)
+live_mc processed=93/390 correct=22 errors=0 acc=0.2366 supported_acc=0.4773 last_correct=True
+live_mc processed=94/390 correct=23 errors=0 acc=0.2447 supported_acc=0.4889 last_correct=True
+[22/85] gate TCGA-AO-A03T (6 MC questions)
+live_mc processed=95/390 correct=23 errors=0 acc=0.2421 supported_acc=0.4889 last_correct=False
+live_mc processed=96/390 correct=23 errors=0 acc=0.2396 supported_acc=0.4889 last_correct=False
+infer TCGA-AO-A03T (4 answerable MC questions)
+live_mc processed=97/390 correct=24 errors=0 acc=0.2474 supported_acc=0.5000 last_correct=True
+live_mc processed=98/390 correct=24 errors=0 acc=0.2449 supported_acc=0.4894 last_correct=False
+live_mc processed=99/390 correct=24 errors=0 acc=0.2424 supported_acc=0.4792 last_correct=False
+live_mc processed=100/390 correct=24 errors=0 acc=0.2400 supported_acc=0.4694 last_correct=False
+[23/85] gate TCGA-C8-A3M7 (5 MC questions)
+live_mc processed=101/390 correct=24 errors=0 acc=0.2376 supported_acc=0.4694 last_correct=False
+live_mc processed=102/390 correct=24 errors=0 acc=0.2353 supported_acc=0.4694 last_correct=False
+live_mc processed=103/390 correct=24 errors=0 acc=0.2330 supported_acc=0.4694 last_correct=False
+infer TCGA-C8-A3M7 (2 answerable MC questions)
+live_mc processed=104/390 correct=24 errors=0 acc=0.2308 supported_acc=0.4600 last_correct=False
+live_mc processed=105/390 correct=24 errors=0 acc=0.2286 supported_acc=0.4510 last_correct=False
+[24/85] gate TCGA-E9-A227 (1 MC questions)
+live_mc processed=106/390 correct=24 errors=0 acc=0.2264 supported_acc=0.4510 last_correct=False
+skip G2P TCGA-E9-A227: all questions unanswerable
+[25/85] gate TCGA-EW-A1IY (5 MC questions)
+live_mc processed=107/390 correct=24 errors=0 acc=0.2243 supported_acc=0.4510 last_correct=False
+live_mc processed=108/390 correct=24 errors=0 acc=0.2222 supported_acc=0.4510 last_correct=False
+live_mc processed=109/390 correct=24 errors=0 acc=0.2202 supported_acc=0.4510 last_correct=False
+infer TCGA-EW-A1IY (2 answerable MC questions)
+live_mc processed=110/390 correct=24 errors=0 acc=0.2182 supported_acc=0.4423 last_correct=False
+live_mc processed=111/390 correct=24 errors=0 acc=0.2162 supported_acc=0.4340 last_correct=False
+[26/85] gate TCGA-LL-A442 (5 MC questions)
+live_mc processed=112/390 correct=24 errors=0 acc=0.2143 supported_acc=0.4340 last_correct=False
+live_mc processed=113/390 correct=24 errors=0 acc=0.2124 supported_acc=0.4340 last_correct=False
+infer TCGA-LL-A442 (3 answerable MC questions)
+live_mc processed=114/390 correct=24 errors=0 acc=0.2105 supported_acc=0.4259 last_correct=False
+live_mc processed=115/390 correct=24 errors=0 acc=0.2087 supported_acc=0.4259 last_correct=False
+live_mc processed=116/390 correct=25 errors=0 acc=0.2155 supported_acc=0.4364 last_correct=True
+[27/85] gate TCGA-EW-A2FW (5 MC questions)
+live_mc processed=117/390 correct=25 errors=0 acc=0.2137 supported_acc=0.4364 last_correct=False
+live_mc processed=118/390 correct=25 errors=0 acc=0.2119 supported_acc=0.4364 last_correct=False
+live_mc processed=119/390 correct=25 errors=0 acc=0.2101 supported_acc=0.4364 last_correct=False
+infer TCGA-EW-A2FW (2 answerable MC questions)
+live_mc processed=120/390 correct=25 errors=0 acc=0.2083 supported_acc=0.4286 last_correct=False
+live_mc processed=121/390 correct=26 errors=0 acc=0.2149 supported_acc=0.4386 last_correct=True
+[28/85] gate TCGA-E2-A105 (3 MC questions)
+live_mc processed=122/390 correct=26 errors=0 acc=0.2131 supported_acc=0.4386 last_correct=False
+live_mc processed=123/390 correct=26 errors=0 acc=0.2114 supported_acc=0.4386 last_correct=False
+infer TCGA-E2-A105 (1 answerable MC questions)
+live_mc processed=124/390 correct=26 errors=0 acc=0.2097 supported_acc=0.4310 last_correct=False
+[29/85] gate TCGA-AR-A255 (1 MC questions)
+live_mc processed=125/390 correct=26 errors=0 acc=0.2080 supported_acc=0.4310 last_correct=False
+skip G2P TCGA-AR-A255: all questions unanswerable
+[30/85] gate TCGA-A2-A0EW (3 MC questions)
+live_mc processed=126/390 correct=26 errors=0 acc=0.2063 supported_acc=0.4310 last_correct=False
+live_mc processed=127/390 correct=26 errors=0 acc=0.2047 supported_acc=0.4310 last_correct=False
+infer TCGA-A2-A0EW (1 answerable MC questions)
+live_mc processed=128/390 correct=26 errors=0 acc=0.2031 supported_acc=0.4237 last_correct=False
+[31/85] gate TCGA-A8-A08R (5 MC questions)
+live_mc processed=129/390 correct=26 errors=0 acc=0.2016 supported_acc=0.4237 last_correct=False
+live_mc processed=130/390 correct=26 errors=0 acc=0.2000 supported_acc=0.4237 last_correct=False
+infer TCGA-A8-A08R (3 answerable MC questions)
+live_mc processed=131/390 correct=27 errors=0 acc=0.2061 supported_acc=0.4333 last_correct=True
+live_mc processed=132/390 correct=27 errors=0 acc=0.2045 supported_acc=0.4262 last_correct=False
+live_mc processed=133/390 correct=28 errors=0 acc=0.2105 supported_acc=0.4355 last_correct=True
+[32/85] gate TCGA-BH-A0HL (5 MC questions)
+live_mc processed=134/390 correct=28 errors=0 acc=0.2090 supported_acc=0.4355 last_correct=False
+live_mc processed=135/390 correct=28 errors=0 acc=0.2074 supported_acc=0.4355 last_correct=False
+live_mc processed=136/390 correct=28 errors=0 acc=0.2059 supported_acc=0.4355 last_correct=False
+live_mc processed=137/390 correct=28 errors=0 acc=0.2044 supported_acc=0.4355 last_correct=False
+infer TCGA-BH-A0HL (1 answerable MC questions)
+live_mc processed=138/390 correct=28 errors=0 acc=0.2029 supported_acc=0.4286 last_correct=False
+[33/85] gate TCGA-E2-A15E (4 MC questions)
+live_mc processed=139/390 correct=28 errors=0 acc=0.2014 supported_acc=0.4286 last_correct=False
+infer TCGA-E2-A15E (3 answerable MC questions)
+live_mc processed=140/390 correct=28 errors=0 acc=0.2000 supported_acc=0.4219 last_correct=False
+live_mc processed=141/390 correct=28 errors=0 acc=0.1986 supported_acc=0.4154 last_correct=False
+live_mc processed=142/390 correct=28 errors=0 acc=0.1972 supported_acc=0.4091 last_correct=False
+[34/85] gate TCGA-B6-A0WV (5 MC questions)
+live_mc processed=143/390 correct=28 errors=0 acc=0.1958 supported_acc=0.4091 last_correct=False
+infer TCGA-B6-A0WV (4 answerable MC questions)
+live_mc processed=144/390 correct=28 errors=0 acc=0.1944 supported_acc=0.4030 last_correct=False
+live_mc processed=145/390 correct=29 errors=0 acc=0.2000 supported_acc=0.4030 last_correct=True
+live_mc processed=146/390 correct=29 errors=0 acc=0.1986 supported_acc=0.3971 last_correct=False
+live_mc processed=147/390 correct=30 errors=0 acc=0.2041 supported_acc=0.4058 last_correct=True
+[35/85] gate TCGA-E9-A1RA (4 MC questions)
+live_mc processed=148/390 correct=30 errors=0 acc=0.2027 supported_acc=0.4058 last_correct=False
+live_mc processed=149/390 correct=30 errors=0 acc=0.2013 supported_acc=0.4058 last_correct=False
+live_mc processed=150/390 correct=30 errors=0 acc=0.2000 supported_acc=0.4058 last_correct=False
+infer TCGA-E9-A1RA (1 answerable MC questions)
+live_mc processed=151/390 correct=30 errors=0 acc=0.1987 supported_acc=0.4000 last_correct=False
+[36/85] gate TCGA-BH-A0BT (2 MC questions)
+live_mc processed=152/390 correct=30 errors=0 acc=0.1974 supported_acc=0.4000 last_correct=False
+live_mc processed=153/390 correct=30 errors=0 acc=0.1961 supported_acc=0.4000 last_correct=False
+skip G2P TCGA-BH-A0BT: all questions unanswerable
+[37/85] gate TCGA-BH-A0HX (4 MC questions)
+live_mc processed=154/390 correct=30 errors=0 acc=0.1948 supported_acc=0.4000 last_correct=False
+infer TCGA-BH-A0HX (3 answerable MC questions)
+live_mc processed=155/390 correct=31 errors=0 acc=0.2000 supported_acc=0.4085 last_correct=True
+live_mc processed=156/390 correct=31 errors=0 acc=0.1987 supported_acc=0.4028 last_correct=False
+live_mc processed=157/390 correct=32 errors=0 acc=0.2038 supported_acc=0.4110 last_correct=True
+[38/85] gate TCGA-A8-A08Z (4 MC questions)
+live_mc processed=158/390 correct=32 errors=0 acc=0.2025 supported_acc=0.4110 last_correct=False
+live_mc processed=159/390 correct=32 errors=0 acc=0.2013 supported_acc=0.4110 last_correct=False
+live_mc processed=160/390 correct=32 errors=0 acc=0.2000 supported_acc=0.4110 last_correct=False
+infer TCGA-A8-A08Z (1 answerable MC questions)
+live_mc processed=161/390 correct=32 errors=0 acc=0.1988 supported_acc=0.4110 last_correct=False
+[39/85] gate TCGA-D8-A1JL (5 MC questions)
+live_mc processed=162/390 correct=32 errors=0 acc=0.1975 supported_acc=0.4110 last_correct=False
+infer TCGA-D8-A1JL (4 answerable MC questions)
+live_mc processed=163/390 correct=33 errors=0 acc=0.2025 supported_acc=0.4189 last_correct=True
+live_mc processed=164/390 correct=34 errors=0 acc=0.2073 supported_acc=0.4267 last_correct=True
+live_mc processed=165/390 correct=35 errors=0 acc=0.2121 supported_acc=0.4342 last_correct=True
+live_mc processed=166/390 correct=35 errors=0 acc=0.2108 supported_acc=0.4342 last_correct=False
+[40/85] gate TCGA-B6-A0RO (5 MC questions)
+live_mc processed=167/390 correct=35 errors=0 acc=0.2096 supported_acc=0.4342 last_correct=False
+live_mc processed=168/390 correct=35 errors=0 acc=0.2083 supported_acc=0.4342 last_correct=False
+live_mc processed=169/390 correct=35 errors=0 acc=0.2071 supported_acc=0.4342 last_correct=False
+infer TCGA-B6-A0RO (2 answerable MC questions)
+live_mc processed=170/390 correct=36 errors=0 acc=0.2118 supported_acc=0.4416 last_correct=True
+live_mc processed=171/390 correct=37 errors=0 acc=0.2164 supported_acc=0.4416 last_correct=True
+[41/85] gate TCGA-GM-A2D9 (5 MC questions)
+live_mc processed=172/390 correct=37 errors=0 acc=0.2151 supported_acc=0.4416 last_correct=False
+live_mc processed=173/390 correct=37 errors=0 acc=0.2139 supported_acc=0.4416 last_correct=False
+live_mc processed=174/390 correct=37 errors=0 acc=0.2126 supported_acc=0.4416 last_correct=False
+infer TCGA-GM-A2D9 (2 answerable MC questions)
+live_mc processed=175/390 correct=37 errors=0 acc=0.2114 supported_acc=0.4359 last_correct=False
+live_mc processed=176/390 correct=38 errors=0 acc=0.2159 supported_acc=0.4430 last_correct=True
+[42/85] gate TCGA-A2-A0T6 (6 MC questions)
+live_mc processed=177/390 correct=38 errors=0 acc=0.2147 supported_acc=0.4430 last_correct=False
+live_mc processed=178/390 correct=38 errors=0 acc=0.2135 supported_acc=0.4430 last_correct=False
+live_mc processed=179/390 correct=38 errors=0 acc=0.2123 supported_acc=0.4430 last_correct=False
+live_mc processed=180/390 correct=38 errors=0 acc=0.2111 supported_acc=0.4430 last_correct=False
+infer TCGA-A2-A0T6 (2 answerable MC questions)
+live_mc processed=181/390 correct=39 errors=0 acc=0.2155 supported_acc=0.4500 last_correct=True
+live_mc processed=182/390 correct=40 errors=0 acc=0.2198 supported_acc=0.4568 last_correct=True
+[43/85] gate TCGA-AQ-A7U7 (6 MC questions)
+live_mc processed=183/390 correct=40 errors=0 acc=0.2186 supported_acc=0.4568 last_correct=False
+live_mc processed=184/390 correct=40 errors=0 acc=0.2174 supported_acc=0.4568 last_correct=False
+infer TCGA-AQ-A7U7 (4 answerable MC questions)
+live_mc processed=185/390 correct=41 errors=0 acc=0.2216 supported_acc=0.4634 last_correct=True
+live_mc processed=186/390 correct=41 errors=0 acc=0.2204 supported_acc=0.4578 last_correct=False
+live_mc processed=187/390 correct=42 errors=0 acc=0.2246 supported_acc=0.4643 last_correct=True
+live_mc processed=188/390 correct=43 errors=0 acc=0.2287 supported_acc=0.4706 last_correct=True
+[44/85] gate TCGA-AN-A0XS (6 MC questions)
+live_mc processed=189/390 correct=43 errors=0 acc=0.2275 supported_acc=0.4706 last_correct=False
+live_mc processed=190/390 correct=43 errors=0 acc=0.2263 supported_acc=0.4706 last_correct=False
+live_mc processed=191/390 correct=43 errors=0 acc=0.2251 supported_acc=0.4706 last_correct=False
+infer TCGA-AN-A0XS (3 answerable MC questions)
+live_mc processed=192/390 correct=44 errors=0 acc=0.2292 supported_acc=0.4767 last_correct=True
+live_mc processed=193/390 correct=44 errors=0 acc=0.2280 supported_acc=0.4713 last_correct=False
+live_mc processed=194/390 correct=45 errors=0 acc=0.2320 supported_acc=0.4773 last_correct=True
+[45/85] gate TCGA-E9-A2JS (4 MC questions)
+live_mc processed=195/390 correct=45 errors=0 acc=0.2308 supported_acc=0.4773 last_correct=False
+live_mc processed=196/390 correct=45 errors=0 acc=0.2296 supported_acc=0.4773 last_correct=False
+infer TCGA-E9-A2JS (2 answerable MC questions)
+live_mc processed=197/390 correct=45 errors=0 acc=0.2284 supported_acc=0.4719 last_correct=False
+live_mc processed=198/390 correct=45 errors=0 acc=0.2273 supported_acc=0.4667 last_correct=False
+[46/85] gate TCGA-BH-A0DK (4 MC questions)
+live_mc processed=199/390 correct=45 errors=0 acc=0.2261 supported_acc=0.4667 last_correct=False
+infer TCGA-BH-A0DK (3 answerable MC questions)
+live_mc processed=200/390 correct=45 errors=0 acc=0.2250 supported_acc=0.4615 last_correct=False
+live_mc processed=201/390 correct=45 errors=0 acc=0.2239 supported_acc=0.4565 last_correct=False
+live_mc processed=202/390 correct=46 errors=0 acc=0.2277 supported_acc=0.4624 last_correct=True
+[47/85] gate TCGA-C8-A8HR (5 MC questions)
+live_mc processed=203/390 correct=46 errors=0 acc=0.2266 supported_acc=0.4624 last_correct=False
+live_mc processed=204/390 correct=46 errors=0 acc=0.2255 supported_acc=0.4624 last_correct=False
+live_mc processed=205/390 correct=46 errors=0 acc=0.2244 supported_acc=0.4624 last_correct=False
+live_mc processed=206/390 correct=46 errors=0 acc=0.2233 supported_acc=0.4624 last_correct=False
+infer TCGA-C8-A8HR (1 answerable MC questions)
+live_mc processed=207/390 correct=47 errors=0 acc=0.2271 supported_acc=0.4681 last_correct=True
+[48/85] gate TCGA-E9-A22H (5 MC questions)
+live_mc processed=208/390 correct=47 errors=0 acc=0.2260 supported_acc=0.4681 last_correct=False
+live_mc processed=209/390 correct=47 errors=0 acc=0.2249 supported_acc=0.4681 last_correct=False
+live_mc processed=210/390 correct=47 errors=0 acc=0.2238 supported_acc=0.4681 last_correct=False
+live_mc processed=211/390 correct=47 errors=0 acc=0.2227 supported_acc=0.4681 last_correct=False
+infer TCGA-E9-A22H (1 answerable MC questions)
+live_mc processed=212/390 correct=48 errors=0 acc=0.2264 supported_acc=0.4737 last_correct=True
+[49/85] gate TCGA-LL-A7T0 (5 MC questions)
+live_mc processed=213/390 correct=48 errors=0 acc=0.2254 supported_acc=0.4737 last_correct=False
+live_mc processed=214/390 correct=48 errors=0 acc=0.2243 supported_acc=0.4737 last_correct=False
+infer TCGA-LL-A7T0 (3 answerable MC questions)
+live_mc processed=215/390 correct=49 errors=0 acc=0.2279 supported_acc=0.4792 last_correct=True
+live_mc processed=216/390 correct=50 errors=0 acc=0.2315 supported_acc=0.4845 last_correct=True
+live_mc processed=217/390 correct=51 errors=0 acc=0.2350 supported_acc=0.4898 last_correct=True
+[50/85] gate TCGA-C8-A135 (6 MC questions)
+live_mc processed=218/390 correct=51 errors=0 acc=0.2339 supported_acc=0.4898 last_correct=False
+live_mc processed=219/390 correct=51 errors=0 acc=0.2329 supported_acc=0.4898 last_correct=False
+live_mc processed=220/390 correct=51 errors=0 acc=0.2318 supported_acc=0.4898 last_correct=False
+live_mc processed=221/390 correct=51 errors=0 acc=0.2308 supported_acc=0.4898 last_correct=False
+infer TCGA-C8-A135 (2 answerable MC questions)
+live_mc processed=222/390 correct=52 errors=0 acc=0.2342 supported_acc=0.4949 last_correct=True
+live_mc processed=223/390 correct=52 errors=0 acc=0.2332 supported_acc=0.4900 last_correct=False
+[51/85] gate TCGA-A8-A08L (5 MC questions)
+live_mc processed=224/390 correct=52 errors=0 acc=0.2321 supported_acc=0.4900 last_correct=False
+live_mc processed=225/390 correct=52 errors=0 acc=0.2311 supported_acc=0.4900 last_correct=False
+live_mc processed=226/390 correct=52 errors=0 acc=0.2301 supported_acc=0.4900 last_correct=False
+infer TCGA-A8-A08L (2 answerable MC questions)
+live_mc processed=227/390 correct=53 errors=0 acc=0.2335 supported_acc=0.4950 last_correct=True
+live_mc processed=228/390 correct=54 errors=0 acc=0.2368 supported_acc=0.5000 last_correct=True
+[52/85] gate TCGA-AO-A0J9 (5 MC questions)
+live_mc processed=229/390 correct=54 errors=0 acc=0.2358 supported_acc=0.5000 last_correct=False
+live_mc processed=230/390 correct=54 errors=0 acc=0.2348 supported_acc=0.5000 last_correct=False
+live_mc processed=231/390 correct=54 errors=0 acc=0.2338 supported_acc=0.5000 last_correct=False
+live_mc processed=232/390 correct=54 errors=0 acc=0.2328 supported_acc=0.5000 last_correct=False
+infer TCGA-AO-A0J9 (1 answerable MC questions)
+live_mc processed=233/390 correct=54 errors=0 acc=0.2318 supported_acc=0.4951 last_correct=False
+[53/85] gate TCGA-D8-A1JK (5 MC questions)
+live_mc processed=234/390 correct=54 errors=0 acc=0.2308 supported_acc=0.4951 last_correct=False
+infer TCGA-D8-A1JK (4 answerable MC questions)
+live_mc processed=235/390 correct=55 errors=0 acc=0.2340 supported_acc=0.5000 last_correct=True
+live_mc processed=236/390 correct=56 errors=0 acc=0.2373 supported_acc=0.5048 last_correct=True
+live_mc processed=237/390 correct=57 errors=0 acc=0.2405 supported_acc=0.5094 last_correct=True
+live_mc processed=238/390 correct=58 errors=0 acc=0.2437 supported_acc=0.5140 last_correct=True
+[54/85] gate TCGA-A2-A0CK (6 MC questions)
+live_mc processed=239/390 correct=58 errors=0 acc=0.2427 supported_acc=0.5140 last_correct=False
+live_mc processed=240/390 correct=58 errors=0 acc=0.2417 supported_acc=0.5140 last_correct=False
+live_mc processed=241/390 correct=58 errors=0 acc=0.2407 supported_acc=0.5140 last_correct=False
+live_mc processed=242/390 correct=58 errors=0 acc=0.2397 supported_acc=0.5140 last_correct=False
+infer TCGA-A2-A0CK (2 answerable MC questions)
+live_mc processed=243/390 correct=59 errors=0 acc=0.2428 supported_acc=0.5185 last_correct=True
+live_mc processed=244/390 correct=59 errors=0 acc=0.2418 supported_acc=0.5138 last_correct=False
+[55/85] gate TCGA-OL-A5RX (5 MC questions)
+live_mc processed=245/390 correct=59 errors=0 acc=0.2408 supported_acc=0.5138 last_correct=False
+live_mc processed=246/390 correct=59 errors=0 acc=0.2398 supported_acc=0.5138 last_correct=False
+infer TCGA-OL-A5RX (3 answerable MC questions)
+live_mc processed=247/390 correct=59 errors=0 acc=0.2389 supported_acc=0.5091 last_correct=False
+live_mc processed=248/390 correct=60 errors=0 acc=0.2419 supported_acc=0.5135 last_correct=True
+live_mc processed=249/390 correct=60 errors=0 acc=0.2410 supported_acc=0.5135 last_correct=False
+[56/85] gate TCGA-A2-A3XY (5 MC questions)
+live_mc processed=250/390 correct=60 errors=0 acc=0.2400 supported_acc=0.5135 last_correct=False
+infer TCGA-A2-A3XY (4 answerable MC questions)
+live_mc processed=251/390 correct=61 errors=0 acc=0.2430 supported_acc=0.5179 last_correct=True
+live_mc processed=252/390 correct=62 errors=0 acc=0.2460 supported_acc=0.5221 last_correct=True
+live_mc processed=253/390 correct=62 errors=0 acc=0.2451 supported_acc=0.5175 last_correct=False
+live_mc processed=254/390 correct=62 errors=0 acc=0.2441 supported_acc=0.5130 last_correct=False
+[57/85] gate TCGA-D8-A27M (5 MC questions)
+live_mc processed=255/390 correct=62 errors=0 acc=0.2431 supported_acc=0.5130 last_correct=False
+infer TCGA-D8-A27M (4 answerable MC questions)
+live_mc processed=256/390 correct=63 errors=0 acc=0.2461 supported_acc=0.5172 last_correct=True
+live_mc processed=257/390 correct=64 errors=0 acc=0.2490 supported_acc=0.5214 last_correct=True
+live_mc processed=258/390 correct=65 errors=0 acc=0.2519 supported_acc=0.5254 last_correct=True
+live_mc processed=259/390 correct=66 errors=0 acc=0.2548 supported_acc=0.5294 last_correct=True
+[58/85] gate TCGA-AO-A1KP (4 MC questions)
+live_mc processed=260/390 correct=66 errors=0 acc=0.2538 supported_acc=0.5294 last_correct=False
+live_mc processed=261/390 correct=66 errors=0 acc=0.2529 supported_acc=0.5294 last_correct=False
+live_mc processed=262/390 correct=66 errors=0 acc=0.2519 supported_acc=0.5294 last_correct=False
+infer TCGA-AO-A1KP (1 answerable MC questions)
+live_mc processed=263/390 correct=66 errors=0 acc=0.2510 supported_acc=0.5250 last_correct=False
+[59/85] gate TCGA-OL-A66P (3 MC questions)
+live_mc processed=264/390 correct=66 errors=0 acc=0.2500 supported_acc=0.5250 last_correct=False
+live_mc processed=265/390 correct=66 errors=0 acc=0.2491 supported_acc=0.5250 last_correct=False
+infer TCGA-OL-A66P (1 answerable MC questions)
+live_mc processed=266/390 correct=67 errors=0 acc=0.2519 supported_acc=0.5289 last_correct=True
+[60/85] gate TCGA-D8-A73U (5 MC questions)
+live_mc processed=267/390 correct=67 errors=0 acc=0.2509 supported_acc=0.5289 last_correct=False
+live_mc processed=268/390 correct=67 errors=0 acc=0.2500 supported_acc=0.5289 last_correct=False
+live_mc processed=269/390 correct=67 errors=0 acc=0.2491 supported_acc=0.5289 last_correct=False
+infer TCGA-D8-A73U (2 answerable MC questions)
+live_mc processed=270/390 correct=67 errors=0 acc=0.2481 supported_acc=0.5246 last_correct=False
+live_mc processed=271/390 correct=67 errors=0 acc=0.2472 supported_acc=0.5203 last_correct=False
+[61/85] gate TCGA-AO-A12D (4 MC questions)
+live_mc processed=272/390 correct=67 errors=0 acc=0.2463 supported_acc=0.5203 last_correct=False
+live_mc processed=273/390 correct=67 errors=0 acc=0.2454 supported_acc=0.5203 last_correct=False
+infer TCGA-AO-A12D (2 answerable MC questions)
+live_mc processed=274/390 correct=68 errors=0 acc=0.2482 supported_acc=0.5242 last_correct=True
+live_mc processed=275/390 correct=69 errors=0 acc=0.2509 supported_acc=0.5280 last_correct=True
+[62/85] gate TCGA-E9-A1RE (4 MC questions)
+live_mc processed=276/390 correct=69 errors=0 acc=0.2500 supported_acc=0.5280 last_correct=False
+live_mc processed=277/390 correct=69 errors=0 acc=0.2491 supported_acc=0.5280 last_correct=False
+infer TCGA-E9-A1RE (2 answerable MC questions)
+live_mc processed=278/390 correct=70 errors=0 acc=0.2518 supported_acc=0.5317 last_correct=True
+live_mc processed=279/390 correct=71 errors=0 acc=0.2545 supported_acc=0.5354 last_correct=True
+[63/85] gate TCGA-D8-A1JB (4 MC questions)
+live_mc processed=280/390 correct=71 errors=0 acc=0.2536 supported_acc=0.5354 last_correct=False
+infer TCGA-D8-A1JB (3 answerable MC questions)
+live_mc processed=281/390 correct=71 errors=0 acc=0.2527 supported_acc=0.5312 last_correct=False
+live_mc processed=282/390 correct=72 errors=0 acc=0.2553 supported_acc=0.5349 last_correct=True
+live_mc processed=283/390 correct=72 errors=0 acc=0.2544 supported_acc=0.5308 last_correct=False
+[64/85] gate TCGA-C8-A1HJ (6 MC questions)
+live_mc processed=284/390 correct=72 errors=0 acc=0.2535 supported_acc=0.5308 last_correct=False
+live_mc processed=285/390 correct=72 errors=0 acc=0.2526 supported_acc=0.5308 last_correct=False
+live_mc processed=286/390 correct=72 errors=0 acc=0.2517 supported_acc=0.5308 last_correct=False
+live_mc processed=287/390 correct=72 errors=0 acc=0.2509 supported_acc=0.5308 last_correct=False
+live_mc processed=288/390 correct=72 errors=0 acc=0.2500 supported_acc=0.5308 last_correct=False
+live_mc processed=289/390 correct=72 errors=0 acc=0.2491 supported_acc=0.5308 last_correct=False
+skip G2P TCGA-C8-A1HJ: all questions unanswerable
+[65/85] gate TCGA-A2-A1FW (5 MC questions)
+live_mc processed=290/390 correct=72 errors=0 acc=0.2483 supported_acc=0.5308 last_correct=False
+live_mc processed=291/390 correct=72 errors=0 acc=0.2474 supported_acc=0.5308 last_correct=False
+live_mc processed=292/390 correct=72 errors=0 acc=0.2466 supported_acc=0.5308 last_correct=False
+infer TCGA-A2-A1FW (2 answerable MC questions)
+live_mc processed=293/390 correct=73 errors=0 acc=0.2491 supported_acc=0.5344 last_correct=True
+live_mc processed=294/390 correct=73 errors=0 acc=0.2483 supported_acc=0.5303 last_correct=False
+[66/85] gate TCGA-A2-A25A (6 MC questions)
+live_mc processed=295/390 correct=73 errors=0 acc=0.2475 supported_acc=0.5303 last_correct=False
+live_mc processed=296/390 correct=73 errors=0 acc=0.2466 supported_acc=0.5303 last_correct=False
+live_mc processed=297/390 correct=73 errors=0 acc=0.2458 supported_acc=0.5303 last_correct=False
+live_mc processed=298/390 correct=73 errors=0 acc=0.2450 supported_acc=0.5303 last_correct=False
+infer TCGA-A2-A25A (2 answerable MC questions)
+live_mc processed=299/390 correct=73 errors=0 acc=0.2441 supported_acc=0.5263 last_correct=False
+live_mc processed=300/390 correct=73 errors=0 acc=0.2433 supported_acc=0.5263 last_correct=False
+[67/85] gate TCGA-A8-A09Q (5 MC questions)
+live_mc processed=301/390 correct=73 errors=0 acc=0.2425 supported_acc=0.5263 last_correct=False
+live_mc processed=302/390 correct=73 errors=0 acc=0.2417 supported_acc=0.5263 last_correct=False
+infer TCGA-A8-A09Q (3 answerable MC questions)
+live_mc processed=303/390 correct=74 errors=0 acc=0.2442 supported_acc=0.5299 last_correct=True
+live_mc processed=304/390 correct=75 errors=0 acc=0.2467 supported_acc=0.5299 last_correct=True
+live_mc processed=305/390 correct=75 errors=0 acc=0.2459 supported_acc=0.5259 last_correct=False
+[68/85] gate TCGA-BH-A0EE (6 MC questions)
+live_mc processed=306/390 correct=75 errors=0 acc=0.2451 supported_acc=0.5259 last_correct=False
+live_mc processed=307/390 correct=75 errors=0 acc=0.2443 supported_acc=0.5259 last_correct=False
+infer TCGA-BH-A0EE (4 answerable MC questions)
+live_mc processed=308/390 correct=76 errors=0 acc=0.2468 supported_acc=0.5294 last_correct=True
+live_mc processed=309/390 correct=76 errors=0 acc=0.2460 supported_acc=0.5255 last_correct=False
+live_mc processed=310/390 correct=77 errors=0 acc=0.2484 supported_acc=0.5290 last_correct=True
+live_mc processed=311/390 correct=77 errors=0 acc=0.2476 supported_acc=0.5252 last_correct=False
+[69/85] gate TCGA-A2-A0CZ (5 MC questions)
+live_mc processed=312/390 correct=77 errors=0 acc=0.2468 supported_acc=0.5252 last_correct=False
+live_mc processed=313/390 correct=77 errors=0 acc=0.2460 supported_acc=0.5252 last_correct=False
+live_mc processed=314/390 correct=77 errors=0 acc=0.2452 supported_acc=0.5252 last_correct=False
+infer TCGA-A2-A0CZ (2 answerable MC questions)
+live_mc processed=315/390 correct=77 errors=0 acc=0.2444 supported_acc=0.5214 last_correct=False
+live_mc processed=316/390 correct=77 errors=0 acc=0.2437 supported_acc=0.5177 last_correct=False
+[70/85] gate TCGA-AQ-A54N (5 MC questions)
+live_mc processed=317/390 correct=77 errors=0 acc=0.2429 supported_acc=0.5177 last_correct=False
+infer TCGA-AQ-A54N (4 answerable MC questions)
+live_mc processed=318/390 correct=77 errors=0 acc=0.2421 supported_acc=0.5141 last_correct=False
+live_mc processed=319/390 correct=78 errors=0 acc=0.2445 supported_acc=0.5175 last_correct=True
+live_mc processed=320/390 correct=78 errors=0 acc=0.2437 supported_acc=0.5175 last_correct=False
+live_mc processed=321/390 correct=78 errors=0 acc=0.2430 supported_acc=0.5139 last_correct=False
+[71/85] gate TCGA-D8-A13Z (4 MC questions)
+live_mc processed=322/390 correct=78 errors=0 acc=0.2422 supported_acc=0.5139 last_correct=False
+live_mc processed=323/390 correct=78 errors=0 acc=0.2415 supported_acc=0.5139 last_correct=False
+infer TCGA-D8-A13Z (2 answerable MC questions)
+live_mc processed=324/390 correct=79 errors=0 acc=0.2438 supported_acc=0.5172 last_correct=True
+live_mc processed=325/390 correct=80 errors=0 acc=0.2462 supported_acc=0.5205 last_correct=True
+[72/85] gate TCGA-BH-A42U (4 MC questions)
+live_mc processed=326/390 correct=80 errors=0 acc=0.2454 supported_acc=0.5205 last_correct=False
+live_mc processed=327/390 correct=80 errors=0 acc=0.2446 supported_acc=0.5205 last_correct=False
+infer TCGA-BH-A42U (2 answerable MC questions)
+live_mc processed=328/390 correct=80 errors=0 acc=0.2439 supported_acc=0.5205 last_correct=False
+live_mc processed=329/390 correct=80 errors=0 acc=0.2432 supported_acc=0.5170 last_correct=False
+[73/85] gate TCGA-AC-A3TM (4 MC questions)
+live_mc processed=330/390 correct=80 errors=0 acc=0.2424 supported_acc=0.5170 last_correct=False
+live_mc processed=331/390 correct=80 errors=0 acc=0.2417 supported_acc=0.5170 last_correct=False
+live_mc processed=332/390 correct=80 errors=0 acc=0.2410 supported_acc=0.5170 last_correct=False
+infer TCGA-AC-A3TM (1 answerable MC questions)
+live_mc processed=333/390 correct=80 errors=0 acc=0.2402 supported_acc=0.5135 last_correct=False
+[74/85] gate TCGA-A8-A07U (4 MC questions)
+live_mc processed=334/390 correct=80 errors=0 acc=0.2395 supported_acc=0.5135 last_correct=False
+live_mc processed=335/390 correct=80 errors=0 acc=0.2388 supported_acc=0.5135 last_correct=False
+infer TCGA-A8-A07U (2 answerable MC questions)
+live_mc processed=336/390 correct=81 errors=0 acc=0.2411 supported_acc=0.5168 last_correct=True
+live_mc processed=337/390 correct=82 errors=0 acc=0.2433 supported_acc=0.5200 last_correct=True
+[75/85] gate TCGA-A2-A0EM (6 MC questions)
+live_mc processed=338/390 correct=82 errors=0 acc=0.2426 supported_acc=0.5200 last_correct=False
+live_mc processed=339/390 correct=82 errors=0 acc=0.2419 supported_acc=0.5200 last_correct=False
+live_mc processed=340/390 correct=82 errors=0 acc=0.2412 supported_acc=0.5200 last_correct=False
+infer TCGA-A2-A0EM (3 answerable MC questions)
+live_mc processed=341/390 correct=82 errors=0 acc=0.2405 supported_acc=0.5166 last_correct=False
+live_mc processed=342/390 correct=83 errors=0 acc=0.2427 supported_acc=0.5166 last_correct=True
+live_mc processed=343/390 correct=83 errors=0 acc=0.2420 supported_acc=0.5132 last_correct=False
+[76/85] gate TCGA-A8-A097 (6 MC questions)
+live_mc processed=344/390 correct=83 errors=0 acc=0.2413 supported_acc=0.5132 last_correct=False
+live_mc processed=345/390 correct=83 errors=0 acc=0.2406 supported_acc=0.5132 last_correct=False
+live_mc processed=346/390 correct=83 errors=0 acc=0.2399 supported_acc=0.5132 last_correct=False
+infer TCGA-A8-A097 (3 answerable MC questions)
+live_mc processed=347/390 correct=84 errors=0 acc=0.2421 supported_acc=0.5163 last_correct=True
+live_mc processed=348/390 correct=85 errors=0 acc=0.2443 supported_acc=0.5195 last_correct=True
+live_mc processed=349/390 correct=86 errors=0 acc=0.2464 supported_acc=0.5226 last_correct=True
+[77/85] gate TCGA-A2-A1FX (5 MC questions)
+live_mc processed=350/390 correct=86 errors=0 acc=0.2457 supported_acc=0.5226 last_correct=False
+live_mc processed=351/390 correct=86 errors=0 acc=0.2450 supported_acc=0.5226 last_correct=False
+live_mc processed=352/390 correct=86 errors=0 acc=0.2443 supported_acc=0.5226 last_correct=False
+live_mc processed=353/390 correct=86 errors=0 acc=0.2436 supported_acc=0.5226 last_correct=False
+live_mc processed=354/390 correct=86 errors=0 acc=0.2429 supported_acc=0.5226 last_correct=False
+skip G2P TCGA-A2-A1FX: all questions unanswerable
+[78/85] gate TCGA-A2-A3XU (5 MC questions)
+live_mc processed=355/390 correct=86 errors=0 acc=0.2423 supported_acc=0.5226 last_correct=False
+live_mc processed=356/390 correct=86 errors=0 acc=0.2416 supported_acc=0.5226 last_correct=False
+live_mc processed=357/390 correct=86 errors=0 acc=0.2409 supported_acc=0.5226 last_correct=False
+infer TCGA-A2-A3XU (2 answerable MC questions)
+live_mc processed=358/390 correct=87 errors=0 acc=0.2430 supported_acc=0.5256 last_correct=True
+live_mc processed=359/390 correct=88 errors=0 acc=0.2451 supported_acc=0.5287 last_correct=True
+[79/85] gate TCGA-AR-A24S (5 MC questions)
+live_mc processed=360/390 correct=88 errors=0 acc=0.2444 supported_acc=0.5287 last_correct=False
+live_mc processed=361/390 correct=88 errors=0 acc=0.2438 supported_acc=0.5287 last_correct=False
+infer TCGA-AR-A24S (3 answerable MC questions)
+live_mc processed=362/390 correct=88 errors=0 acc=0.2431 supported_acc=0.5253 last_correct=False
+live_mc processed=363/390 correct=88 errors=0 acc=0.2424 supported_acc=0.5220 last_correct=False
+live_mc processed=364/390 correct=88 errors=0 acc=0.2418 supported_acc=0.5220 last_correct=False
+[80/85] gate TCGA-AR-A1AU (2 MC questions)
+live_mc processed=365/390 correct=88 errors=0 acc=0.2411 supported_acc=0.5220 last_correct=False
+infer TCGA-AR-A1AU (1 answerable MC questions)
+live_mc processed=366/390 correct=88 errors=0 acc=0.2404 supported_acc=0.5188 last_correct=False
+[81/85] gate TCGA-E2-A14P (4 MC questions)
+live_mc processed=367/390 correct=88 errors=0 acc=0.2398 supported_acc=0.5188 last_correct=False
+live_mc processed=368/390 correct=88 errors=0 acc=0.2391 supported_acc=0.5188 last_correct=False
+infer TCGA-E2-A14P (2 answerable MC questions)
+live_mc processed=369/390 correct=89 errors=0 acc=0.2412 supported_acc=0.5217 last_correct=True
+live_mc processed=370/390 correct=89 errors=0 acc=0.2405 supported_acc=0.5185 last_correct=False
+[82/85] gate TCGA-AC-A5XS (5 MC questions)
+live_mc processed=371/390 correct=89 errors=0 acc=0.2399 supported_acc=0.5185 last_correct=False
+live_mc processed=372/390 correct=89 errors=0 acc=0.2392 supported_acc=0.5185 last_correct=False
+live_mc processed=373/390 correct=89 errors=0 acc=0.2386 supported_acc=0.5185 last_correct=False
+infer TCGA-AC-A5XS (2 answerable MC questions)
+live_mc processed=374/390 correct=90 errors=0 acc=0.2406 supported_acc=0.5215 last_correct=True
+live_mc processed=375/390 correct=91 errors=0 acc=0.2427 supported_acc=0.5244 last_correct=True
+[83/85] gate TCGA-BH-A0BQ (5 MC questions)
+live_mc processed=376/390 correct=91 errors=0 acc=0.2420 supported_acc=0.5244 last_correct=False
+infer TCGA-BH-A0BQ (4 answerable MC questions)
+live_mc processed=377/390 correct=92 errors=0 acc=0.2440 supported_acc=0.5273 last_correct=True
+live_mc processed=378/390 correct=92 errors=0 acc=0.2434 supported_acc=0.5241 last_correct=False
+live_mc processed=379/390 correct=93 errors=0 acc=0.2454 supported_acc=0.5269 last_correct=True
+live_mc processed=380/390 correct=93 errors=0 acc=0.2447 supported_acc=0.5269 last_correct=False
+[84/85] gate TCGA-AR-A0TP (4 MC questions)
+live_mc processed=381/390 correct=93 errors=0 acc=0.2441 supported_acc=0.5269 last_correct=False
+live_mc processed=382/390 correct=93 errors=0 acc=0.2435 supported_acc=0.5269 last_correct=False
+infer TCGA-AR-A0TP (2 answerable MC questions)
+live_mc processed=383/390 correct=94 errors=0 acc=0.2454 supported_acc=0.5298 last_correct=True
+live_mc processed=384/390 correct=94 errors=0 acc=0.2448 supported_acc=0.5266 last_correct=False
+[85/85] gate TCGA-AN-A0XW (6 MC questions)
+live_mc processed=385/390 correct=94 errors=0 acc=0.2442 supported_acc=0.5266 last_correct=False
+live_mc processed=386/390 correct=94 errors=0 acc=0.2435 supported_acc=0.5266 last_correct=False
+live_mc processed=387/390 correct=94 errors=0 acc=0.2429 supported_acc=0.5266 last_correct=False
+live_mc processed=388/390 correct=94 errors=0 acc=0.2423 supported_acc=0.5266 last_correct=False
+infer TCGA-AN-A0XW (2 answerable MC questions)
+live_mc processed=389/390 correct=95 errors=0 acc=0.2442 supported_acc=0.5294 last_correct=True
+live_mc processed=390/390 correct=95 errors=0 acc=0.2436 supported_acc=0.5263 last_correct=False
+Answerability evaluation: {"dataset": {"gold_total": 390, "gold_valid": 382, "gold_excluded": 8, "gold_can_answer": 186, "gold_cannot_answer": 196}, "answerability": {"accuracy": 0.9476439790575916, "precision": 0.9368421052631579, "recall": 0.956989247311828, "f1": 0.946808510638298, "specificity": 0.9387755102040817, "balanced_accuracy": 0.9478823787579549, "auroc": 0.9691545973228001, "tp": 178, "fp": 12, "fn": 8, "tn": 184}, "vqa": {"gold_answerable_n": 186, "gold_answerable_correct": 90, "gold_answerable_accuracy": 0.4838709677419355, "answered_n": 190, "abstained_n": 192, "selective_accuracy": 0.5, "coverage": 0.4973821989528796, "overall_correct": 95, "overall_accuracy": 0.2486910994764398}, "integrity": {"prediction_total": 390, "missing_predictions": 0, "extra_predictions": 0, "duplicate_predictions": 0, "legacy_conversions": 0}}
+Gate transition analysis: {"dataset": {"total_questions": 390, "valid_questions": 382, "excluded_questions": 8}, "precomputed_gate": {"true_total": 190, "false_total": 200, "true_valid": 190, "false_valid": 192, "answerability_model_calls": 0}, "downstream": {"questions_entered": 190, "router_calls": 190, "g2p_question_routes": 190, "g2p_patient_cases": 80, "pathology_agent_questions": 190, "pathor1_request_attempts": 190, "final_fusion_calls": 190}, "newly_accepted": {"total": 0, "gold_answerable": 0, "gold_unanswerable": 0, "answered_correct": 0, "gold_answerable_correct": 0}, "newly_rejected": {"total": 0, "gold_answerable": 0, "old_correct": 0, "old_gold_answerable_correct": 0}, "transition_net_gold_answerable_correct": 0}
+Full run comparison analysis: {"route_gold_answerable": {"gold_used_post_inference_only": true, "routes": {"direct": {"total_answered_in_route": 137, "total_correct": 77, "raw_accuracy": 0.5620437956204379, "gold_answerable_n": 135, "gold_answerable_correct": 76, "gold_answerable_accuracy": 0.562962962962963, "gold_unanswerable_n": 2, "gold_unanswerable_correct": 1, "excluded_n": 0}, "partial": {"total_answered_in_route": 34, "total_correct": 13, "raw_accuracy": 0.38235294117647056, "gold_answerable_n": 32, "gold_answerable_correct": 12, "gold_answerable_accuracy": 0.375, "gold_unanswerable_n": 2, "gold_unanswerable_correct": 1, "excluded_n": 0}, "morphology_only": {"total_answered_in_route": 19, "total_correct": 5, "raw_accuracy": 0.2631578947368421, "gold_answerable_n": 11, "gold_answerable_correct": 2, "gold_answerable_accuracy": 0.18181818181818182, "gold_unanswerable_n": 8, "gold_unanswerable_correct": 3, "excluded_n": 0}}}, "comparison": {"comparison_scope": "New full system configuration versus old full system configuration; differences are not attributable to retrieval alone because Fusion thinking and stochastic sampling also differ.", "total": {"total": 390, "wrong_to_correct": 10, "correct_to_wrong": 21, "both_correct": 85, "both_wrong": 274, "net_correct_change": -11}, "gold_answerable": {"total": 186, "wrong_to_correct": 8, "correct_to_wrong": 21, "both_correct": 82, "both_wrong": 75, "net_correct_change": -13}, "gold_answerable_benchmark": {"denominator": 186, "old_correct": 103, "new_correct": 90, "absolute_correct_delta": -13, "old_accuracy": 0.553763440860215, "new_accuracy": 0.4838709677419355, "percentage_point_delta": -6.989247311827951}, "same_route_flips": {"direct": {"total": 137, "wrong_to_correct": 3, "correct_to_wrong": 14, "both_correct": 74, "both_wrong": 46, "net_correct_change": -11}, "partial": {"total": 34, "wrong_to_correct": 4, "correct_to_wrong": 6, "both_correct": 9, "both_wrong": 15, "net_correct_change": -2}, "morphology_only": {"total": 19, "wrong_to_correct": 3, "correct_to_wrong": 1, "both_correct": 2, "both_wrong": 13, "net_correct_change": 2}, "route_changed": {"total": 0, "wrong_to_correct": 0, "correct_to_wrong": 0, "both_correct": 0, "both_wrong": 0, "net_correct_change": 0, "transitions": {}}}, "gold_answerable_same_route_flips": {"direct": {"total": 135, "wrong_to_correct": 3, "correct_to_wrong": 14, "both_correct": 73, "both_wrong": 45, "net_correct_change": -11}, "partial": {"total": 32, "wrong_to_correct": 4, "correct_to_wrong": 6, "both_correct": 8, "both_wrong": 14, "net_correct_change": -2}, "morphology_only": {"total": 11, "wrong_to_correct": 1, "correct_to_wrong": 1, "both_correct": 1, "both_wrong": 8, "net_correct_change": 0}, "route_changed": {"total": 0, "wrong_to_correct": 0, "correct_to_wrong": 0, "both_correct": 0, "both_wrong": 0, "net_correct_change": 0, "transitions": {}}}, "task_match_transitions": {"abstained->abstained": 200, "direct->direct": 137, "none->none": 19, "partial->partial": 34}, "old_route_counts": {"abstained": 200, "direct": 137, "morphology_only": 19, "partial": 34}, "new_route_counts": {"abstained": 200, "direct": 137, "morphology_only": 19, "partial": 34}}, "partial": {"all_old_or_new_partial": {"total": 34, "wrong_to_correct": 4, "correct_to_wrong": 6, "both_correct": 9, "both_wrong": 15, "net_correct_change": -2}, "same_route_partial": {"total": 34, "wrong_to_correct": 4, "correct_to_wrong": 6, "both_correct": 9, "both_wrong": 15, "net_correct_change": -2}, "gold_answerable_old_or_new_partial": {"total": 32, "wrong_to_correct": 4, "correct_to_wrong": 6, "both_correct": 8, "both_wrong": 14, "net_correct_change": -2}, "route_transitions": {}}}
+Saved answers: outputs/multiscale_vqa_agent/gate_v2_question_partial_no_thinking_full_v1/mc_answers.jsonl

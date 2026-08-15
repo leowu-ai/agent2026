@@ -153,6 +153,16 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                 + json.dumps(summary, ensure_ascii=False),
                 flush=True,
             )
+            from .full_run_analysis import write_full_run_analysis
+
+            full_summary = write_full_run_analysis(
+                destination, Path(comparison_answers), Path(answerability_labels)
+            )
+            print(
+                "Full run comparison analysis: "
+                + json.dumps(full_summary, ensure_ascii=False),
+                flush=True,
+            )
         return destination
 
     @staticmethod

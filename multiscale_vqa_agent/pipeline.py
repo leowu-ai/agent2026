@@ -28,6 +28,7 @@ class MultiScaleVQAPipeline:
         answerability_only: bool = False,
         precomputed_answerability: Optional[str] = None,
         morphology_retrieval_mode: Optional[str] = None,
+        partial_retrieval_mode: Optional[str] = None,
     ):
         self.config_path = Path(config_path)
         with self.config_path.open(encoding="utf-8") as handle:
@@ -60,8 +61,24 @@ class MultiScaleVQAPipeline:
                 "morphology_retrieval_mode must be broad or question_similarity, got "
                 f"{self.morphology_retrieval_mode!r}"
             )
+        self.partial_retrieval_mode = str(
+            partial_retrieval_mode
+            or self.config["retrieval"].get(
+                "partial_retrieval_mode", "selected_phenotype"
+            )
+        )
+        if self.partial_retrieval_mode not in {
+            "selected_phenotype", "question_similarity"
+        }:
+            raise ValueError(
+                "partial_retrieval_mode must be selected_phenotype or "
+                f"question_similarity, got {self.partial_retrieval_mode!r}"
+            )
         self.question_features = None
-        if self.morphology_retrieval_mode == "question_similarity":
+        if (
+            self.morphology_retrieval_mode == "question_similarity"
+            or self.partial_retrieval_mode == "question_similarity"
+        ):
             feature_path = self.config["retrieval"].get("question_feature_path")
             if not feature_path:
                 raise ValueError(
@@ -311,16 +328,36 @@ class MultiScaleVQAPipeline:
         if evidence_route == "phenotype_direct" and plan.target_phenotypes:
             primary = plan.target_phenotypes[0]
             primary_evidence = evidence_cache[primary]
-            groups_key = f"__pathology_groups__:{primary}"
+            use_partial_question_retrieval = (
+                plan.task_match == "partial"
+                and self.partial_retrieval_mode == "question_similarity"
+            )
+            groups_key = (
+                f"__partial_question_groups__:{plan.question}"
+                if use_partial_question_retrieval
+                else f"__pathology_groups__:{primary}"
+            )
             if groups_key not in evidence_cache:
-                name = self.registry.field_to_name[primary]
-                vocab = self.registry.vocabs[min(self.registry.vocabs)]
-                group = vocab.get("phenotype_groups", {}).get(name, "morphology")
-                groups = self.retrieval.retrieve(
-                    primary, group, scale_results, primary_evidence["relations"]
-                )
+                if use_partial_question_retrieval:
+                    question_feature = self.question_features.lookup(plan.question)
+                    groups = self.retrieval.retrieve_by_question(
+                        question_feature, scale_results
+                    )
+                    crop_label = plan.question
+                else:
+                    name = self.registry.field_to_name[primary]
+                    vocab = self.registry.vocabs[min(self.registry.vocabs)]
+                    group = vocab.get("phenotype_groups", {}).get(
+                        name, "morphology"
+                    )
+                    groups = self.retrieval.retrieve(
+                        primary, group, scale_results, primary_evidence["relations"]
+                    )
+                    crop_label = primary
                 if crop_patches:
-                    groups = self.cropper.crop_groups(plan.case_id, primary, groups)
+                    groups = self.cropper.crop_groups(
+                        plan.case_id, crop_label, groups
+                    )
                 evidence_cache[groups_key] = groups
             groups = evidence_cache[groups_key]
             pathology_key = f"__pathology__:{primary}:{plan.question}"
@@ -338,7 +375,16 @@ class MultiScaleVQAPipeline:
             pathology = evidence_cache[pathology_key]
             pathology["primary_field"] = primary
             pathology["structured_fields_covered"] = list(plan.target_phenotypes)
-            pathology["retrieval_mode"] = "selected_phenotype"
+            pathology["retrieval_mode"] = (
+                "question_similarity"
+                if use_partial_question_retrieval
+                else "selected_phenotype"
+            )
+            if use_partial_question_retrieval:
+                pathology["question_feature_source"] = (
+                    QuestionFeatureStore.FEATURE_NAME
+                )
+                pathology["question_feature_dim"] = self.question_features.feature_dim
         elif evidence_route == "morphology_only":
             predictions_key = "__all_g2p_predictions__"
             if predictions_key not in evidence_cache:

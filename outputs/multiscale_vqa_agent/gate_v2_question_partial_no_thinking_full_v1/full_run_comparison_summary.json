@@ -1,0 +1,116 @@
+{
+  "comparison_scope": "New full system configuration versus old full system configuration; differences are not attributable to retrieval alone because Fusion thinking and stochastic sampling also differ.",
+  "total": {
+    "total": 390,
+    "wrong_to_correct": 10,
+    "correct_to_wrong": 21,
+    "both_correct": 85,
+    "both_wrong": 274,
+    "net_correct_change": -11
+  },
+  "gold_answerable": {
+    "total": 186,
+    "wrong_to_correct": 8,
+    "correct_to_wrong": 21,
+    "both_correct": 82,
+    "both_wrong": 75,
+    "net_correct_change": -13
+  },
+  "gold_answerable_benchmark": {
+    "denominator": 186,
+    "old_correct": 103,
+    "new_correct": 90,
+    "absolute_correct_delta": -13,
+    "old_accuracy": 0.553763440860215,
+    "new_accuracy": 0.4838709677419355,
+    "percentage_point_delta": -6.989247311827951
+  },
+  "same_route_flips": {
+    "direct": {
+      "total": 137,
+      "wrong_to_correct": 3,
+      "correct_to_wrong": 14,
+      "both_correct": 74,
+      "both_wrong": 46,
+      "net_correct_change": -11
+    },
+    "partial": {
+      "total": 34,
+      "wrong_to_correct": 4,
+      "correct_to_wrong": 6,
+      "both_correct": 9,
+      "both_wrong": 15,
+      "net_correct_change": -2
+    },
+    "morphology_only": {
+      "total": 19,
+      "wrong_to_correct": 3,
+      "correct_to_wrong": 1,
+      "both_correct": 2,
+      "both_wrong": 13,
+      "net_correct_change": 2
+    },
+    "route_changed": {
+      "total": 0,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "both_correct": 0,
+      "both_wrong": 0,
+      "net_correct_change": 0,
+      "transitions": {}
+    }
+  },
+  "gold_answerable_same_route_flips": {
+    "direct": {
+      "total": 135,
+      "wrong_to_correct": 3,
+      "correct_to_wrong": 14,
+      "both_correct": 73,
+      "both_wrong": 45,
+      "net_correct_change": -11
+    },
+    "partial": {
+      "total": 32,
+      "wrong_to_correct": 4,
+      "correct_to_wrong": 6,
+      "both_correct": 8,
+      "both_wrong": 14,
+      "net_correct_change": -2
+    },
+    "morphology_only": {
+      "total": 11,
+      "wrong_to_correct": 1,
+      "correct_to_wrong": 1,
+      "both_correct": 1,
+      "both_wrong": 8,
+      "net_correct_change": 0
+    },
+    "route_changed": {
+      "total": 0,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "both_correct": 0,
+      "both_wrong": 0,
+      "net_correct_change": 0,
+      "transitions": {}
+    }
+  },
+  "task_match_transitions": {
+    "abstained->abstained": 200,
+    "direct->direct": 137,
+    "none->none": 19,
+    "partial->partial": 34
+  },
+  "old_route_counts": {
+    "abstained": 200,
+    "direct": 137,
+    "morphology_only": 19,
+    "partial": 34
+  },
+  "new_route_counts": {
+    "abstained": 200,
+    "direct": 137,
+    "morphology_only": 19,
+    "partial": 34
+  }
+}
