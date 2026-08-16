@@ -72,7 +72,7 @@ class MorphologyFusionTest(unittest.TestCase):
         self.assertEqual(len(client.calls), 2)
         self.assertEqual(client.calls[0]["temperature"], 0.6)
         self.assertEqual(client.calls[0]["max_tokens"], 4096)
-        self.assertIs(client.calls[0]["enable_thinking"], False)
+        self.assertIs(client.calls[0]["enable_thinking"], True)
         self.assertEqual(client.calls[0]["top_p"], 0.95)
         self.assertEqual(client.calls[0]["top_k"], 20)
         self.assertEqual(client.calls[1]["temperature"], 0.0)
