@@ -43,6 +43,12 @@ def main():
         help="Optional override for partial-route visual patch retrieval.",
     )
     parser.add_argument(
+        "--direct_retrieval_mode",
+        choices=("selected_phenotype", "question_similarity"),
+        default=None,
+        help="Optional override for direct-route visual patch retrieval.",
+    )
+    parser.add_argument(
         "--answerability_labels",
         default=None,
         help="Optional Gold labels used only after inference for evaluation.",
@@ -55,6 +61,7 @@ def main():
         precomputed_answerability=args.precomputed_answerability,
         morphology_retrieval_mode=args.morphology_retrieval_mode,
         partial_retrieval_mode=args.partial_retrieval_mode,
+        direct_retrieval_mode=args.direct_retrieval_mode,
     )
     output = pipeline.run(
         vqa_path=args.vqa_json,

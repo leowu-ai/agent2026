@@ -29,6 +29,7 @@ class MultiScaleVQAPipeline:
         precomputed_answerability: Optional[str] = None,
         morphology_retrieval_mode: Optional[str] = None,
         partial_retrieval_mode: Optional[str] = None,
+        direct_retrieval_mode: Optional[str] = None,
     ):
         self.config_path = Path(config_path)
         with self.config_path.open(encoding="utf-8") as handle:
@@ -74,15 +75,29 @@ class MultiScaleVQAPipeline:
                 "partial_retrieval_mode must be selected_phenotype or "
                 f"question_similarity, got {self.partial_retrieval_mode!r}"
             )
+        self.direct_retrieval_mode = str(
+            direct_retrieval_mode
+            or self.config["retrieval"].get(
+                "direct_retrieval_mode", "selected_phenotype"
+            )
+        )
+        if self.direct_retrieval_mode not in {
+            "selected_phenotype", "question_similarity"
+        }:
+            raise ValueError(
+                "direct_retrieval_mode must be selected_phenotype or "
+                f"question_similarity, got {self.direct_retrieval_mode!r}"
+            )
         self.question_features = None
         if (
             self.morphology_retrieval_mode == "question_similarity"
             or self.partial_retrieval_mode == "question_similarity"
+            or self.direct_retrieval_mode == "question_similarity"
         ):
             feature_path = self.config["retrieval"].get("question_feature_path")
             if not feature_path:
                 raise ValueError(
-                    "question_similarity morphology retrieval requires "
+                    "question_similarity retrieval requires "
                     "retrieval.question_feature_path"
                 )
             self.question_features = QuestionFeatureStore(feature_path)
@@ -328,17 +343,25 @@ class MultiScaleVQAPipeline:
         if evidence_route == "phenotype_direct" and plan.target_phenotypes:
             primary = plan.target_phenotypes[0]
             primary_evidence = evidence_cache[primary]
-            use_partial_question_retrieval = (
+            question_retrieval_route = None
+            if (
+                plan.task_match == "direct"
+                and self.direct_retrieval_mode == "question_similarity"
+            ):
+                question_retrieval_route = "direct"
+            elif (
                 plan.task_match == "partial"
                 and self.partial_retrieval_mode == "question_similarity"
-            )
+            ):
+                question_retrieval_route = "partial"
+            use_question_retrieval = question_retrieval_route is not None
             groups_key = (
-                f"__partial_question_groups__:{plan.question}"
-                if use_partial_question_retrieval
+                f"__{question_retrieval_route}_question_groups__:{plan.question}"
+                if use_question_retrieval
                 else f"__pathology_groups__:{primary}"
             )
             if groups_key not in evidence_cache:
-                if use_partial_question_retrieval:
+                if use_question_retrieval:
                     question_feature = self.question_features.lookup(plan.question)
                     groups = self.retrieval.retrieve_by_question(
                         question_feature, scale_results
@@ -377,10 +400,10 @@ class MultiScaleVQAPipeline:
             pathology["structured_fields_covered"] = list(plan.target_phenotypes)
             pathology["retrieval_mode"] = (
                 "question_similarity"
-                if use_partial_question_retrieval
+                if use_question_retrieval
                 else "selected_phenotype"
             )
-            if use_partial_question_retrieval:
+            if use_question_retrieval:
                 pathology["question_feature_source"] = (
                     QuestionFeatureStore.FEATURE_NAME
                 )

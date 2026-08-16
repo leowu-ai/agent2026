@@ -180,10 +180,16 @@ class RegistrySpy:
 
 
 class PipelineRouteTest(unittest.TestCase):
-    def pipeline(self, morphology_mode, partial_mode="selected_phenotype"):
+    def pipeline(
+        self,
+        morphology_mode,
+        partial_mode="selected_phenotype",
+        direct_mode="selected_phenotype",
+    ):
         pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
         pipeline.morphology_retrieval_mode = morphology_mode
         pipeline.partial_retrieval_mode = partial_mode
+        pipeline.direct_retrieval_mode = direct_mode
         pipeline.question_features = QuestionStoreSpy()
         pipeline.retrieval = RetrievalSpy()
         pipeline.cropper = CropperSpy()
@@ -258,7 +264,7 @@ class PipelineRouteTest(unittest.TestCase):
         })
         self.assertEqual(pipeline.question_features.calls, 0)
 
-    def test_direct_always_uses_selected_phenotype_without_overview(self):
+    def test_direct_default_mode_uses_selected_phenotype_without_overview(self):
         pipeline = self.pipeline("question_similarity", "question_similarity")
         self.run_question(pipeline, self.plan("phenotype_direct", "direct"))
         self.assertEqual(pipeline.retrieval.calls, {
@@ -266,6 +272,50 @@ class PipelineRouteTest(unittest.TestCase):
         })
         self.assertEqual(pipeline.question_features.calls, 0)
         self.assertEqual(pipeline.cropper.overview_calls, 0)
+
+    def test_direct_question_mode_keeps_structured_evidence_and_relations(self):
+        pipeline = self.pipeline(
+            "question_similarity", "question_similarity", "question_similarity"
+        )
+        result = self.run_question(
+            pipeline, self.plan("phenotype_direct", "direct")
+        )
+        self.assertEqual(pipeline.retrieval.calls, {
+            "question": 1, "broad": 0, "direct": 0,
+        })
+        self.assertEqual(pipeline.question_features.calls, 1)
+        self.assertEqual(pipeline.cropper.overview_calls, 0)
+        self.assertEqual(len(result["phenotype_predictions"]), 1)
+        self.assertIn("histological_type_label", result["relation_evidence_by_field"])
+        pathology = result["pathology_evidence"]
+        self.assertEqual(pathology["primary_field"], "histological_type_label")
+        self.assertEqual(
+            pathology["structured_fields_covered"], ["histological_type_label"]
+        )
+        self.assertEqual(pathology["retrieval_mode"], "question_similarity")
+        self.assertEqual(
+            pathology["question_feature_source"], "CONCH_v1_preprojection_768"
+        )
+        self.assertEqual(pathology["question_feature_dim"], 768)
+
+    def test_direct_question_cache_is_question_specific(self):
+        pipeline = self.pipeline(
+            "question_similarity", "question_similarity", "question_similarity"
+        )
+        cache = {}
+        first = self.plan(
+            "phenotype_direct", "direct", "Is ductal carcinoma present?"
+        )
+        second = self.plan(
+            "phenotype_direct", "direct", "Is lobular carcinoma present?"
+        )
+        pipeline._run_question(self.item(first.question), first, {}, cache, False)
+        pipeline._run_question(self.item(second.question), second, {}, cache, False)
+        self.assertEqual(pipeline.retrieval.calls["question"], 2)
+        self.assertEqual(pipeline.question_features.calls, 2)
+        self.assertEqual(len([
+            key for key in cache if key.startswith("__direct_question_groups__:")
+        ]), 2)
 
     def test_partial_default_mode_preserves_selected_phenotype_retrieval(self):
         pipeline = self.pipeline("question_similarity")
