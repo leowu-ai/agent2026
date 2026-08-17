@@ -15,6 +15,73 @@ from multiscale_vqa_agent.run_qwen_wsi_baseline import (
 
 
 class QwenWSIBaselineTest(unittest.TestCase):
+    def run_answer_case(self, answer_thinking, answer_responses):
+        class FakeClient:
+            calls = []
+            responses = iter([
+                '{"can_answer":true,"confidence":0.9,"reason":"morphology"}',
+                *answer_responses,
+            ])
+
+            def __init__(self, config):
+                pass
+
+            def chat(self, *args, **kwargs):
+                FakeClient.calls.append({
+                    "system": kwargs.get("system", args[0] if args else None),
+                    "user": kwargs.get("user", args[1] if len(args) > 1 else None),
+                    **kwargs,
+                })
+                return next(FakeClient.responses)
+
+        class FakeThumbnails:
+            def __init__(self, *args, **kwargs):
+                pass
+
+            def thumbnails(self, case_id):
+                return ["thumbnail.jpg"], ["slide.svs"]
+
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            questions = root / "questions.json"
+            output = root / "answers.jsonl"
+            config = root / "config.json"
+            questions.write_text(json.dumps([{
+                "Id": "TCGA-AA-0001",
+                "Question": "What is the diagnosis?",
+                "Choice": ["ductal", "lobular"],
+                "Answer": "ductal",
+            }]), encoding="utf-8")
+            config.write_text(json.dumps({
+                "vqa_json": str(questions),
+                "output_dir": str(root),
+                "wsi_root": str(root),
+                "qwen": {},
+            }), encoding="utf-8")
+            args = argparse.Namespace(
+                config=str(config),
+                vqa_json=None,
+                output=str(output),
+                metrics=None,
+                thumbnail_dir=None,
+                thumbnail_size=1536,
+                max_slides=4,
+                limit=None,
+                resume=False,
+                answerability_labels=None,
+                answer_thinking=answer_thinking,
+            )
+            with patch(
+                "multiscale_vqa_agent.run_qwen_wsi_baseline.OpenAICompatibleClient",
+                FakeClient,
+            ), patch(
+                "multiscale_vqa_agent.run_qwen_wsi_baseline.WSIThumbnailIndex",
+                FakeThumbnails,
+            ):
+                run(args)
+            row = json.loads(output.read_text().strip())
+        return row, FakeClient.calls
+
     def test_indexed_choices(self):
         self.assertEqual(
             indexed_choices(["negative", "positive"]),
@@ -36,6 +103,60 @@ class QwenWSIBaselineTest(unittest.TestCase):
             "exclude_from_evaluation", "reason_code", "label_source",
         ):
             self.assertNotIn(forbidden, lowered)
+
+    def test_default_answer_call_is_explicitly_no_thinking(self):
+        row, calls = self.run_answer_case(
+            False, ['{"answer_id":"A","confidence":0.8}']
+        )
+        self.assertEqual(len(calls), 2)
+        gate_call, answer_call = calls
+        self.assertIsNone(gate_call.get("images"))
+        self.assertNotIn("enable_thinking", gate_call)
+        self.assertEqual(answer_call["images"], ["thumbnail.jpg"])
+        self.assertIs(answer_call["enable_thinking"], False)
+        self.assertEqual(answer_call["temperature"], 0.0)
+        self.assertEqual(answer_call["max_tokens"], 256)
+        self.assertFalse(row["answer_thinking"])
+        self.assertFalse(row["repair_used"])
+
+    def test_thinking_answer_call_uses_requested_sampling(self):
+        row, calls = self.run_answer_case(
+            True, ['{"answer_id":"A","confidence":0.8}']
+        )
+        answer_call = calls[1]
+        self.assertEqual(answer_call["images"], ["thumbnail.jpg"])
+        self.assertIs(answer_call["enable_thinking"], True)
+        self.assertEqual(answer_call["temperature"], 0.6)
+        self.assertEqual(answer_call["top_p"], 0.95)
+        self.assertEqual(answer_call["top_k"], 20)
+        self.assertEqual(answer_call["max_tokens"], 4096)
+        self.assertTrue(row["answer_thinking"])
+        self.assertFalse(row["repair_used"])
+        self.assertEqual(
+            row["initial_raw_response"],
+            '{"answer_id":"A","confidence":0.8}',
+        )
+
+    def test_thinking_parse_failure_uses_one_deterministic_repair(self):
+        row, calls = self.run_answer_case(
+            True,
+            [
+                "not valid json",
+                '{"answer_id":"B","confidence":0.4,"explanation":"B"}',
+            ],
+        )
+        self.assertEqual(len(calls), 3)
+        repair_call = calls[2]
+        self.assertEqual(repair_call["images"], ["thumbnail.jpg"])
+        self.assertIs(repair_call["enable_thinking"], False)
+        self.assertEqual(repair_call["temperature"], 0.0)
+        self.assertEqual(repair_call["max_tokens"], 512)
+        self.assertEqual(repair_call["retries"], 0)
+        self.assertTrue(row["repair_used"])
+        self.assertEqual(row["initial_raw_response"], "not valid json")
+        self.assertEqual(row["repair_raw_response"], '{"answer_id":"B","confidence":0.4,"explanation":"B"}')
+        self.assertEqual(row["agent_answer"]["answer"], "lobular")
+        self.assertTrue(row["json_parse_success"])
 
     def test_false_gate_skips_answer_stage(self):
         class FakeClient:

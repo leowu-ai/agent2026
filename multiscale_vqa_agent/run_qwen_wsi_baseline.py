@@ -23,6 +23,11 @@ The images are low-resolution H&E overviews, so do not claim findings that are n
 Return JSON only: {"answer_id":"A","confidence":0.0,"explanation":"one short sentence","limitations":"one short sentence"}.
 answer_id must be exactly one supplied option ID. Do not return the option text as answer_id, refuse, or return null."""
 
+REPAIR_SYSTEM_PROMPT = """Repair the format of a breast pathology multiple-choice response.
+Preserve the intended answer from the initial response and use only the supplied question, choices, and overview thumbnails.
+Return JSON only: {"answer_id":"A","confidence":0.0,"explanation":"one short sentence","limitations":"one short sentence"}.
+answer_id must be exactly one supplied option ID. Do not use external evidence or evaluation labels."""
+
 
 def indexed_choices(choices: Sequence[Any]) -> List[Dict[str, str]]:
     if len(choices) > 26:
@@ -124,6 +129,25 @@ def format_user_prompt(question: str, choices: Sequence[Any], image_count: int) 
     return "Select one option ID.\n" + json.dumps(packet, ensure_ascii=False)
 
 
+def format_repair_prompt(
+    question: str,
+    choices: Sequence[Any],
+    image_count: int,
+    initial_raw_response: Optional[str],
+) -> str:
+    return json.dumps({
+        "instruction": "Repair formatting only and return one valid supplied answer_id.",
+        **evidence_packet(question, choices, image_count),
+        "initial_raw_response": initial_raw_response,
+        "output_schema": {
+            "answer_id": "<one supplied option ID>",
+            "confidence": 0.0,
+            "explanation": "one short sentence",
+            "limitations": "one short sentence",
+        },
+    }, ensure_ascii=False)
+
+
 def save_result(handle: Any, row: Dict[str, Any], tracker: LiveAccuracyTracker):
     handle.write(json.dumps(row, ensure_ascii=False) + "\n")
     handle.flush()
@@ -166,6 +190,7 @@ def run(args: argparse.Namespace) -> Path:
     client = OpenAICompatibleClient(config["qwen"])
     answerability = AnswerabilityAgent(client)
     thumbnails = WSIThumbnailIndex(Path(config["wsi_root"]), cache_root, args.thumbnail_size, args.max_slides)
+    answer_thinking = bool(getattr(args, "answer_thinking", False))
 
     pending = [
         item for item in items
@@ -216,27 +241,74 @@ def run(args: argparse.Namespace) -> Path:
                 row.update({
                     "thumbnail_paths": image_paths,
                     "wsi_paths": slide_paths,
+                    "thumbnail_size": int(args.thumbnail_size),
+                    "max_slides": int(args.max_slides),
+                    "answer_thinking": answer_thinking,
+                    "initial_raw_response": None,
+                    "repair_used": False,
+                    "repair_raw_response": None,
                 })
+                if answer_thinking:
+                    initial_kwargs = {
+                        "temperature": 0.6,
+                        "max_tokens": 4096,
+                        "enable_thinking": True,
+                        "top_p": 0.95,
+                        "top_k": 20,
+                    }
+                else:
+                    initial_kwargs = {
+                        "temperature": 0.0,
+                        "max_tokens": 256,
+                        "enable_thinking": False,
+                    }
                 raw = client.chat(
                     system=ANSWER_SYSTEM_PROMPT,
                     user=format_user_prompt(question, choices, len(image_paths)),
                     images=image_paths,
-                    temperature=0.0,
-                    max_tokens=256,
                     response_format={"type": "json_object"},
                     retries=2,
+                    **initial_kwargs,
                 )
+                row["initial_raw_response"] = raw
                 answer = parse_answer(raw, choices)
                 if answer is None:
-                    raise ValueError("Qwen response did not contain a valid supplied answer_id")
+                    row["repair_used"] = True
+                    repair_raw = client.chat(
+                        system=REPAIR_SYSTEM_PROMPT,
+                        user=format_repair_prompt(
+                            question, choices, len(image_paths), raw
+                        ),
+                        images=image_paths,
+                        temperature=0.0,
+                        max_tokens=512,
+                        response_format={"type": "json_object"},
+                        retries=0,
+                        enable_thinking=False,
+                    )
+                    row["repair_raw_response"] = repair_raw
+                    answer = parse_answer(repair_raw, choices)
+                if answer is None:
+                    raise ValueError(
+                        "Qwen initial and repair responses did not contain a "
+                        "valid supplied answer_id"
+                    )
                 row.update({
-                    "raw_response": raw,
+                    "raw_response": (
+                        row["repair_raw_response"] if row["repair_used"] else raw
+                    ),
                     "agent_answer": {**answer, "json_parse_success": True},
                     "json_parse_success": True,
                 })
             except Exception as error:
                 row.setdefault("thumbnail_paths", [])
                 row.setdefault("wsi_paths", [])
+                row.setdefault("thumbnail_size", int(args.thumbnail_size))
+                row.setdefault("max_slides", int(args.max_slides))
+                row.setdefault("answer_thinking", answer_thinking)
+                row.setdefault("initial_raw_response", None)
+                row.setdefault("repair_used", False)
+                row.setdefault("repair_raw_response", None)
                 row.setdefault("predicted_can_answer", True)
                 row.setdefault("predicted_answerability", "answerable")
                 row.setdefault("answerability_confidence", 0.0)
@@ -282,6 +354,14 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--thumbnail_dir", default=None)
     parser.add_argument("--thumbnail_size", type=int, default=1536)
     parser.add_argument("--max_slides", type=int, default=4)
+    parser.add_argument(
+        "--answer_thinking",
+        action="store_true",
+        help=(
+            "Enable thinking only for the thumbnail answer stage; the "
+            "AnswerabilityAgent remains unchanged."
+        ),
+    )
     parser.add_argument("--limit", type=int, default=None)
     parser.add_argument("--no_resume", dest="resume", action="store_false")
     parser.set_defaults(resume=True)
