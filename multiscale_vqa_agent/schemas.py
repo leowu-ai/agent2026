@@ -57,10 +57,12 @@ class EvidenceGroup:
     group_id: int
     score: float
     patches: Dict[int, PatchCandidate] = field(default_factory=dict)
+    evidence_source: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             "group_id": self.group_id,
             "score": self.score,
+            "evidence_source": self.evidence_source,
             "patches": {str(k): v.to_dict() for k, v in self.patches.items()},
         }

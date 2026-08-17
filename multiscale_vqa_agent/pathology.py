@@ -131,6 +131,7 @@ class PathologyAgent:
                 "kind": "patch",
                 "group_id": group.group_id,
                 "scale": int(scale),
+                "evidence_source": group.evidence_source,
                 "image_path": patch.image_path,
             }
             for group in groups
@@ -146,6 +147,7 @@ class PathologyAgent:
             result.update({
                 "group_id": entry["group_id"],
                 "scale": entry["scale"],
+                "evidence_source": entry.get("evidence_source"),
             })
         return result
 

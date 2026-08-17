@@ -1,5 +1,6 @@
 import hashlib
 import re
+from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 
@@ -82,7 +83,10 @@ class MultiScaleRetrievalAgent:
                     [self.registry.genes[i] for i in gene_indices], weights["gene"]
                 ))
             by_scale[scale] = self._deduplicate(candidates)
-        return self._build_pyramids(by_scale)
+        groups = self._build_pyramids(by_scale)
+        for group in groups:
+            group.evidence_source = "selected_phenotype"
+        return groups
 
     def retrieve_all_phenotypes(
         self,
@@ -115,7 +119,10 @@ class MultiScaleRetrievalAgent:
                 context,
                 diversity,
             )
-        return self._build_pyramids(by_scale)
+        groups = self._build_pyramids(by_scale)
+        for group in groups:
+            group.evidence_source = "broad_phenotype"
+        return groups
 
     def retrieve_by_question(
         self,
@@ -140,7 +147,77 @@ class MultiScaleRetrievalAgent:
                     scale, slide, question_feature
                 ))
             by_scale[scale] = self._deduplicate(candidates)
-        return self._build_pyramids(by_scale)
+        groups = self._build_pyramids(by_scale)
+        for group in groups:
+            group.evidence_source = "question_similarity"
+        return groups
+
+    def merge_hybrid_groups(
+        self,
+        question_groups: List[EvidenceGroup],
+        prototype_groups: List[EvidenceGroup],
+        question_limit: int = 3,
+        prototype_limit: int = 2,
+    ) -> List[EvidenceGroup]:
+        """Combine question-first evidence while deduplicating prototype overlap."""
+        selected = deepcopy(question_groups[: max(0, int(question_limit))])
+        for group in selected:
+            group.evidence_source = "question_similarity"
+
+        question_selected = list(selected)
+        for prototype in deepcopy(
+            prototype_groups[: max(0, int(prototype_limit))]
+        ):
+            prototype.evidence_source = "selected_phenotype"
+            duplicate = next((
+                question_group for question_group in question_selected
+                if self._groups_duplicate(question_group, prototype)
+            ), None)
+            if duplicate is None:
+                selected.append(prototype)
+                continue
+            self._merge_group_sources(duplicate, prototype)
+            duplicate.evidence_source = (
+                "question_similarity+selected_phenotype"
+            )
+
+        for index, group in enumerate(selected, 1):
+            group.group_id = index
+        return selected
+
+    def _groups_duplicate(
+        self, left: EvidenceGroup, right: EvidenceGroup
+    ) -> bool:
+        for left_patch in left.patches.values():
+            for right_patch in right.patches.values():
+                if left_patch.slide_id != right_patch.slide_id:
+                    continue
+                if (
+                    box_iou(left_patch, right_patch) >= self.iou_threshold
+                    or cosine(left_patch.feature, right_patch.feature)
+                    >= self.cosine_threshold
+                ):
+                    return True
+        return False
+
+    def _merge_group_sources(
+        self, target: EvidenceGroup, duplicate: EvidenceGroup
+    ) -> None:
+        for scale, candidate in duplicate.patches.items():
+            existing = target.patches.get(scale)
+            if existing is None:
+                target.patches[scale] = candidate
+                continue
+            known = {
+                (source["type"], source["name"])
+                for source in existing.sources
+            }
+            existing.sources.extend(
+                source for source in candidate.sources
+                if (source["type"], source["name"]) not in known
+            )
+            existing.score = max(existing.score, candidate.score)
+        target.score = max(target.score, duplicate.score)
 
     def _from_question_similarity(
         self,

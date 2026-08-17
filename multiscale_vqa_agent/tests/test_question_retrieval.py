@@ -7,7 +7,7 @@ import numpy as np
 from multiscale_vqa_agent.pipeline import MultiScaleVQAPipeline
 from multiscale_vqa_agent.question_features import QuestionFeatureStore
 from multiscale_vqa_agent.retrieval import MultiScaleRetrievalAgent
-from multiscale_vqa_agent.schemas import ExecutionPlan
+from multiscale_vqa_agent.schemas import EvidenceGroup, ExecutionPlan, PatchCandidate
 
 
 class QuestionFeatureStoreTest(unittest.TestCase):
@@ -84,6 +84,46 @@ class QuestionRetrievalTest(unittest.TestCase):
                 self.scale_results(np.eye(3, dtype=np.float32)),
             )
 
+    @staticmethod
+    def patch(source_type, name, x=0, feature=None):
+        return PatchCandidate(
+            scale=4096,
+            slide_id="slide_0_4096",
+            patch_index=x,
+            x=x,
+            y=0,
+            size=4096,
+            score=1.0,
+            sources=[{
+                "type": source_type,
+                "name": name,
+                "attention": 1.0,
+            }],
+            feature=np.asarray(
+                feature if feature is not None else [1.0, 0.0],
+                dtype=np.float32,
+            ),
+        )
+
+    def test_hybrid_cross_source_dedup_merges_provenance(self):
+        question = EvidenceGroup(
+            1, 1.0, {4096: self.patch("question_similarity", "question")}
+        )
+        prototype = EvidenceGroup(
+            1, 0.9, {4096: self.patch("phenotype", "histology")}
+        )
+        groups = self.agent().merge_hybrid_groups([question], [prototype])
+
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(
+            groups[0].evidence_source,
+            "question_similarity+selected_phenotype",
+        )
+        self.assertEqual(
+            {source["type"] for source in groups[0].patches[4096].sources},
+            {"question_similarity", "phenotype"},
+        )
+
 
 class RetrievalSpy:
     def __init__(self):
@@ -91,7 +131,9 @@ class RetrievalSpy:
 
     def retrieve_by_question(self, feature, scale_results):
         self.calls["question"] += 1
-        return []
+        return [EvidenceGroup(
+            1, 1.0, {}, evidence_source="question_similarity"
+        )]
 
     def retrieve_all_phenotypes(self, scale_results):
         self.calls["broad"] += 1
@@ -99,7 +141,15 @@ class RetrievalSpy:
 
     def retrieve(self, field, group, scale_results, relations):
         self.calls["direct"] += 1
-        return []
+        return [EvidenceGroup(
+            1, 0.9, {}, evidence_source="selected_phenotype"
+        )]
+
+    def merge_hybrid_groups(self, question_groups, prototype_groups):
+        groups = list(question_groups) + list(prototype_groups)
+        for index, group in enumerate(groups, 1):
+            group.group_id = index
+        return groups
 
 
 class QuestionStoreSpy:
@@ -130,12 +180,23 @@ class PathologySpy:
         self.calls = []
 
     def describe(self, question, field, groups, overview_paths=None):
+        overview_paths = list(overview_paths or [])
         self.calls.append({
             "question": question,
             "field": field,
-            "overview_paths": list(overview_paths or []),
+            "overview_paths": overview_paths,
+            "group_sources": [group.evidence_source for group in groups],
         })
-        return {"description": "visible morphology", "evidence_groups": []}
+        return {
+            "description": "visible morphology",
+            "evidence_groups": [],
+            "image_metadata": [
+                {"kind": "overview"} for _ in overview_paths
+            ] + [
+                {"kind": "patch", "evidence_source": group.evidence_source}
+                for group in groups
+            ],
+        }
 
 
 class G2PSpy:
@@ -315,6 +376,70 @@ class PipelineRouteTest(unittest.TestCase):
         self.assertEqual(pipeline.question_features.calls, 2)
         self.assertEqual(len([
             key for key in cache if key.startswith("__direct_question_groups__:")
+        ]), 2)
+
+    def test_direct_and_partial_hybrid_keep_all_evidence(self):
+        for task_match in ("direct", "partial"):
+            with self.subTest(task_match=task_match):
+                pipeline = self.pipeline(
+                    "question_similarity",
+                    "hybrid_question_prototype",
+                    "hybrid_question_prototype",
+                )
+                result = self.run_question(
+                    pipeline, self.plan("phenotype_direct", task_match)
+                )
+                self.assertEqual(pipeline.retrieval.calls, {
+                    "question": 1, "broad": 0, "direct": 1,
+                })
+                self.assertEqual(pipeline.cropper.overview_calls, 1)
+                self.assertEqual(
+                    pipeline.pathology.calls[0]["overview_paths"],
+                    ["overview-1.jpg", "overview-2.jpg"],
+                )
+                self.assertEqual(
+                    pipeline.pathology.calls[0]["group_sources"],
+                    ["question_similarity", "selected_phenotype"],
+                )
+                self.assertEqual(len(result["phenotype_predictions"]), 1)
+                self.assertIn(
+                    "histological_type_label",
+                    result["relation_evidence_by_field"],
+                )
+                pathology = result["pathology_evidence"]
+                self.assertEqual(
+                    pathology["retrieval_mode"],
+                    "hybrid_question_prototype",
+                )
+                self.assertEqual(pathology["question_group_count"], 1)
+                self.assertEqual(pathology["prototype_group_count"], 1)
+                self.assertEqual(pathology["overview_count"], 2)
+                self.assertEqual(pathology["overview_image_count"], 2)
+                self.assertEqual(pathology["question_image_count"], 1)
+                self.assertEqual(pathology["prototype_image_count"], 1)
+                self.assertEqual(pathology["visual_evidence_order"], [
+                    "overview", "question_similarity", "selected_phenotype"
+                ])
+
+    def test_hybrid_question_cache_is_question_specific(self):
+        pipeline = self.pipeline(
+            "question_similarity",
+            "hybrid_question_prototype",
+            "hybrid_question_prototype",
+        )
+        cache = {}
+        first = self.plan(
+            "phenotype_direct", "direct", "Is ductal carcinoma present?"
+        )
+        second = self.plan(
+            "phenotype_direct", "direct", "Is lobular carcinoma present?"
+        )
+        pipeline._run_question(self.item(first.question), first, {}, cache, False)
+        pipeline._run_question(self.item(second.question), second, {}, cache, False)
+        self.assertEqual(pipeline.retrieval.calls["question"], 2)
+        self.assertEqual(pipeline.retrieval.calls["direct"], 1)
+        self.assertEqual(len([
+            key for key in cache if key.startswith("__question_groups__:")
         ]), 2)
 
     def test_partial_default_mode_preserves_selected_phenotype_retrieval(self):

@@ -1,0 +1,27 @@
+{
+  "all_old_or_new_partial": {
+    "total": 34,
+    "wrong_to_correct": 4,
+    "correct_to_wrong": 2,
+    "both_correct": 13,
+    "both_wrong": 15,
+    "net_correct_change": 2
+  },
+  "same_route_partial": {
+    "total": 34,
+    "wrong_to_correct": 4,
+    "correct_to_wrong": 2,
+    "both_correct": 13,
+    "both_wrong": 15,
+    "net_correct_change": 2
+  },
+  "gold_answerable_old_or_new_partial": {
+    "total": 32,
+    "wrong_to_correct": 4,
+    "correct_to_wrong": 2,
+    "both_correct": 12,
+    "both_wrong": 14,
+    "net_correct_change": 2
+  },
+  "route_transitions": {}
+}

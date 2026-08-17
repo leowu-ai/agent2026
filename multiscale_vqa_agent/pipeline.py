@@ -69,11 +69,13 @@ class MultiScaleVQAPipeline:
             )
         )
         if self.partial_retrieval_mode not in {
-            "selected_phenotype", "question_similarity"
+            "selected_phenotype", "question_similarity",
+            "hybrid_question_prototype",
         }:
             raise ValueError(
-                "partial_retrieval_mode must be selected_phenotype or "
-                f"question_similarity, got {self.partial_retrieval_mode!r}"
+                "partial_retrieval_mode must be selected_phenotype, "
+                "question_similarity, or hybrid_question_prototype, got "
+                f"{self.partial_retrieval_mode!r}"
             )
         self.direct_retrieval_mode = str(
             direct_retrieval_mode
@@ -82,17 +84,23 @@ class MultiScaleVQAPipeline:
             )
         )
         if self.direct_retrieval_mode not in {
-            "selected_phenotype", "question_similarity"
+            "selected_phenotype", "question_similarity",
+            "hybrid_question_prototype",
         }:
             raise ValueError(
-                "direct_retrieval_mode must be selected_phenotype or "
-                f"question_similarity, got {self.direct_retrieval_mode!r}"
+                "direct_retrieval_mode must be selected_phenotype, "
+                "question_similarity, or hybrid_question_prototype, got "
+                f"{self.direct_retrieval_mode!r}"
             )
         self.question_features = None
         if (
             self.morphology_retrieval_mode == "question_similarity"
-            or self.partial_retrieval_mode == "question_similarity"
-            or self.direct_retrieval_mode == "question_similarity"
+            or self.partial_retrieval_mode in {
+                "question_similarity", "hybrid_question_prototype"
+            }
+            or self.direct_retrieval_mode in {
+                "question_similarity", "hybrid_question_prototype"
+            }
         ):
             feature_path = self.config["retrieval"].get("question_feature_path")
             if not feature_path:
@@ -343,50 +351,91 @@ class MultiScaleVQAPipeline:
         if evidence_route == "phenotype_direct" and plan.target_phenotypes:
             primary = plan.target_phenotypes[0]
             primary_evidence = evidence_cache[primary]
-            question_retrieval_route = None
-            if (
-                plan.task_match == "direct"
-                and self.direct_retrieval_mode == "question_similarity"
-            ):
-                question_retrieval_route = "direct"
-            elif (
-                plan.task_match == "partial"
-                and self.partial_retrieval_mode == "question_similarity"
-            ):
-                question_retrieval_route = "partial"
-            use_question_retrieval = question_retrieval_route is not None
-            groups_key = (
-                f"__{question_retrieval_route}_question_groups__:{plan.question}"
-                if use_question_retrieval
-                else f"__pathology_groups__:{primary}"
+            retrieval_mode = (
+                self.direct_retrieval_mode
+                if plan.task_match == "direct"
+                else self.partial_retrieval_mode
             )
-            if groups_key not in evidence_cache:
-                if use_question_retrieval:
+            use_hybrid_retrieval = (
+                retrieval_mode == "hybrid_question_prototype"
+            )
+            use_question_retrieval = retrieval_mode in {
+                "question_similarity", "hybrid_question_prototype"
+            }
+
+            if use_hybrid_retrieval:
+                question_key = f"__question_groups__:{plan.question}"
+                prototype_key = f"__prototype_groups__:{primary}"
+                groups_key = f"__hybrid_groups__:{primary}:{plan.question}"
+                if question_key not in evidence_cache:
                     question_feature = self.question_features.lookup(plan.question)
-                    groups = self.retrieval.retrieve_by_question(
+                    evidence_cache[question_key] = self.retrieval.retrieve_by_question(
                         question_feature, scale_results
                     )
-                    crop_label = plan.question
-                else:
+                if prototype_key not in evidence_cache:
                     name = self.registry.field_to_name[primary]
                     vocab = self.registry.vocabs[min(self.registry.vocabs)]
                     group = vocab.get("phenotype_groups", {}).get(
                         name, "morphology"
                     )
-                    groups = self.retrieval.retrieve(
+                    evidence_cache[prototype_key] = self.retrieval.retrieve(
                         primary, group, scale_results, primary_evidence["relations"]
                     )
-                    crop_label = primary
-                if crop_patches:
-                    groups = self.cropper.crop_groups(
-                        plan.case_id, crop_label, groups
+                if groups_key not in evidence_cache:
+                    groups = self.retrieval.merge_hybrid_groups(
+                        evidence_cache[question_key],
+                        evidence_cache[prototype_key],
                     )
-                evidence_cache[groups_key] = groups
+                    if crop_patches:
+                        groups = self.cropper.crop_groups(
+                            plan.case_id, f"hybrid:{plan.question}", groups
+                        )
+                    evidence_cache[groups_key] = groups
+                overview_key = "__overview_thumbnails__"
+                if overview_key not in evidence_cache:
+                    evidence_cache[overview_key] = self.cropper.overview_thumbnails(
+                        plan.case_id
+                    )
+                overview_paths = evidence_cache[overview_key]
+            else:
+                groups_key = (
+                    f"__{plan.task_match}_question_groups__:{plan.question}"
+                    if use_question_retrieval
+                    else f"__pathology_groups__:{primary}"
+                )
+                if groups_key not in evidence_cache:
+                    if use_question_retrieval:
+                        question_feature = self.question_features.lookup(plan.question)
+                        groups = self.retrieval.retrieve_by_question(
+                            question_feature, scale_results
+                        )
+                        crop_label = plan.question
+                    else:
+                        name = self.registry.field_to_name[primary]
+                        vocab = self.registry.vocabs[min(self.registry.vocabs)]
+                        group = vocab.get("phenotype_groups", {}).get(
+                            name, "morphology"
+                        )
+                        groups = self.retrieval.retrieve(
+                            primary, group, scale_results,
+                            primary_evidence["relations"]
+                        )
+                        crop_label = primary
+                    if crop_patches:
+                        groups = self.cropper.crop_groups(
+                            plan.case_id, crop_label, groups
+                        )
+                    evidence_cache[groups_key] = groups
             groups = evidence_cache[groups_key]
             pathology_key = f"__pathology__:{primary}:{plan.question}"
             if pathology_key not in evidence_cache:
                 evidence_cache[pathology_key] = (
-                    self.pathology.describe(plan.question, primary, groups)
+                    self.pathology.describe(
+                        plan.question,
+                        primary,
+                        groups,
+                        overview_paths=overview_paths,
+                    )
                     if plan.use_pathology_agent
                     else {
                         "backend": "skipped",
@@ -398,16 +447,44 @@ class MultiScaleVQAPipeline:
             pathology = evidence_cache[pathology_key]
             pathology["primary_field"] = primary
             pathology["structured_fields_covered"] = list(plan.target_phenotypes)
-            pathology["retrieval_mode"] = (
-                "question_similarity"
-                if use_question_retrieval
-                else "selected_phenotype"
-            )
+            pathology["retrieval_mode"] = retrieval_mode
             if use_question_retrieval:
                 pathology["question_feature_source"] = (
                     QuestionFeatureStore.FEATURE_NAME
                 )
                 pathology["question_feature_dim"] = self.question_features.feature_dim
+            if use_hybrid_retrieval:
+                pathology["visual_evidence_order"] = [
+                    "overview", "question_similarity", "selected_phenotype"
+                ]
+                pathology["question_group_count"] = sum(
+                    "question_similarity" in str(group.evidence_source)
+                    for group in groups
+                )
+                pathology["prototype_group_count"] = sum(
+                    "selected_phenotype" in str(group.evidence_source)
+                    for group in groups
+                )
+                pathology["overview_count"] = len(overview_paths)
+                pathology["thumbnail_paths"] = list(overview_paths)
+                image_metadata = pathology.get("image_metadata", []) or []
+                pathology["overview_image_count"] = sum(
+                    item.get("kind") == "overview" for item in image_metadata
+                )
+                pathology["question_image_count"] = sum(
+                    item.get("kind") == "patch"
+                    and "question_similarity" in str(
+                        item.get("evidence_source")
+                    )
+                    for item in image_metadata
+                )
+                pathology["prototype_image_count"] = sum(
+                    item.get("kind") == "patch"
+                    and "selected_phenotype" in str(
+                        item.get("evidence_source")
+                    )
+                    for item in image_metadata
+                )
         elif evidence_route == "morphology_only":
             predictions_key = "__all_g2p_predictions__"
             if predictions_key not in evidence_cache:

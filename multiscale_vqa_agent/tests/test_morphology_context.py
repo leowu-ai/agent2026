@@ -72,7 +72,7 @@ class MorphologyFusionTest(unittest.TestCase):
         self.assertEqual(len(client.calls), 2)
         self.assertEqual(client.calls[0]["temperature"], 0.6)
         self.assertEqual(client.calls[0]["max_tokens"], 4096)
-        self.assertIs(client.calls[0]["enable_thinking"], True)
+        self.assertIs(client.calls[0]["enable_thinking"], False)
         self.assertEqual(client.calls[0]["top_p"], 0.95)
         self.assertEqual(client.calls[0]["top_k"], 20)
         self.assertEqual(client.calls[1]["temperature"], 0.0)
@@ -171,6 +171,48 @@ class PathologyImageSelectionTest(unittest.TestCase):
             [(row["scale"], row["group_id"]) for row in selected],
             [(4096, 1), (2048, 2), (1024, 1)],
         )
+
+    def test_hybrid_budget_orders_and_covers_question_then_prototype(self):
+        groups = []
+        for group_id, source in enumerate(
+            [
+                "question_similarity",
+                "question_similarity",
+                "question_similarity",
+                "selected_phenotype",
+                "selected_phenotype",
+            ],
+            1,
+        ):
+            groups.append(EvidenceGroup(
+                group_id=group_id,
+                score=1.0,
+                patches={
+                    4096: self.patch(4096, group_id),
+                    1024: self.patch(1024, group_id),
+                },
+                evidence_source=source,
+            ))
+        entries = PathologyAgent._image_entries(
+            groups, ["/tmp/overview1.jpg", "/tmp/overview2.jpg"]
+        )
+        selected = PathologyAgent._select_entries(entries, 8)
+
+        self.assertEqual(
+            [entry["kind"] for entry in selected[:2]],
+            ["overview", "overview"],
+        )
+        self.assertEqual(
+            [entry.get("evidence_source") for entry in selected[2:7]],
+            [
+                "question_similarity",
+                "question_similarity",
+                "question_similarity",
+                "selected_phenotype",
+                "selected_phenotype",
+            ],
+        )
+        self.assertEqual([entry["scale"] for entry in selected[2:7]], [4096] * 5)
 
 
 class OverviewThumbnailTest(unittest.TestCase):

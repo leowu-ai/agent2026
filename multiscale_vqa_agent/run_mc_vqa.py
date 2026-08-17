@@ -46,13 +46,19 @@ def main():
     )
     parser.add_argument(
         "--partial_retrieval_mode",
-        choices=("selected_phenotype", "question_similarity"),
+        choices=(
+            "selected_phenotype", "question_similarity",
+            "hybrid_question_prototype",
+        ),
         default=None,
         help="Optional override for partial-route visual patch retrieval.",
     )
     parser.add_argument(
         "--direct_retrieval_mode",
-        choices=("selected_phenotype", "question_similarity"),
+        choices=(
+            "selected_phenotype", "question_similarity",
+            "hybrid_question_prototype",
+        ),
         default=None,
         help="Optional override for direct-route visual patch retrieval.",
     )
