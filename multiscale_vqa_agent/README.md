@@ -144,10 +144,15 @@ The full 735-question run is a pipeline demonstration because most cases overlap
 
 The optional `hierarchical_rag` mode keeps the frozen feasibility gate,
 existing planner, patient-level G2P cache, and multiscale structured prediction.
-It acquires new visual evidence incrementally in this order:
+It first verifies compact structured G2P evidence at Round 0. When more
+evidence is needed, it adaptively selects a spatial scale and keeps finer
+visual rounds linked to the same WSI region:
 
 ```text
-4096 -> 2048 -> 1024 -> Program@1024 -> Gene@1024
+structured Round 0 -> answer or 4096/2048/1024
+4096 -> optional spatial child at 2048 or 1024
+2048 -> optional spatial child at 1024
+1024 -> optional Program@1024 -> optional Gene@1024
 ```
 
 Program and gene observations are supportive WSI-derived evidence, not measured

@@ -356,6 +356,68 @@ class MultiScaleRetrievalAgent:
             prototype_limit=2,
         )[: self.max_groups]
 
+    def link_child_groups(
+        self,
+        parent_groups: List[EvidenceGroup],
+        child_groups: List[EvidenceGroup],
+    ) -> List[EvidenceGroup]:
+        """Keep only spatially linked children from the preceding visual round."""
+        linked = []
+        for child_group in child_groups:
+            child = next(iter(child_group.patches.values()), None)
+            if child is None:
+                continue
+            matches = []
+            for parent_group in parent_groups:
+                parent = next(iter(parent_group.patches.values()), None)
+                if parent is None or not self._same_slide(parent, child):
+                    continue
+                relation = self._spatial_relation(parent, child)
+                if relation is None:
+                    continue
+                priority = 1 if relation == "center_contained" else 0
+                matches.append((priority, parent_group.score, parent_group, relation))
+            if not matches:
+                continue
+            _, _, parent_group, relation = max(
+                matches, key=lambda row: (row[0], row[1])
+            )
+            group = deepcopy(child_group)
+            group.group_id = len(linked) + 1
+            group.parent_group_id = parent_group.group_id
+            group.anchor_group_id = (
+                parent_group.anchor_group_id or parent_group.group_id
+            )
+            group.spatial_relation = relation
+            linked.append(group)
+            if len(linked) >= self.max_groups:
+                break
+        return linked
+
+    @staticmethod
+    def _same_slide(left: PatchCandidate, right: PatchCandidate) -> bool:
+        return left.slide_id.rsplit("_", 2)[0] == right.slide_id.rsplit("_", 2)[0]
+
+    @staticmethod
+    def _spatial_relation(
+        parent: PatchCandidate, child: PatchCandidate
+    ) -> Optional[str]:
+        if parent.x is None or parent.y is None or child.x is None or child.y is None:
+            return None
+        center = child.center
+        if center and (
+            parent.x <= center[0] <= parent.x + parent.size
+            and parent.y <= center[1] <= parent.y + parent.size
+        ):
+            return "center_contained"
+        x_overlap = min(parent.x + parent.size, child.x + child.size) - max(
+            parent.x, child.x
+        )
+        y_overlap = min(parent.y + parent.size, child.y + child.size) - max(
+            parent.y, child.y
+        )
+        return "bounding_box_overlap" if x_overlap > 0 and y_overlap > 0 else None
+
     def _groups_duplicate(
         self, left: EvidenceGroup, right: EvidenceGroup
     ) -> bool:
@@ -444,6 +506,9 @@ class MultiScaleRetrievalAgent:
                     "type": "question_similarity",
                     "name": "conch_v1_preprojection_768",
                     "attention": similarity,
+                    "raw_similarity": similarity,
+                    "retrieval_rank_score": similarity,
+                    "score_semantics": "relative_retrieval_rank_only",
                     "similarity": similarity,
                 }],
                 feature=features[patch_index],
@@ -487,6 +552,9 @@ class MultiScaleRetrievalAgent:
                     "type": "context",
                     "name": "low_aggregate_phenotype_attention",
                     "attention": float(aggregate[patch_index]),
+                    "raw_attention": float(aggregate[patch_index]),
+                    "retrieval_rank_score": float(0.90 - 0.03 * rank),
+                    "score_semantics": "relative_retrieval_rank_only",
                 }],
                 feature=features[patch_index],
             ))
@@ -541,6 +609,9 @@ class MultiScaleRetrievalAgent:
                     "type": "diversity",
                     "name": "feature_farthest_point",
                     "attention": None,
+                    "raw_attention": None,
+                    "retrieval_rank_score": float(0.86 - 0.03 * rank),
+                    "score_semantics": "relative_retrieval_rank_only",
                 }],
                 feature=features[patch_index],
             ))
@@ -630,6 +701,9 @@ class MultiScaleRetrievalAgent:
                         "type": source_type,
                         "name": prototype_name,
                         "attention": float(values[patch_index]),
+                        "raw_attention": float(values[patch_index]),
+                        "retrieval_rank_score": float(local_score),
+                        "score_semantics": "relative_retrieval_rank_only",
                     }],
                     feature=np.asarray(slide["features"][patch_index], dtype=np.float32),
                 ))

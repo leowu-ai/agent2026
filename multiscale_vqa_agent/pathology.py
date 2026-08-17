@@ -1,8 +1,23 @@
 import json
+import re
 from typing import Any, Dict, List, Optional
 
 from .clients import OpenAICompatibleClient
+from .clients import parse_json_response
 from .schemas import EvidenceGroup
+
+
+PATHOLOGY_SYSTEM_PROMPT = """You are a breast pathology morphology observer, not a diagnosis or molecular-status agent.
+Describe only structures directly visible in the supplied H&E pixels. Do not choose an MCQ option and do not diagnose a disease or molecular subtype. Never infer ER status, PR status, HER2 status, triple-negative status, gene expression, pathways, mutation, RNA, protein, IHC, FISH/ISH, amplification, treatment, clinical records, or report facts.
+For program/gene-selected images, you are not told why a patch was retrieved and must not guess its provenance. Indeterminate or limited-quality findings are not contradictions. Output JSON only with architecture, cytology, stroma, necrosis, invasion_pattern, visible_findings, target_visual_support, and image_quality."""
+
+
+MOLECULAR_OR_DIAGNOSTIC_PATTERN = re.compile(
+    r"\b(?:er|pr|her2|triple[- ]negative|gene|pathway|rna|mutation|ihc|fish|ish|"
+    r"amplification|copy number|protein|treatment|clinical record|diagnosis|"
+    r"carcinoma|sarcoma|lymphoma|cancer)\b",
+    re.I,
+)
 
 
 class PathologyAgent:
@@ -44,13 +59,7 @@ class PathologyAgent:
                 ],
             }
 
-        system = (
-            "You are a pathology vision evidence agent. Review the supplied images from coarse "
-            "architecture to cellular detail. Describe only morphology directly visible in the images. "
-            "Do not infer RNA, genes, pathways, receptor status, IHC, FISH, mutations, treatment, or "
-            "clinical records. Do not output hidden reasoning or think tags. Give a concise observation, "
-            "state whether scales agree, and state whether the visual evidence answers the question."
-        )
+        system = PATHOLOGY_SYSTEM_PROMPT
         attempts = self._attempt_schedule(len(entries))
         failures = []
         for attempt_index, (image_limit, image_max_size) in enumerate(attempts, 1):
@@ -74,12 +83,21 @@ class PathologyAgent:
                     max_tokens=384,
                     retries=0,
                     image_max_size=image_max_size,
+                    response_format={"type": "json_object"},
+                    enable_thinking=False,
                 )
                 if not description:
                     raise RuntimeError("Patho-R1 returned an empty response")
+                morphology = self._normalize_morphology(description)
+                if morphology is None:
+                    raise RuntimeError(
+                        "Patho-R1 did not return valid morphology-only JSON"
+                    )
                 return {
                     "backend": "pathor1",
-                    "description": description,
+                    "description": json.dumps(morphology, ensure_ascii=False),
+                    "morphology_observation": morphology,
+                    "raw_response": description,
                     "image_count": len(selected),
                     "available_image_count": len(entries),
                     "request_attempts": attempt_index,
@@ -111,6 +129,45 @@ class PathologyAgent:
                     self._select_entries(entries, attempts[-1][0]), 1
                 )
             ] if attempts else [],
+        }
+
+    @staticmethod
+    def _normalize_morphology(raw: str) -> Optional[Dict[str, Any]]:
+        parsed = parse_json_response(raw)
+        if not isinstance(parsed, dict):
+            return None
+
+        def clean(value: Any, limit: int = 320) -> str:
+            text = " ".join(str(value or "").split())[:limit]
+            if MOLECULAR_OR_DIAGNOSTIC_PATTERN.search(text):
+                return "indeterminate"
+            return text or "indeterminate"
+
+        visible = parsed.get("visible_findings", [])
+        if not isinstance(visible, list):
+            visible = [visible]
+        visible = [clean(value, 220) for value in visible[:6]]
+        visible = [value for value in visible if value != "indeterminate"]
+        necrosis = str(parsed.get("necrosis", "indeterminate")).lower()
+        if necrosis not in {"present", "absent", "indeterminate"}:
+            necrosis = "indeterminate"
+        support = str(
+            parsed.get("target_visual_support", "indeterminate")
+        ).lower()
+        if support not in {"supportive", "contradictory", "indeterminate"}:
+            support = "indeterminate"
+        quality = str(parsed.get("image_quality", "limited")).lower()
+        if quality not in {"adequate", "limited"}:
+            quality = "limited"
+        return {
+            "architecture": clean(parsed.get("architecture")),
+            "cytology": clean(parsed.get("cytology")),
+            "stroma": clean(parsed.get("stroma")),
+            "necrosis": necrosis,
+            "invasion_pattern": clean(parsed.get("invasion_pattern")),
+            "visible_findings": visible,
+            "target_visual_support": support,
+            "image_quality": quality,
         }
 
     @staticmethod

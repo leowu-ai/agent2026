@@ -11,7 +11,7 @@ from .agent_memory import EvidenceObservation, WorkingMemory
 from .answerability import AnswerabilityAgent
 from .clients import OpenAICompatibleClient
 from .fusion import FusionVerificationAgent
-from .fusion_evidence import build_structured_summary, indexed_choices
+from .fusion_evidence import indexed_choices
 from .g2p_runtime import MultiScaleG2PAgent
 from .pathology import PathologyAgent
 from .knowledge_rag import KnowledgeRAG
@@ -666,12 +666,40 @@ class MultiScaleVQAPipeline:
             choices=choices,
             target_phenotypes=plan.target_phenotypes,
         )
+        structured_round0 = self.fusion.prepare_structured_summary(
+            plan, choices, predictions
+        )
+        option_alignment = dict(
+            structured_round0.get("option_alignment") or {}
+        )
+        structured_candidate = None
+        if structured_round0.get("structured_candidate_id"):
+            structured_candidate = {
+                "choice_id": structured_round0.get("structured_candidate_id"),
+                "answer": structured_round0.get("structured_candidate_answer"),
+                "confidence": structured_round0.get(
+                    "structured_candidate_confidence", 0.0
+                ),
+            }
         memory = WorkingMemory(
             case_id=plan.case_id,
             question=plan.question,
             choices=choices,
             plan=plan_dict,
             knowledge=knowledge,
+            structured_evidence=structured_round0,
+            structured_candidate=structured_candidate,
+            structured_confidence=float(
+                structured_round0.get("structured_candidate_confidence") or 0.0
+            ),
+            option_alignment=option_alignment,
+            direct_evidence_state=(
+                "mapped"
+                if structured_candidate and option_alignment.get("mapping_complete")
+                else "available_unmapped"
+                if structured_round0.get("available")
+                else "unavailable"
+            ),
         )
         program_candidates = self._program_candidates(
             plan, knowledge, relations_by_field, scale_results
@@ -686,11 +714,43 @@ class MultiScaleVQAPipeline:
         verifier_failure_count = 0
         evidence_sufficiency_unverified = False
         allow_early_abstain = self._early_abstain_allowed(plan_dict, knowledge)
-        action = "inspect_4096"
-        target = None
-        action_fallback = False
+        spatial_parent_child_trace: List[Dict[str, Any]] = []
+        visual_parent_groups: List[Any] = []
+        visual_parent_scale: Optional[int] = None
+
+        round0_actions = self.verifier.available_actions(
+            "round0",
+            has_program_candidates=bool(program_candidates),
+            has_gene_candidates=False,
+            allow_early_abstain=allow_early_abstain,
+        )
+        round0_decision = self.verifier.decide(
+            question=plan.question,
+            choices=choices,
+            plan=plan_dict,
+            knowledge=knowledge,
+            memory=memory,
+            available_actions=round0_actions,
+            program_candidates=program_candidates,
+            gene_candidates=[],
+        )
+        memory.update_verifier(round0_decision)
+        verifier_decisions.append(dict(round0_decision))
+        if round0_decision.get("verifier_fallback_used"):
+            verifier_failure_count += 1
+        action = round0_decision["next_action"]
+        target = round0_decision.get("target")
+        action_fallback = bool(round0_decision.get("verifier_fallback_used"))
+        if action == "answer":
+            evidence_sufficiency_unverified = bool(
+                round0_decision.get("evidence_sufficiency_unverified")
+            )
+        elif action == "abstain":
+            post_search_abstained = True
 
         for round_index in range(1, 6):
+            if action in {"answer", "abstain"}:
+                break
             if action.startswith("inspect_") and action.split("_")[-1].isdigit():
                 scale = int(action.split("_")[-1])
                 groups = self._hierarchical_spatial_groups(
@@ -701,6 +761,29 @@ class MultiScaleVQAPipeline:
                     scale,
                     crop_patches,
                 )
+                if visual_parent_groups and visual_parent_scale and scale < visual_parent_scale:
+                    groups = self.retrieval.link_child_groups(
+                        visual_parent_groups, groups
+                    )
+                elif not visual_parent_groups:
+                    for group in groups:
+                        group.anchor_group_id = group.group_id
+                        group.spatial_relation = "anchor"
+                spatial_parent_child_trace.extend(
+                    {
+                        "round": round_index,
+                        "scale": scale,
+                        "group_id": group.group_id,
+                        "parent_group_id": group.parent_group_id,
+                        "anchor_group_id": group.anchor_group_id,
+                        "spatial_relation": group.spatial_relation,
+                        "slide_id": next(iter(group.patches.values())).slide_id
+                        if group.patches else None,
+                    }
+                    for group in groups
+                )
+                visual_parent_groups = groups
+                visual_parent_scale = scale
                 if scale == 4096:
                     overview_key = "__overview_thumbnails__"
                     if overview_key not in evidence_cache:
@@ -724,6 +807,15 @@ class MultiScaleVQAPipeline:
                 structured_support = {
                     "target_phenotypes": list(plan.target_phenotypes),
                     "evidence_route": evidence_route,
+                    "spatial_groups": [
+                        {
+                            "group_id": group.group_id,
+                            "parent_group_id": group.parent_group_id,
+                            "anchor_group_id": group.anchor_group_id,
+                            "spatial_relation": group.spatial_relation,
+                        }
+                        for group in groups
+                    ],
                 }
             elif action == "inspect_program":
                 selected_program, action_fallback = self._resolve_candidate(
@@ -784,6 +876,25 @@ class MultiScaleVQAPipeline:
                 action,
                 round_target_name,
                 verifier_fallback_used=action_fallback,
+                requested_action=(
+                    round0_decision.get("requested_action")
+                    if round_index == 1
+                    else verifier_decisions[-1].get("requested_action")
+                ),
+                normalized_action=(
+                    round0_decision.get("normalized_action")
+                    if round_index == 1
+                    else verifier_decisions[-1].get("normalized_action")
+                ),
+                fallback_reason=(
+                    round0_decision.get("fallback_reason")
+                    if round_index == 1
+                    else verifier_decisions[-1].get("fallback_reason")
+                ),
+                target_resolution_fallback=bool(
+                    (round0_decision if round_index == 1 else verifier_decisions[-1])
+                    .get("target_resolution_fallback")
+                ),
             )
             pathology = (
                 self.pathology.describe(
@@ -847,21 +958,6 @@ class MultiScaleVQAPipeline:
                 evidence_sufficiency_unverified = verifier_fallback_used
                 break
             if next_action == "abstain":
-                if verifier_fallback_used:
-                    next_evidence = next(
-                        (
-                            candidate for candidate in available_actions
-                            if candidate.startswith("inspect_")
-                        ),
-                        None,
-                    )
-                    if next_evidence:
-                        action = next_evidence
-                        target = None
-                        action_fallback = True
-                        continue
-                    evidence_sufficiency_unverified = True
-                    break
                 post_search_abstained = True
                 break
             action = next_action
@@ -882,7 +978,7 @@ class MultiScaleVQAPipeline:
             "rounds": pathology_rounds,
         }
         if post_search_abstained:
-            structured = build_structured_summary(plan, choices, predictions)
+            structured = structured_round0
             answer = None
         else:
             answer, structured = self.fusion.answer_with_summary(
@@ -893,6 +989,7 @@ class MultiScaleVQAPipeline:
                 combined_pathology,
                 broad_g2p_predictions=broad_g2p_predictions,
                 agent_context=agent_context,
+                prepared_structured=structured_round0,
             )
 
         first_prediction = predictions[0] if predictions else {}
@@ -907,6 +1004,9 @@ class MultiScaleVQAPipeline:
         else:
             final_evidence_state = "unavailable"
         agent_trace = {
+            "round0_structured_evidence": structured_round0,
+            "round0_decision": round0_decision,
+            "structured_candidate_before_visual": structured_candidate,
             "round_count": len(memory.observations),
             "actions": list(memory.action_history),
             "inspected_scales": list(memory.inspected_scales),
@@ -918,8 +1018,15 @@ class MultiScaleVQAPipeline:
             "final_evidence_state": final_evidence_state,
             "post_search_abstained": post_search_abstained,
             "verifier_failure_count": verifier_failure_count,
+            "verifier_fallback_count": verifier_failure_count,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
             "early_abstain_allowed": allow_early_abstain,
+            "spatial_parent_child_trace": spatial_parent_child_trace,
+            "visual_observations": [
+                row.to_dict() for row in memory.observations
+                if row.evidence_type in {"phenotype", "morphology"}
+            ],
+            "final_answer": answer or {},
         }
         result = {
             "case_id": plan.case_id,

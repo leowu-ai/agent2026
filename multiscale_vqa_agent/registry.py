@@ -221,6 +221,17 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
             prototype_ids = []
             coverage = "none"
 
+        candidate_fields = [
+            self.registry.prototype_id_to_field[prototype_id]
+            for prototype_id in prototype_ids
+        ]
+        if (
+            coverage == "complete"
+            and candidate_fields
+            and not self._label_space_covers_choices(candidate_fields, choices)
+        ):
+            coverage = "partial"
+
         if not prototype_ids or coverage == "none":
             coverage = "none"
             prototype_ids = []
@@ -278,6 +289,80 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
             prototype_coverage=coverage,
             local_morphology_useful=local_morphology_useful,
             requires_unavailable_context=requires_unavailable_context,
+        )
+
+    def _label_space_covers_choices(
+        self, fields: List[str], choices: Iterable[str]
+    ) -> bool:
+        if not hasattr(self.registry, "label_semantics"):
+            return True
+        choice_list = [str(choice) for choice in choices]
+        if not choice_list:
+            return True
+        clinical_choices = [
+            choice for choice in choice_list
+            if not any(
+                phrase in self._normalize_label(choice)
+                for phrase in (
+                    "cannot determine", "not provided", "not specified",
+                    "not mentioned", "unknown", "insufficient",
+                )
+            )
+        ]
+        if not clinical_choices:
+            return False
+        return all(
+            any(
+                self._field_label_matches_choice(field, label, choice)
+                for field in fields
+                for label in self.registry.label_semantics(field).get(
+                    "clinical_meaning", {}
+                ).values()
+            )
+            for choice in clinical_choices
+        )
+
+    @staticmethod
+    def _normalize_label(value: Any) -> str:
+        normalized = " ".join(
+            __import__("re").findall(r"[a-z0-9]+", str(value or "").lower())
+        )
+        return normalized.replace("infiltrating", "invasive")
+
+    def _field_label_matches_choice(
+        self, field: str, label: Any, choice: str
+    ) -> bool:
+        normalized_label = self._normalize_label(label)
+        normalized_choice = self._normalize_label(choice)
+        if not normalized_label:
+            return False
+        field_terms = {
+            "ER_status_label": ("er", "estrogen receptor", "estrogen receptors"),
+            "PR_status_label": ("pr", "progesterone receptor", "progesterone receptors"),
+            "HER2_status_label": (
+                "her2", "her 2", "human epidermal growth factor receptor 2",
+            ),
+        }
+        terms = field_terms.get(field, ())
+        if terms:
+            all_receptor_terms = {
+                term for values in field_terms.values() for term in values
+            }
+            mentions_other = any(
+                f" {self._normalize_label(term)} " in f" {normalized_choice} "
+                and term not in terms
+                for term in all_receptor_terms
+            )
+            mentions_field = any(
+                f" {self._normalize_label(term)} " in f" {normalized_choice} "
+                for term in terms
+            )
+            if mentions_other and not mentions_field:
+                return False
+        return (
+            normalized_choice == normalized_label
+            or f" {normalized_label} " in f" {normalized_choice} "
+            or f" {normalized_choice} " in f" {normalized_label} "
         )
 
     @staticmethod

@@ -12,18 +12,11 @@ MISSING_TYPES = {
     "coarse_visual", "intermediate_visual", "fine_visual",
     "program_support", "gene_support", "unavailable", "none",
 }
-ACTION_SEQUENCE = {
-    "inspect_4096": "inspect_2048",
-    "inspect_2048": "inspect_1024",
-    "inspect_1024": "inspect_program",
-    "inspect_program": "inspect_gene",
-    "inspect_gene": "abstain",
-}
-
-
 VERIFIER_SYSTEM_PROMPT = """You are an evidence sufficiency controller for breast pathology WSI multiple-choice VQA.
 You do not choose an option and must never output an answer_id. Judge whether accumulated evidence resolves the option-level distinction and choose exactly one supplied available action.
-Direct phenotype predictions address only their trained target. Visual observations describe pixels. Program and gene evidence is supportive WSI-derived evidence, never measured RNA, protein, mutation, IHC, FISH, amplification, or copy number. Learned relations are predictive associations, not causality.
+Evidence priority is direct structured phenotype prediction, then target-specific visible morphology, then supportive program evidence, then supportive gene evidence. A reliable direct prediction with complete option alignment may be answered at Round 0 without visual inspection. Program, gene, and weak visual evidence must not casually overwrite a direct candidate.
+A WSI-derived categorical ER/PR/HER2 prediction is valid evidence for a categorical benchmark target such as positive versus negative. It is not a measured assay and cannot answer an exact percentage, intensity, FISH/ISH ratio, amplification, or other assay-specific quantity.
+Visual observations describe pixels only. Treat a visual conflict as real only when spatially linked observations address the same target with clearly mutually exclusive morphology. Limited, indeterminate, different-region, or different-slide observations are not conflicts. Program and gene evidence is supportive WSI-derived evidence, never measured RNA, protein, mutation, IHC, FISH, amplification, or copy number. Learned relations are predictive associations, not causality.
 Use unused evidence only when it can resolve a stated missing distinction. Exact assay values, exact size/distance/count, clinical history, treatment, procedure, report wording, and other unavailable facts cannot be recovered by escalating program or gene evidence.
 Return JSON only with evidence_sufficient, evidence_state, missing_evidence_type, conflict_detected, next_action, target, and a concise reason."""
 
@@ -39,8 +32,13 @@ class EvidenceVerifierAgent:
         has_gene_candidates: bool,
         allow_early_abstain: bool = False,
     ) -> List[str]:
+        if last_action == "round0":
+            actions = ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
         if last_action == "inspect_4096":
-            actions = ["answer", "inspect_2048"]
+            actions = ["answer", "inspect_2048", "inspect_1024"]
             if allow_early_abstain:
                 actions.append("abstain")
             return actions
@@ -108,7 +106,9 @@ class EvidenceVerifierAgent:
             },
         }
         if not self.client or not self.client.enabled:
-            return self._fallback(available_actions, "Verifier client is disabled.")
+            return self._fallback(
+                available_actions, "Verifier client is disabled.", memory
+            )
         try:
             raw = self.client.chat(
                 VERIFIER_SYSTEM_PROMPT,
@@ -124,17 +124,26 @@ class EvidenceVerifierAgent:
             return self._fallback(
                 available_actions,
                 f"Verifier request failed: {type(error).__name__}.",
+                memory,
             )
         return self._normalize(
             parsed,
             available_actions,
             program_candidates or [],
             gene_candidates or [],
+            memory,
         )
 
     @staticmethod
     def _compact_memory(memory: WorkingMemory) -> Dict[str, Any]:
         return {
+            "structured_evidence": EvidenceVerifierAgent._compact_structured(
+                memory.structured_evidence
+            ),
+            "structured_candidate": memory.structured_candidate,
+            "structured_confidence": memory.structured_confidence,
+            "option_alignment": memory.option_alignment,
+            "direct_evidence_state": memory.direct_evidence_state,
             "observations": [
                 {
                     "round": row.round_index,
@@ -155,15 +164,48 @@ class EvidenceVerifierAgent:
             "inspected_genes": list(memory.inspected_genes),
         }
 
+    @staticmethod
+    def _compact_structured(structured: Dict[str, Any]) -> Dict[str, Any]:
+        prediction_keys = (
+            "field", "predicted_label",
+            "fused_probability_for_predicted_class",
+            "cross_scale_agreement", "validation_quality",
+        )
+        return {
+            "task_match": structured.get("task_match"),
+            "prototype_coverage": structured.get("prototype_coverage"),
+            "target_coverage": structured.get("target_coverage"),
+            "predictions": [
+                {key: row.get(key) for key in prediction_keys}
+                for row in structured.get("predictions", [])
+            ],
+            "structured_candidate_id": structured.get(
+                "structured_candidate_id"
+            ),
+            "structured_candidate_answer": structured.get(
+                "structured_candidate_answer"
+            ),
+            "structured_candidate_confidence": structured.get(
+                "structured_candidate_confidence"
+            ),
+            "option_alignment": {
+                key: structured.get("option_alignment", {}).get(key)
+                for key in ("source", "choice_id", "mapping_complete", "confidence")
+            },
+        }
+
     def _normalize(
         self,
         parsed: Any,
         available_actions: List[str],
         program_candidates: List[Dict[str, Any]],
         gene_candidates: List[Dict[str, Any]],
+        memory: Optional[WorkingMemory] = None,
     ) -> Dict[str, Any]:
         if not isinstance(parsed, dict):
-            return self._fallback(available_actions, "Verifier returned invalid JSON.")
+            return self._fallback(
+                available_actions, "Verifier returned invalid JSON.", memory
+            )
         state = str(parsed.get("evidence_state", "insufficient")).lower()
         if state not in EVIDENCE_STATES:
             state = "insufficient"
@@ -171,37 +213,48 @@ class EvidenceVerifierAgent:
         if missing not in MISSING_TYPES:
             missing = "none"
         action = str(parsed.get("next_action", "")).lower()
+        requested_action = action
         sufficient = parsed.get("evidence_sufficient") is True
         if action == "answer" and not sufficient:
             return self._fallback(
                 available_actions,
                 "Verifier requested answer without sufficient evidence.",
+                memory,
+                requested_action=requested_action,
             )
         if action == "answer" and sufficient:
             state = "sufficient"
             missing = "none"
         if action not in available_actions:
-            return self._fallback(available_actions, "Verifier requested an unavailable action.")
+            return self._fallback(
+                available_actions,
+                "Verifier requested an unavailable action.",
+                memory,
+                requested_action=requested_action,
+            )
         target = parsed.get("target")
         candidates = (
             program_candidates if action == "inspect_program"
             else gene_candidates if action == "inspect_gene" else []
         )
+        target_resolution_fallback = False
         if candidates:
             resolved = self._resolve_target(target, candidates)
             if resolved is None:
-                result = self._fallback(
-                    available_actions,
-                    "Verifier target was not in the constrained candidate list.",
-                )
-                if result["next_action"] == action:
-                    result["target"] = candidates[0].get("name")
-                return result
-            target = resolved
+                target = candidates[0].get("name")
+                target_resolution_fallback = True
+            else:
+                target = resolved
         elif action in {"inspect_program", "inspect_gene"}:
-            return self._fallback(available_actions, "No constrained target was available.")
+            return self._fallback(
+                available_actions,
+                "No constrained target was available.",
+                memory,
+                requested_action=requested_action,
+            )
         else:
             target = None
+            target_resolution_fallback = False
         return {
             "evidence_sufficient": sufficient,
             "evidence_state": state,
@@ -212,6 +265,11 @@ class EvidenceVerifierAgent:
             "reason": " ".join(str(parsed.get("reason") or "").split())[:500],
             "verifier_fallback_used": False,
             "evidence_sufficiency_unverified": False,
+            "requested_action": requested_action,
+            "normalized_action": action,
+            "executed_action": action,
+            "fallback_reason": None,
+            "target_resolution_fallback": target_resolution_fallback,
         }
 
     @staticmethod
@@ -220,23 +278,53 @@ class EvidenceVerifierAgent:
     ) -> Optional[str]:
         if isinstance(target, dict):
             target = target.get("name", target.get("index"))
+        normalized_target = " ".join(str(target or "").lower().split())
         for row in candidates:
+            normalized_name = " ".join(str(row.get("name") or "").lower().split())
             if (
                 str(target or "") == str(row.get("index"))
-                or str(target or "") == str(row.get("name"))
+                or normalized_target == normalized_name
             ):
                 return str(row.get("name"))
         return None
 
     @staticmethod
-    def _fallback(available_actions: List[str], reason: str) -> Dict[str, Any]:
-        next_evidence = next(
-            (action for action in available_actions if action.startswith("inspect_")),
-            None,
+    def _fallback(
+        available_actions: List[str],
+        reason: str,
+        memory: Optional[WorkingMemory] = None,
+        requested_action: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        # Invalid model output must not silently turn the agent into a fixed
+        # Program/Gene escalation chain. Prefer the already mapped direct
+        # candidate; otherwise honor only an explicitly unresolved legal gap.
+        has_direct_candidate = bool(
+            memory
+            and memory.structured_candidate
+            and memory.option_alignment.get("mapping_complete") is True
         )
-        action = next_evidence or (
-            "answer" if "answer" in available_actions else available_actions[0]
+        missing_to_action = {
+            "coarse_visual": "inspect_4096",
+            "intermediate_visual": "inspect_2048",
+            "fine_visual": "inspect_1024",
+            "program_support": "inspect_program",
+            "gene_support": "inspect_gene",
+        }
+        unresolved = (
+            memory.current_missing_evidence[-1]
+            if memory and memory.current_missing_evidence else None
         )
+        required_action = missing_to_action.get(unresolved)
+        if has_direct_candidate and "answer" in available_actions:
+            action = "answer"
+        elif required_action in available_actions:
+            action = required_action
+        elif "answer" in available_actions:
+            action = "answer"
+        elif "abstain" in available_actions:
+            action = "abstain"
+        else:
+            action = available_actions[0]
         missing_map = {
             "inspect_2048": "intermediate_visual",
             "inspect_1024": "fine_visual",
@@ -254,4 +342,9 @@ class EvidenceVerifierAgent:
             "reason": reason,
             "verifier_fallback_used": True,
             "evidence_sufficiency_unverified": action == "answer",
+            "requested_action": requested_action,
+            "normalized_action": action,
+            "executed_action": action,
+            "fallback_reason": reason,
+            "target_resolution_fallback": False,
         }

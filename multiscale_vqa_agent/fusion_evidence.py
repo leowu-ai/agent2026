@@ -56,6 +56,79 @@ def clinical_display_label(field: Any, label: Any) -> str:
     return value
 
 
+FIELD_OPTION_TERMS = {
+    "ER_status_label": ("er", "estrogen receptor", "estrogen receptors"),
+    "PR_status_label": ("pr", "progesterone receptor", "progesterone receptors"),
+    "HER2_status_label": ("her2", "her 2", "human epidermal growth factor receptor 2"),
+}
+
+
+def _contains_clinical_term(normalized_text: str, term: str) -> bool:
+    normalized_term = _literal_normalize(term)
+    return f" {normalized_term} " in f" {normalized_text} "
+
+
+def primary_semantic_choice_alignment(
+    structured: Dict[str, Any], choices: Sequence[str]
+) -> Optional[Dict[str, Any]]:
+    """Conservatively align only the primary clinical prediction to one choice."""
+    predictions = structured.get("predictions", [])
+    primary_fields = structured.get("primary_fields", [])
+    primary = next(
+        (
+            row for row in predictions
+            if row.get("field") in set(primary_fields)
+        ),
+        predictions[0] if predictions else None,
+    )
+    if not primary:
+        return None
+    field = str(primary.get("field") or "")
+    label = clinical_display_label(field, primary.get("predicted_label"))
+    normalized_label = _literal_normalize(label).replace("infiltrating", "invasive")
+    if not normalized_label:
+        return None
+    field_terms = FIELD_OPTION_TERMS.get(field, ())
+    matches = []
+    for option in indexed_choices(choices):
+        normalized = _literal_normalize(option["text"]).replace(
+            "infiltrating", "invasive"
+        )
+        label_match = (
+            normalized == normalized_label
+            or f" {normalized_label} " in f" {normalized} "
+            or f" {normalized} " in f" {normalized_label} "
+        )
+        if not label_match:
+            continue
+        if field_terms:
+            other_receptor = any(
+                _contains_clinical_term(normalized, term)
+                for other_field, terms in FIELD_OPTION_TERMS.items()
+                if other_field != field
+                for term in terms
+            )
+            field_present = any(
+                _contains_clinical_term(normalized, term)
+                for term in field_terms
+            )
+            if other_receptor and not field_present:
+                continue
+        matches.append(option)
+    if len(matches) != 1:
+        return None
+    return {
+        "source": "deterministic_primary_clinical_semantics",
+        "choice_id": matches[0]["id"],
+        "mapping_complete": True,
+        "confidence": 0.95,
+        "reason": (
+            "The primary clinical predicted label maps uniquely to this supplied choice; "
+            "supporting fields do not control primary alignment."
+        ),
+    }
+
+
 def _literal_choice_matches(
     prediction_rows: List[Dict[str, Any]],
     choices: Sequence[str],
@@ -219,6 +292,7 @@ def build_structured_summary(
         "evidence_route": getattr(plan, "evidence_route", "phenotype_direct"),
         "selected_prototype_ids": selected_prototype_ids,
         "task_match": task_match,
+        "prototype_coverage": getattr(plan, "prototype_coverage", "none"),
         "requested_fields": requested,
         "executed_fields": executed,
         "missing_fields": missing,

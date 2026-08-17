@@ -26,6 +26,11 @@ class WorkingMemory:
     choices: List[str]
     plan: Dict[str, Any]
     knowledge: Dict[str, Any]
+    structured_evidence: Dict[str, Any] = field(default_factory=dict)
+    structured_candidate: Optional[Dict[str, Any]] = None
+    structured_confidence: float = 0.0
+    option_alignment: Dict[str, Any] = field(default_factory=dict)
+    direct_evidence_state: str = "unavailable"
     inspected_scales: List[int] = field(default_factory=list)
     observations: List[EvidenceObservation] = field(default_factory=list)
     direct_evidence: List[Dict[str, Any]] = field(default_factory=list)
@@ -62,12 +67,21 @@ class WorkingMemory:
         action: str,
         target: Optional[str] = None,
         verifier_fallback_used: bool = False,
+        requested_action: Optional[str] = None,
+        normalized_action: Optional[str] = None,
+        fallback_reason: Optional[str] = None,
+        target_resolution_fallback: bool = False,
     ) -> None:
         self.action_history.append({
             "round": int(round_index),
             "action": action,
+            "requested_action": requested_action or action,
+            "normalized_action": normalized_action or action,
+            "executed_action": action,
             "target": target,
             "verifier_fallback_used": bool(verifier_fallback_used),
+            "fallback_reason": fallback_reason,
+            "target_resolution_fallback": bool(target_resolution_fallback),
         })
 
     def update_verifier(self, decision: Dict[str, Any]) -> None:
@@ -95,6 +109,11 @@ class WorkingMemory:
             "choices": list(self.choices),
             "plan": dict(self.plan),
             "knowledge": self.knowledge,
+            "structured_evidence": self.structured_evidence,
+            "structured_candidate": self.structured_candidate,
+            "structured_confidence": self.structured_confidence,
+            "option_alignment": self.option_alignment,
+            "direct_evidence_state": self.direct_evidence_state,
             "inspected_scales": list(self.inspected_scales),
             "observations": [item.to_dict() for item in self.observations],
             "direct_evidence": list(self.direct_evidence),

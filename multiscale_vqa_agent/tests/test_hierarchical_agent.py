@@ -13,8 +13,9 @@ from multiscale_vqa_agent.agent_memory import (
     WorkingMemory,
 )
 from multiscale_vqa_agent.fusion import FusionVerificationAgent
+from multiscale_vqa_agent.fusion_evidence import primary_semantic_choice_alignment
 from multiscale_vqa_agent.knowledge_rag import KnowledgeRAG
-from multiscale_vqa_agent.pathology import PathologyAgent
+from multiscale_vqa_agent.pathology import PATHOLOGY_SYSTEM_PROMPT, PathologyAgent
 from multiscale_vqa_agent.pipeline import MultiScaleVQAPipeline
 from multiscale_vqa_agent.registry import ToolBankRegistry
 from multiscale_vqa_agent.retrieval import MultiScaleRetrievalAgent
@@ -146,6 +147,40 @@ class RetrievalSeparationTest(unittest.TestCase):
         self.assertEqual(self.source_types(program), {"program"})
         self.assertEqual(self.source_types(gene), {"gene"})
 
+    def test_spatial_children_are_same_slide_and_linked(self):
+        parents = self.agent.retrieve_phenotype_only(
+            "histological_type_label", self.results, 4096
+        )
+        for group in parents:
+            group.anchor_group_id = group.group_id
+        children = self.agent.link_child_groups(
+            parents,
+            self.agent.retrieve_phenotype_only(
+                "histological_type_label", self.results, 2048
+            ),
+        )
+        self.assertTrue(children)
+        self.assertTrue(all(group.parent_group_id for group in children))
+        self.assertTrue(all(group.anchor_group_id for group in children))
+        parent_by_id = {group.group_id: group for group in parents}
+        for child_group in children:
+            parent = next(iter(parent_by_id[child_group.parent_group_id].patches.values()))
+            child = next(iter(child_group.patches.values()))
+            self.assertTrue(self.agent._same_slide(parent, child))
+            self.assertIn(
+                child_group.spatial_relation,
+                {"center_contained", "bounding_box_overlap"},
+            )
+
+    def test_raw_attention_is_distinct_from_rank_score(self):
+        groups = self.agent.retrieve_phenotype_only(
+            "histological_type_label", self.results, 1024
+        )
+        source = next(iter(groups[0].patches.values())).sources[0]
+        self.assertIn("raw_attention", source)
+        self.assertIn("retrieval_rank_score", source)
+        self.assertEqual(source["score_semantics"], "relative_retrieval_rank_only")
+
     def test_legacy_retrieve_still_combines_all_source_types(self):
         relations = {
             "programs": [{"index": 0}],
@@ -161,7 +196,7 @@ class StateMachineTest(unittest.TestCase):
     def test_spatial_and_biological_order(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_4096", True, True),
-            ["answer", "inspect_2048"],
+            ["answer", "inspect_2048", "inspect_1024"],
         )
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_2048", True, True),
@@ -193,7 +228,7 @@ class StateMachineTest(unittest.TestCase):
             ["answer", "abstain"],
         )
 
-    def test_invalid_action_uses_deterministic_next_evidence(self):
+    def test_invalid_action_does_not_mechanically_deepen(self):
         verifier = EvidenceVerifierAgent(client=None)
         decision = verifier._normalize(
             {"next_action": "inspect_gene"},
@@ -201,25 +236,34 @@ class StateMachineTest(unittest.TestCase):
             [],
             [],
         )
-        self.assertEqual(decision["next_action"], "inspect_2048")
+        self.assertEqual(decision["next_action"], "answer")
         self.assertTrue(decision["verifier_fallback_used"])
+        self.assertTrue(decision["evidence_sufficiency_unverified"])
 
-    def test_disabled_verifier_yields_full_five_round_trace(self):
+    def test_disabled_verifier_does_not_yield_fixed_five_round_trace(self):
         verifier = EvidenceVerifierAgent(client=None)
-        sequence = []
-        action = "inspect_4096"
-        for _ in range(5):
-            sequence.append(action)
-            available = verifier.available_actions(
-                action, has_program_candidates=True, has_gene_candidates=True
-            )
-            decision = verifier._fallback(available, "synthetic")
-            action = decision["next_action"]
-        self.assertEqual(sequence, [
-            "inspect_4096", "inspect_2048", "inspect_1024",
-            "inspect_program", "inspect_gene",
-        ])
-        self.assertEqual(action, "answer")
+        decision = verifier._fallback(
+            ["answer", "inspect_program", "abstain"], "synthetic"
+        )
+        self.assertEqual(decision["next_action"], "answer")
+        self.assertNotEqual(decision["next_action"], "inspect_program")
+
+    def test_round0_allows_adaptive_visual_scale_or_answer(self):
+        actions = EvidenceVerifierAgent.available_actions(
+            "round0", True, False, allow_early_abstain=False
+        )
+        self.assertEqual(
+            actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
+        )
+
+    def test_fallback_prefers_mapped_direct_candidate(self):
+        memory = WorkingMemory("case", "q", ["positive", "negative"], {}, {})
+        memory.structured_candidate = {"choice_id": "A", "answer": "positive"}
+        memory.option_alignment = {"mapping_complete": True}
+        decision = EvidenceVerifierAgent._fallback(
+            ["answer", "inspect_1024", "abstain"], "synthetic", memory
+        )
+        self.assertEqual(decision["next_action"], "answer")
 
     def test_terminal_failure_is_unverified_answer_not_abstain(self):
         decision = EvidenceVerifierAgent._fallback(
@@ -448,8 +492,54 @@ class PathologyIsolationTest(unittest.TestCase):
         )
         self.assertIn("program_support", client.user)
 
+    def test_prompt_forbids_non_morphology_claims(self):
+        prompt = PATHOLOGY_SYSTEM_PROMPT.lower()
+        for forbidden in (
+            "er status", "pr status", "her2 status", "triple-negative",
+            "gene expression", "mutation", "ihc", "fish", "treatment",
+            "clinical records",
+        ):
+            self.assertIn(forbidden, prompt)
+
+    def test_parser_sanitizes_molecular_claim(self):
+        parsed = PathologyAgent._normalize_morphology(json.dumps({
+            "architecture": "single cell pattern",
+            "cytology": "HER2 positive tumor cells",
+            "stroma": "fibrous",
+            "necrosis": "absent",
+            "invasion_pattern": "infiltrative",
+            "visible_findings": ["ER negative", "cohesive nests"],
+            "target_visual_support": "supportive",
+            "image_quality": "adequate",
+        }))
+        self.assertEqual(parsed["cytology"], "indeterminate")
+        self.assertEqual(parsed["visible_findings"], ["cohesive nests"])
+
 
 class FusionContextTest(unittest.TestCase):
+    def test_primary_er_alignment_is_not_blocked_by_supporting_pr(self):
+        structured = {
+            "primary_fields": ["ER_status_label"],
+            "predictions": [
+                {"field": "ER_status_label", "predicted_label": "positive"},
+                {"field": "PR_status_label", "predicted_label": "positive"},
+            ],
+        }
+        alignment = primary_semantic_choice_alignment(structured, [
+            "positive for estrogen receptors",
+            "negative for estrogen receptors",
+            "positive for progesterone receptors",
+            "negative for progesterone receptors",
+        ])
+        self.assertEqual(alignment["choice_id"], "A")
+        self.assertTrue(alignment["mapping_complete"])
+
+    def test_verifier_distinguishes_categorical_status_from_assay(self):
+        prompt = VERIFIER_SYSTEM_PROMPT.lower()
+        self.assertIn("categorical er/pr/her2", prompt)
+        self.assertIn("exact percentage", prompt)
+        self.assertIn("not a measured assay", prompt)
+
     def test_accumulated_observations_and_supportive_role_reach_packet(self):
         plan = ExecutionPlan(
             case_id="case", question="question", target_phenotypes=[],
@@ -641,21 +731,25 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             False,
         )
 
-    def test_real_hierarchical_runner_acquires_five_distinct_rounds(self):
+    def test_strong_direct_candidate_answers_at_round0(self):
         pipeline = self.configured_pipeline(
             EvidenceVerifierAgent(client=None)
         )
         result = self.run_question(pipeline, self.plan())
         actions = [row["action"] for row in result["agent_trace"]["actions"]]
-        self.assertEqual(actions, [
-            "inspect_4096", "inspect_2048", "inspect_1024",
-            "inspect_program", "inspect_gene",
-        ])
-        self.assertEqual(result["agent_trace"]["inspected_scales"], [4096, 2048, 1024])
+        self.assertEqual(actions, [])
+        self.assertEqual(result["agent_trace"]["inspected_scales"], [])
+        self.assertEqual(
+            result["agent_trace"]["round0_decision"]["next_action"], "answer"
+        )
+        self.assertEqual(
+            result["agent_trace"]["structured_candidate_before_visual"]["choice_id"],
+            "A",
+        )
         self.assertFalse(result["post_search_abstained"])
         self.assertIsNone(result["abstain_stage"])
         self.assertTrue(result["evidence_sufficiency_unverified"])
-        self.assertEqual(result["verifier_failure_count"], 5)
+        self.assertEqual(result["verifier_failure_count"], 1)
         self.assertIsNotNone(result["agent_answer"])
         self.assertTrue(all(
             row["scale"] == 1024

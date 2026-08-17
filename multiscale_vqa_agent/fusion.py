@@ -10,6 +10,7 @@ from .fusion_evidence import (
     choice_id_for_answer,
     indexed_choices,
     load_fusion_prompt,
+    primary_semantic_choice_alignment,
 )
 from .schemas import ExecutionPlan
 
@@ -71,14 +72,26 @@ class FusionVerificationAgent:
         pathology: Dict[str, Any],
         broad_g2p_predictions: Any = None,
         agent_context: Optional[Dict[str, Any]] = None,
+        prepared_structured: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
-        structured = build_structured_summary(plan, choices, phenotype_results)
-        self._attach_option_alignment(plan, choices, structured)
+        structured = prepared_structured or self.prepare_structured_summary(
+            plan, choices, phenotype_results
+        )
         answer = self._answer_prepared(
             plan, choices, structured, relations, pathology,
             broad_g2p_predictions, agent_context,
         )
         return answer, structured
+
+    def prepare_structured_summary(
+        self,
+        plan: ExecutionPlan,
+        choices: List[str],
+        phenotype_results: Any,
+    ) -> Dict[str, Any]:
+        structured = build_structured_summary(plan, choices, phenotype_results)
+        self._attach_option_alignment(plan, choices, structured)
+        return structured
 
     def _answer_prepared(
         self,
@@ -263,6 +276,7 @@ class FusionVerificationAgent:
                 "A unique literal_match choice is a strong advisory hint, not an absolute answer.",
                 "Patho-R1 can overturn structured evidence only with direct visible counterevidence.",
                 "WSI-inferred gene/pathway scores are not measured RNA, IHC, FISH, mutation, or protein.",
+                "A WSI-derived categorical ER/PR/HER2 phenotype can directly support a categorical benchmark target, but never an assay percentage, intensity, FISH ratio, or amplification result.",
             ],
             "code_generated_base_confidence": structured.get("structured_candidate_confidence"),
         }
@@ -467,9 +481,12 @@ class FusionVerificationAgent:
             }
             return
 
+        primary_alignment = primary_semantic_choice_alignment(structured, choices)
         literal_id = structured.get("literal_match_id")
         options = {row["id"]: row["text"] for row in indexed_choices(choices)}
-        if literal_id in options:
+        if primary_alignment:
+            alignment = primary_alignment
+        elif literal_id in options:
             alignment = {
                 "source": "literal_exact",
                 "choice_id": literal_id,

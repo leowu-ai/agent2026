@@ -234,6 +234,29 @@ class RouterPlannerTest(unittest.TestCase):
         self.assertEqual(plan.task_type, "morphology")
         self.assertTrue(plan.use_pathology_agent)
 
+    def test_label_space_keeps_categorical_er_but_downgrades_percentage(self):
+        class SemanticRegistry(FakeRegistry):
+            @staticmethod
+            def label_semantics(field):
+                assert field == "ER_status_label"
+                return {"clinical_meaning": {"0": "negative", "1": "positive"}}
+
+        planner = PrototypeAwarePlanner(SemanticRegistry(), FakeClient())
+        parsed = {
+            "prototype_ids": ["P013"],
+            "prototype_support_type": "target_evidence",
+            "prototype_coverage": "complete",
+        }
+        categorical = planner._normalize_llm_plan(
+            "case", "Is ER positive or negative?", ["positive", "negative"], parsed
+        )
+        quantitative = planner._normalize_llm_plan(
+            "case", "What percentage of cells are ER positive?",
+            ["10%", "50%", "90%"], parsed,
+        )
+        self.assertEqual(categorical.prototype_coverage, "complete")
+        self.assertEqual(quantitative.prototype_coverage, "partial")
+
 
 if __name__ == "__main__":
     unittest.main()

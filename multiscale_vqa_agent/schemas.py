@@ -36,6 +36,7 @@ class PatchCandidate:
     y: Optional[int]
     size: int
     score: float
+    score_semantics: str = "relative_retrieval_rank_only"
     sources: List[Dict[str, Any]] = field(default_factory=list)
     feature: Optional[Any] = field(default=None, repr=False)
     image_path: Optional[str] = None
@@ -58,11 +59,22 @@ class EvidenceGroup:
     score: float
     patches: Dict[int, PatchCandidate] = field(default_factory=dict)
     evidence_source: Optional[str] = None
+    parent_group_id: Optional[int] = None
+    anchor_group_id: Optional[int] = None
+    spatial_relation: Optional[str] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
+        result = {
             "group_id": self.group_id,
             "score": self.score,
+            "score_semantics": "relative_retrieval_rank_only",
             "evidence_source": self.evidence_source,
             "patches": {str(k): v.to_dict() for k, v in self.patches.items()},
         }
+        if self.parent_group_id is not None:
+            result["parent_group_id"] = self.parent_group_id
+        if self.anchor_group_id is not None:
+            result["anchor_group_id"] = self.anchor_group_id
+        if self.spatial_relation is not None:
+            result["spatial_relation"] = self.spatial_relation
+        return result
