@@ -1097,6 +1097,10 @@ class MultiScaleVQAPipeline:
         plan: Dict[str, Any], knowledge: Dict[str, Any]
     ) -> bool:
         """Use explicit Planner/RAG evidence semantics, never question keywords."""
+        if plan.get("target_phenotypes"):
+            return False
+        if plan.get("local_morphology_useful") is True:
+            return False
         if plan.get("requires_unavailable_context") is True:
             return True
         unavailable_roles = {
@@ -1115,7 +1119,7 @@ class MultiScaleVQAPipeline:
             "rule_exact_quantity",
             "rule_stage_and_outcome",
         }
-        return not plan.get("target_phenotypes") and any(
+        return any(
             row.get("id") in unavailable_rule_ids
             for row in knowledge.get("evidence_rules", [])
         )

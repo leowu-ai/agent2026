@@ -324,6 +324,48 @@ class EarlyAbstainAndProgramRankingTest(unittest.TestCase):
             {"evidence_rules": [{"id": "rule_stage_and_outcome"}]},
         ))
 
+    def test_target_or_useful_morphology_prevents_early_abstain(self):
+        helper = MultiScaleVQAPipeline._early_abstain_allowed
+        self.assertFalse(helper({
+            "target_phenotypes": ["lymphovascular_invasion_label"],
+            "prototype_coverage": "partial",
+            "requires_unavailable_context": True,
+            "local_morphology_useful": True,
+        }, {}))
+        self.assertFalse(helper({
+            "target_phenotypes": ["ER_status_label"],
+            "prototype_coverage": "partial",
+            "requires_unavailable_context": True,
+            "local_morphology_useful": False,
+        }, {}))
+        self.assertFalse(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": True,
+            "local_morphology_useful": True,
+        }, {}))
+        self.assertFalse(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": False,
+            "local_morphology_useful": True,
+        }, {
+            "evidence_rules": [{"id": "rule_assay_specific_target"}],
+        }))
+
+    def test_only_genuinely_unavailable_without_useful_evidence_allows_early_abstain(self):
+        helper = MultiScaleVQAPipeline._early_abstain_allowed
+        self.assertTrue(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": True,
+            "local_morphology_useful": False,
+        }, {}))
+        self.assertTrue(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": False,
+            "local_morphology_useful": False,
+        }, {
+            "evidence_rules": [{"id": "rule_assay_specific_target"}],
+        }))
+
     def test_morphology_program_ranking_uses_all_scales_and_consensus(self):
         pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
         pipeline.registry = FakeRegistry()
