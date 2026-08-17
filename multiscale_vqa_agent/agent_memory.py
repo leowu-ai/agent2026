@@ -30,7 +30,8 @@ class WorkingMemory:
     observations: List[EvidenceObservation] = field(default_factory=list)
     direct_evidence: List[Dict[str, Any]] = field(default_factory=list)
     supportive_evidence: List[Dict[str, Any]] = field(default_factory=list)
-    missing_evidence: List[str] = field(default_factory=list)
+    current_missing_evidence: List[str] = field(default_factory=list)
+    missing_evidence_history: List[str] = field(default_factory=list)
     conflicts: List[str] = field(default_factory=list)
     inspected_programs: List[str] = field(default_factory=list)
     inspected_genes: List[str] = field(default_factory=list)
@@ -71,13 +72,21 @@ class WorkingMemory:
 
     def update_verifier(self, decision: Dict[str, Any]) -> None:
         missing = str(decision.get("missing_evidence_type") or "none")
-        if missing not in {"none", ""} and missing not in self.missing_evidence:
-            self.missing_evidence.append(missing)
+        if missing in {"none", ""}:
+            self.current_missing_evidence = []
+        else:
+            self.current_missing_evidence = [missing]
+            self.missing_evidence_history.append(missing)
         if decision.get("conflict_detected"):
             reason = str(decision.get("reason") or "Evidence conflict detected.")
             if reason not in self.conflicts:
                 self.conflicts.append(reason)
         self.final_verifier = dict(decision)
+
+    @property
+    def missing_evidence(self) -> List[str]:
+        """Backward-compatible alias for the currently unresolved gap."""
+        return self.current_missing_evidence
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -90,7 +99,9 @@ class WorkingMemory:
             "observations": [item.to_dict() for item in self.observations],
             "direct_evidence": list(self.direct_evidence),
             "supportive_evidence": list(self.supportive_evidence),
-            "missing_evidence": list(self.missing_evidence),
+            "missing_evidence": list(self.current_missing_evidence),
+            "current_missing_evidence": list(self.current_missing_evidence),
+            "missing_evidence_history": list(self.missing_evidence_history),
             "conflicts": list(self.conflicts),
             "inspected_programs": list(self.inspected_programs),
             "inspected_genes": list(self.inspected_genes),

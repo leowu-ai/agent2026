@@ -37,11 +37,18 @@ class EvidenceVerifierAgent:
         last_action: str,
         has_program_candidates: bool,
         has_gene_candidates: bool,
+        allow_early_abstain: bool = False,
     ) -> List[str]:
         if last_action == "inspect_4096":
-            return ["answer", "inspect_2048", "abstain"]
+            actions = ["answer", "inspect_2048"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
         if last_action == "inspect_2048":
-            return ["answer", "inspect_1024", "abstain"]
+            actions = ["answer", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
         if last_action == "inspect_1024":
             actions = ["answer"]
             if has_program_candidates:
@@ -140,7 +147,8 @@ class EvidenceVerifierAgent:
                 }
                 for row in memory.observations
             ],
-            "missing_evidence": list(memory.missing_evidence),
+            "current_missing_evidence": list(memory.current_missing_evidence),
+            "missing_evidence_history": list(memory.missing_evidence_history),
             "conflicts": list(memory.conflicts),
             "inspected_scales": list(memory.inspected_scales),
             "inspected_programs": list(memory.inspected_programs),
@@ -203,6 +211,7 @@ class EvidenceVerifierAgent:
             "target": target,
             "reason": " ".join(str(parsed.get("reason") or "").split())[:500],
             "verifier_fallback_used": False,
+            "evidence_sufficiency_unverified": False,
         }
 
     @staticmethod
@@ -225,7 +234,9 @@ class EvidenceVerifierAgent:
             (action for action in available_actions if action.startswith("inspect_")),
             None,
         )
-        action = next_evidence or ("abstain" if "abstain" in available_actions else available_actions[0])
+        action = next_evidence or (
+            "answer" if "answer" in available_actions else available_actions[0]
+        )
         missing_map = {
             "inspect_2048": "intermediate_visual",
             "inspect_1024": "fine_visual",
@@ -242,4 +253,5 @@ class EvidenceVerifierAgent:
             "target": None,
             "reason": reason,
             "verifier_fallback_used": True,
+            "evidence_sufficiency_unverified": action == "answer",
         }

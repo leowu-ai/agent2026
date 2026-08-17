@@ -161,11 +161,11 @@ class StateMachineTest(unittest.TestCase):
     def test_spatial_and_biological_order(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_4096", True, True),
-            ["answer", "inspect_2048", "abstain"],
+            ["answer", "inspect_2048"],
         )
-        self.assertNotIn(
-            "inspect_gene",
+        self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_2048", True, True),
+            ["answer", "inspect_1024"],
         )
         self.assertNotIn(
             "inspect_gene",
@@ -174,6 +174,23 @@ class StateMachineTest(unittest.TestCase):
         self.assertIn(
             "inspect_gene",
             EvidenceVerifierAgent.available_actions("inspect_program", True, True),
+        )
+
+    def test_explicit_unavailable_semantics_allow_early_abstain(self):
+        for action in ("inspect_4096", "inspect_2048"):
+            available = EvidenceVerifierAgent.available_actions(
+                action, True, True, allow_early_abstain=True
+            )
+            self.assertIn("abstain", available)
+
+    def test_1024_retains_program_or_terminal_abstain(self):
+        self.assertEqual(
+            EvidenceVerifierAgent.available_actions("inspect_1024", True, False),
+            ["answer", "inspect_program", "abstain"],
+        )
+        self.assertEqual(
+            EvidenceVerifierAgent.available_actions("inspect_1024", False, False),
+            ["answer", "abstain"],
         )
 
     def test_invalid_action_uses_deterministic_next_evidence(self):
@@ -202,7 +219,15 @@ class StateMachineTest(unittest.TestCase):
             "inspect_4096", "inspect_2048", "inspect_1024",
             "inspect_program", "inspect_gene",
         ])
-        self.assertEqual(action, "abstain")
+        self.assertEqual(action, "answer")
+
+    def test_terminal_failure_is_unverified_answer_not_abstain(self):
+        decision = EvidenceVerifierAgent._fallback(
+            ["answer", "abstain"], "synthetic failure"
+        )
+        self.assertEqual(decision["next_action"], "answer")
+        self.assertTrue(decision["verifier_fallback_used"])
+        self.assertTrue(decision["evidence_sufficiency_unverified"])
 
     def test_verifier_prompt_and_memory_have_no_reference_fields(self):
         lowered = VERIFIER_SYSTEM_PROMPT.lower()
@@ -247,6 +272,100 @@ class GraphAndMemoryTest(unittest.TestCase):
                 "program", "Program A", "morphology", {}, [round_index],
             ))
         self.assertEqual(memory.inspected_programs, ["Program A"])
+
+    def test_current_missing_evidence_replaces_stale_gap_and_keeps_history(self):
+        memory = WorkingMemory("case", "q", ["a"], {}, {})
+        memory.update_verifier({
+            "missing_evidence_type": "intermediate_visual",
+            "conflict_detected": False,
+        })
+        self.assertEqual(
+            memory.current_missing_evidence, ["intermediate_visual"]
+        )
+        memory.update_verifier({
+            "missing_evidence_type": "fine_visual",
+            "conflict_detected": False,
+        })
+        self.assertEqual(memory.current_missing_evidence, ["fine_visual"])
+        memory.update_verifier({
+            "missing_evidence_type": "none",
+            "conflict_detected": False,
+        })
+        self.assertEqual(memory.current_missing_evidence, [])
+        self.assertEqual(memory.missing_evidence, [])
+        self.assertEqual(memory.missing_evidence_history, [
+            "intermediate_visual", "fine_visual",
+        ])
+        serialized = memory.to_dict()
+        self.assertEqual(serialized["missing_evidence"], [])
+        self.assertEqual(serialized["missing_evidence_history"], [
+            "intermediate_visual", "fine_visual",
+        ])
+
+
+class EarlyAbstainAndProgramRankingTest(unittest.TestCase):
+    def test_early_abstain_uses_explicit_plan_or_rag_semantics(self):
+        helper = MultiScaleVQAPipeline._early_abstain_allowed
+        self.assertFalse(helper({}, {
+            "matched_concepts": [{"evidence_role": "supportive_domain_knowledge"}],
+            "evidence_rules": [{"id": "rule_morphology_coarse_to_fine"}],
+        }))
+        self.assertTrue(helper({"requires_unavailable_context": True}, {}))
+        self.assertTrue(helper({}, {
+            "matched_concepts": [{
+                "evidence_role": "unavailable_from_local_visual_evidence"
+            }],
+        }))
+        self.assertTrue(helper({}, {
+            "evidence_rules": [{"id": "rule_assay_specific_target"}],
+        }))
+        self.assertFalse(helper(
+            {"target_phenotypes": ["histological_type_label"]},
+            {"evidence_rules": [{"id": "rule_stage_and_outcome"}]},
+        ))
+
+    def test_morphology_program_ranking_uses_all_scales_and_consensus(self):
+        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
+        pipeline.registry = FakeRegistry()
+        plan = SimpleNamespace(target_phenotypes=[])
+        knowledge = {"candidate_programs": [
+            {"name": "Program A", "relevance": 1.0},
+            {"name": "Program B", "relevance": 1.0},
+        ]}
+        results = {
+            1024: {"program_pred": np.asarray([0.9, 1.0])},
+            2048: {"program_pred": np.asarray([0.9, 0.0])},
+            4096: {"program_pred": np.asarray([0.9, 0.0])},
+        }
+        rows = pipeline._program_candidates(plan, knowledge, {}, results)
+        self.assertEqual(rows[0]["name"], "Program A")
+        self.assertEqual(rows[0]["per_scale_patient_score"], {
+            "1024": 0.9, "2048": 0.9, "4096": 0.9,
+        })
+        self.assertAlmostEqual(rows[0]["patient_score"], 0.9)
+        self.assertAlmostEqual(rows[0]["patient_activity"], 0.9)
+        self.assertAlmostEqual(rows[0]["scale_consensus"], 1.0)
+        self.assertEqual(
+            rows[0]["selection_policy"],
+            "knowledge_relevance_plus_multiscale_patient_activity_consensus",
+        )
+
+    def test_direct_target_relation_candidates_are_unchanged(self):
+        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
+        pipeline.registry = FakeRegistry()
+        relation_row = {
+            "index": 1, "name": "Program B", "score": 0.75,
+            "patient_score": 0.2,
+        }
+        rows = pipeline._program_candidates(
+            SimpleNamespace(target_phenotypes=["histological_type_label"]),
+            {"candidate_programs": []},
+            {"histological_type_label": {"programs": [relation_row]}},
+            {},
+        )
+        self.assertEqual(rows[0]["index"], relation_row["index"])
+        self.assertEqual(rows[0]["score"], relation_row["score"])
+        self.assertEqual(rows[0]["patient_score"], relation_row["patient_score"])
 
 
 class PathologyIsolationTest(unittest.TestCase):
@@ -425,25 +544,9 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         def overview_thumbnails(case_id):
             return []
 
-    def test_real_hierarchical_runner_acquires_five_distinct_rounds(self):
-        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
-        pipeline.agent_mode = "hierarchical_rag"
-        pipeline.registry = FakeRegistry()
-        pipeline.g2p = self.FakeG2P()
-        pipeline.relation = self.FakeRelation()
-        pipeline.retrieval = MultiScaleRetrievalAgent(FakeRegistry(), {
-            "top_patches_per_source": 1,
-            "max_evidence_groups": 2,
-        })
-        pipeline.direct_retrieval_mode = "selected_phenotype"
-        pipeline.partial_retrieval_mode = "selected_phenotype"
-        pipeline.morphology_retrieval_mode = "broad"
-        pipeline.knowledge_rag = self.FakeKnowledge()
-        pipeline.verifier = EvidenceVerifierAgent(client=None)
-        pipeline.pathology = self.FakePathology()
-        pipeline.cropper = self.FakeCropper()
-        pipeline.fusion = FusionVerificationAgent(client=None)
-        plan = ExecutionPlan(
+    @staticmethod
+    def plan():
+        return ExecutionPlan(
             case_id="TCGA-AA-0001",
             question="What is the histological type?",
             target_phenotypes=["histological_type_label"],
@@ -458,7 +561,32 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             prototype_support_type="target_evidence",
             prototype_coverage="complete",
         )
-        result = pipeline._run_question(
+
+    def configured_pipeline(self, verifier):
+        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
+        pipeline.agent_mode = "hierarchical_rag"
+        pipeline.registry = FakeRegistry()
+        pipeline.g2p = self.FakeG2P()
+        pipeline.relation = self.FakeRelation()
+        pipeline.retrieval = MultiScaleRetrievalAgent(FakeRegistry(), {
+            "top_patches_per_source": 1,
+            "max_evidence_groups": 2,
+        })
+        pipeline.direct_retrieval_mode = "selected_phenotype"
+        pipeline.partial_retrieval_mode = "selected_phenotype"
+        pipeline.morphology_retrieval_mode = "broad"
+        pipeline.knowledge_rag = self.FakeKnowledge()
+        pipeline.verifier = verifier
+        pipeline.pathology = self.FakePathology()
+        pipeline.cropper = self.FakeCropper()
+        pipeline.fusion = FusionVerificationAgent(
+            client=SimpleNamespace(enabled=False)
+        )
+        return pipeline
+
+    @staticmethod
+    def run_question(pipeline, plan):
+        return pipeline._run_question(
             {
                 "Id": "TCGA-AA-0001",
                 "Question": plan.question,
@@ -470,19 +598,66 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             {},
             False,
         )
+
+    def test_real_hierarchical_runner_acquires_five_distinct_rounds(self):
+        pipeline = self.configured_pipeline(
+            EvidenceVerifierAgent(client=None)
+        )
+        result = self.run_question(pipeline, self.plan())
         actions = [row["action"] for row in result["agent_trace"]["actions"]]
         self.assertEqual(actions, [
             "inspect_4096", "inspect_2048", "inspect_1024",
             "inspect_program", "inspect_gene",
         ])
         self.assertEqual(result["agent_trace"]["inspected_scales"], [4096, 2048, 1024])
-        self.assertTrue(result["post_search_abstained"])
-        self.assertEqual(result["abstain_stage"], "evidence_sufficiency")
+        self.assertFalse(result["post_search_abstained"])
+        self.assertIsNone(result["abstain_stage"])
+        self.assertTrue(result["evidence_sufficiency_unverified"])
+        self.assertEqual(result["verifier_failure_count"], 5)
+        self.assertIsNotNone(result["agent_answer"])
         self.assertTrue(all(
             row["scale"] == 1024
             for row in result["working_memory"]["supportive_evidence"]
             if row["evidence_type"] in {"program", "gene"}
         ))
+
+    def test_authoritative_verifier_abstain_remains_post_search_abstain(self):
+        class AuthoritativeVerifier(EvidenceVerifierAgent):
+            def __init__(self):
+                pass
+
+            def decide(self, available_actions, **kwargs):
+                next_evidence = next(
+                    (
+                        action for action in available_actions
+                        if action.startswith("inspect_")
+                    ),
+                    None,
+                )
+                action = next_evidence or "abstain"
+                return {
+                    "evidence_sufficient": False,
+                    "evidence_state": (
+                        "unavailable" if action == "abstain" else "insufficient"
+                    ),
+                    "missing_evidence_type": (
+                        "unavailable" if action == "abstain" else "fine_visual"
+                    ),
+                    "conflict_detected": False,
+                    "next_action": action,
+                    "target": None,
+                    "reason": "authoritative synthetic decision",
+                    "verifier_fallback_used": False,
+                    "evidence_sufficiency_unverified": False,
+                }
+
+        pipeline = self.configured_pipeline(AuthoritativeVerifier())
+        result = self.run_question(pipeline, self.plan())
+        self.assertTrue(result["post_search_abstained"])
+        self.assertEqual(result["abstain_stage"], "evidence_sufficiency")
+        self.assertFalse(result["evidence_sufficiency_unverified"])
+        self.assertEqual(result["verifier_failure_count"], 0)
+        self.assertIsNone(result["agent_answer"])
 
     def test_same_case_multiple_questions_call_g2p_once(self):
         class CountingG2P:

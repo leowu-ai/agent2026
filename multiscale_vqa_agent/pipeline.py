@@ -683,6 +683,9 @@ class MultiScaleVQAPipeline:
         pathology_rounds = []
         overview_paths: List[str] = []
         post_search_abstained = False
+        verifier_failure_count = 0
+        evidence_sufficiency_unverified = False
+        allow_early_abstain = self._early_abstain_allowed(plan_dict, knowledge)
         action = "inspect_4096"
         target = None
         action_fallback = False
@@ -727,7 +730,7 @@ class MultiScaleVQAPipeline:
                     target, program_candidates, action_fallback
                 )
                 if selected_program is None:
-                    post_search_abstained = True
+                    evidence_sufficiency_unverified = True
                     break
                 groups = self.retrieval.retrieve_program_1024(
                     selected_program["index"], scale_results
@@ -750,12 +753,12 @@ class MultiScaleVQAPipeline:
                     target, gene_candidates, action_fallback
                 )
                 if selected_gene is None or selected_program is None:
-                    post_search_abstained = True
+                    evidence_sufficiency_unverified = True
                     break
                 if not self._gene_belongs_to_program(
                     selected_gene["index"], selected_program["index"]
                 ):
-                    post_search_abstained = True
+                    evidence_sufficiency_unverified = True
                     break
                 groups = self.retrieval.retrieve_gene_1024(
                     selected_gene["index"], scale_results
@@ -773,7 +776,7 @@ class MultiScaleVQAPipeline:
                     selected_gene, selected_program
                 )
             else:
-                post_search_abstained = True
+                evidence_sufficiency_unverified = True
                 break
 
             memory.record_action(
@@ -822,6 +825,7 @@ class MultiScaleVQAPipeline:
                 action,
                 has_program_candidates=bool(program_candidates),
                 has_gene_candidates=bool(gene_candidates),
+                allow_early_abstain=allow_early_abstain,
             )
             decision = self.verifier.decide(
                 question=plan.question,
@@ -835,17 +839,36 @@ class MultiScaleVQAPipeline:
             )
             memory.update_verifier(decision)
             verifier_decisions.append(dict(decision))
+            verifier_fallback_used = bool(decision.get("verifier_fallback_used"))
+            if verifier_fallback_used:
+                verifier_failure_count += 1
             next_action = decision["next_action"]
             if next_action == "answer":
+                evidence_sufficiency_unverified = verifier_fallback_used
                 break
             if next_action == "abstain":
+                if verifier_fallback_used:
+                    next_evidence = next(
+                        (
+                            candidate for candidate in available_actions
+                            if candidate.startswith("inspect_")
+                        ),
+                        None,
+                    )
+                    if next_evidence:
+                        action = next_evidence
+                        target = None
+                        action_fallback = True
+                        continue
+                    evidence_sufficiency_unverified = True
+                    break
                 post_search_abstained = True
                 break
             action = next_action
             target = decision.get("target")
             action_fallback = bool(decision.get("verifier_fallback_used"))
         else:
-            post_search_abstained = True
+            evidence_sufficiency_unverified = True
 
         agent_context = self._hierarchical_fusion_context(
             memory, selected_program, selected_gene
@@ -877,6 +900,12 @@ class MultiScaleVQAPipeline:
             relations_by_field.get(plan.target_phenotypes[0], {})
             if plan.target_phenotypes else {}
         )
+        if evidence_sufficiency_unverified:
+            final_evidence_state = "unverified"
+        elif memory.final_verifier:
+            final_evidence_state = memory.final_verifier.get("evidence_state")
+        else:
+            final_evidence_state = "unavailable"
         agent_trace = {
             "round_count": len(memory.observations),
             "actions": list(memory.action_history),
@@ -886,11 +915,11 @@ class MultiScaleVQAPipeline:
             "gene_candidates": gene_candidates,
             "selected_gene": selected_gene,
             "verifier_decisions": verifier_decisions,
-            "final_evidence_state": (
-                memory.final_verifier.get("evidence_state")
-                if memory.final_verifier else "unavailable"
-            ),
+            "final_evidence_state": final_evidence_state,
             "post_search_abstained": post_search_abstained,
+            "verifier_failure_count": verifier_failure_count,
+            "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
+            "early_abstain_allowed": allow_early_abstain,
         }
         result = {
             "case_id": plan.case_id,
@@ -931,6 +960,8 @@ class MultiScaleVQAPipeline:
             "working_memory": memory.to_dict(),
             "agent_trace": agent_trace,
             "post_search_abstained": post_search_abstained,
+            "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
+            "verifier_failure_count": verifier_failure_count,
             "abstain_stage": (
                 "evidence_sufficiency" if post_search_abstained else None
             ),
@@ -1061,6 +1092,34 @@ class MultiScaleVQAPipeline:
                 "Hierarchical spatial retrieval leaked program/gene attention"
             )
 
+    @staticmethod
+    def _early_abstain_allowed(
+        plan: Dict[str, Any], knowledge: Dict[str, Any]
+    ) -> bool:
+        """Use explicit Planner/RAG evidence semantics, never question keywords."""
+        if plan.get("requires_unavailable_context") is True:
+            return True
+        unavailable_roles = {
+            "limited_context",
+            "unavailable",
+            "invalid_evidence",
+            "unavailable_from_local_visual_evidence",
+        }
+        if any(
+            str(row.get("evidence_role", "")).lower() in unavailable_roles
+            for row in knowledge.get("matched_concepts", [])
+        ):
+            return True
+        unavailable_rule_ids = {
+            "rule_assay_specific_target",
+            "rule_exact_quantity",
+            "rule_stage_and_outcome",
+        }
+        return not plan.get("target_phenotypes") and any(
+            row.get("id") in unavailable_rule_ids
+            for row in knowledge.get("evidence_rules", [])
+        )
+
     def _program_candidates(
         self,
         plan: Any,
@@ -1082,7 +1141,7 @@ class MultiScaleVQAPipeline:
                 rows.append(row)
             return rows
 
-        activity = np.asarray(scale_results[1024]["program_pred"], dtype=float)
+        scales = sorted(scale_results)
         rows = []
         for candidate in knowledge.get("candidate_programs", []):
             name = candidate.get("name")
@@ -1090,15 +1149,38 @@ class MultiScaleVQAPipeline:
                 continue
             index = self.registry.programs.index(name)
             relevance = float(candidate.get("relevance") or 0.0)
-            patient_score = float(activity[index])
+            per_scale = {
+                str(scale): float(
+                    np.asarray(scale_results[scale]["program_pred"], dtype=float)[index]
+                )
+                for scale in scales
+            }
+            signed_scores = np.asarray(list(per_scale.values()), dtype=float)
+            activities = np.abs(signed_scores)
+            patient_score = float(signed_scores.mean())
+            patient_activity = float(activities.mean())
+            activity_consensus = float(np.clip(
+                1.0 - activities.std() / (patient_activity + 1e-6),
+                0.0,
+                1.0,
+            ))
             rows.append({
                 "index": index,
                 "name": name,
-                "score": relevance * (1.0 + min(abs(patient_score), 3.0) / 3.0),
+                "score": (
+                    relevance
+                    * (1.0 + min(patient_activity, 3.0) / 3.0)
+                    * (0.5 + 0.5 * activity_consensus)
+                ),
                 "knowledge_relevance": relevance,
                 "patient_score": patient_score,
+                "patient_activity": patient_activity,
+                "scale_consensus": activity_consensus,
+                "per_scale_patient_score": per_scale,
                 "evidence_role": "supportive",
-                "selection_policy": "knowledge_relevance_plus_patient_1024_activity",
+                "selection_policy": (
+                    "knowledge_relevance_plus_multiscale_patient_activity_consensus"
+                ),
             })
         rows.sort(key=lambda row: (-row["score"], row["name"]))
         return rows[:3]
