@@ -1,0 +1,42 @@
+nohup: ignoring input
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/torch/nn/modules/transformer.py:392: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  warnings.warn(
+question_features count=389 dim=768 source=CONCH_v1_preprojection_768
+precomputed_answerability {"total": 390, "predicted_true": 190, "predicted_false": 200}
+multiple_choice selected=390 completed=0 remaining=390
+[1/85] gate TCGA-LD-A74U (4 MC questions)
+live_mc processed=1/390 correct=0 errors=0 acc=0.0000 supported_acc=nan last_correct=False
+infer TCGA-LD-A74U (3 answerable MC questions)
+live_mc processed=2/390 correct=0 errors=0 acc=0.0000 supported_acc=0.0000 last_correct=False
+live_mc processed=3/390 correct=0 errors=0 acc=0.0000 supported_acc=0.0000 last_correct=False
+live_mc processed=4/390 correct=1 errors=0 acc=0.2500 supported_acc=0.3333 last_correct=True
+[2/85] gate TCGA-AR-A1AI (3 MC questions)
+live_mc processed=5/390 correct=1 errors=0 acc=0.2000 supported_acc=0.3333 last_correct=False
+live_mc processed=6/390 correct=1 errors=0 acc=0.1667 supported_acc=0.3333 last_correct=False
+infer TCGA-AR-A1AI (1 answerable MC questions)
+live_mc processed=7/390 correct=1 errors=0 acc=0.1429 supported_acc=0.3333 last_correct=False
+[3/85] gate TCGA-B6-A0WZ (4 MC questions)
+live_mc processed=8/390 correct=1 errors=0 acc=0.1250 supported_acc=0.3333 last_correct=False
+infer TCGA-B6-A0WZ (3 answerable MC questions)
+live_mc processed=9/390 correct=1 errors=0 acc=0.1111 supported_acc=0.3333 last_correct=False
+live_mc processed=10/390 correct=1 errors=0 acc=0.1000 supported_acc=0.3333 last_correct=False
+live_mc processed=11/390 correct=1 errors=0 acc=0.0909 supported_acc=0.3333 last_correct=False
+[4/85] gate TCGA-BH-A5IZ (5 MC questions)
+live_mc processed=12/390 correct=1 errors=0 acc=0.0833 supported_acc=0.3333 last_correct=False
+live_mc processed=13/390 correct=1 errors=0 acc=0.0769 supported_acc=0.3333 last_correct=False
+infer TCGA-BH-A5IZ (3 answerable MC questions)
+live_mc processed=14/390 correct=1 errors=0 acc=0.0714 supported_acc=0.2500 last_correct=False
+live_mc processed=15/390 correct=1 errors=0 acc=0.0667 supported_acc=0.2500 last_correct=False
+live_mc processed=16/390 correct=1 errors=0 acc=0.0625 supported_acc=0.2500 last_correct=False
+[5/85] gate TCGA-BH-A0AZ (4 MC questions)
+live_mc processed=17/390 correct=1 errors=0 acc=0.0588 supported_acc=0.2500 last_correct=False
+live_mc processed=18/390 correct=1 errors=0 acc=0.0556 supported_acc=0.2500 last_correct=False
+infer TCGA-BH-A0AZ (2 answerable MC questions)
+live_mc processed=19/390 correct=2 errors=0 acc=0.1053 supported_acc=0.4000 last_correct=True
+live_mc processed=20/390 correct=2 errors=0 acc=0.1000 supported_acc=0.3333 last_correct=False
+[6/85] gate TCGA-EW-A1PF (4 MC questions)
+live_mc processed=21/390 correct=2 errors=0 acc=0.0952 supported_acc=0.3333 last_correct=False

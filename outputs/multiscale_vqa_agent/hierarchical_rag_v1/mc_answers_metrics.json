@@ -1,0 +1,119 @@
+{
+  "updated_at": "2026-08-17T23:41:37+08:00",
+  "selected_total": 390,
+  "processed": 21,
+  "answered": 7,
+  "abstained": 14,
+  "coverage": 0.3333333333333333,
+  "answered_correct": 2,
+  "selective_accuracy": 0.2857142857142857,
+  "remaining": 369,
+  "completion": 0.05384615384615385,
+  "scorable": 7,
+  "correct": 2,
+  "errors": 0,
+  "accuracy": 0.09523809523809523,
+  "accuracy_scorable": 0.2857142857142857,
+  "supported_processed": 6,
+  "supported_correct": 2,
+  "supported_accuracy": 0.3333333333333333,
+  "unsupported_processed": 1,
+  "unsupported_correct": 0,
+  "unsupported_accuracy": 0.0,
+  "json_parse_failures": 0,
+  "answers_outside_choices": 0,
+  "multifield_incomplete": 0,
+  "structured_overrides": 2,
+  "override_structured_accuracy": 0.5,
+  "override_agent_accuracy": 0.0,
+  "per_task_match": {
+    "direct": {
+      "processed": 5,
+      "scorable": 5,
+      "correct": 2,
+      "errors": 0,
+      "accuracy": 0.4,
+      "accuracy_scorable": 0.4
+    },
+    "none": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "partial": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    }
+  },
+  "per_task": {
+    "ER_status_label+PR_status_label": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "histologic_grade_label": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "histological_type_label": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "histological_type_label+dcis_binary+lcis_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "nottingham_total_score": {
+      "processed": 2,
+      "scorable": 2,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 0.5,
+      "accuracy_scorable": 0.5
+    },
+    "unrouted": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    }
+  },
+  "last": {
+    "case_id": "TCGA-EW-A1PF",
+    "question": "what is the total size of the tumor?",
+    "task": "unrouted",
+    "task_match": "none",
+    "supported": false,
+    "correct": false,
+    "error": null,
+    "predicted": null,
+    "reference": "2.0 cm",
+    "answer_in_choices": true,
+    "json_parse_success": true,
+    "override_occurred": false
+  }
+}
