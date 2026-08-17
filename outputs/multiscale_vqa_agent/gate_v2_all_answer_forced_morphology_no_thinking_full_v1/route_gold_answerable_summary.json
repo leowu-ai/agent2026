@@ -1,0 +1,49 @@
+{
+  "gold_used_post_inference_only": true,
+  "routes": {
+    "direct": {
+      "total_answered_in_route": 137,
+      "total_correct": 83,
+      "raw_accuracy": 0.6058394160583942,
+      "gold_answerable_n": 135,
+      "gold_answerable_correct": 82,
+      "gold_answerable_accuracy": 0.6074074074074074,
+      "gold_unanswerable_n": 2,
+      "gold_unanswerable_correct": 1,
+      "excluded_n": 0
+    },
+    "partial": {
+      "total_answered_in_route": 34,
+      "total_correct": 15,
+      "raw_accuracy": 0.4411764705882353,
+      "gold_answerable_n": 32,
+      "gold_answerable_correct": 15,
+      "gold_answerable_accuracy": 0.46875,
+      "gold_unanswerable_n": 2,
+      "gold_unanswerable_correct": 0,
+      "excluded_n": 0
+    },
+    "morphology_only": {
+      "total_answered_in_route": 19,
+      "total_correct": 5,
+      "raw_accuracy": 0.2631578947368421,
+      "gold_answerable_n": 11,
+      "gold_answerable_correct": 3,
+      "gold_answerable_accuracy": 0.2727272727272727,
+      "gold_unanswerable_n": 8,
+      "gold_unanswerable_correct": 2,
+      "excluded_n": 0
+    },
+    "forced_morphology_only": {
+      "total_answered_in_route": 200,
+      "total_correct": 75,
+      "raw_accuracy": 0.375,
+      "gold_answerable_n": 8,
+      "gold_answerable_correct": 2,
+      "gold_answerable_accuracy": 0.25,
+      "gold_unanswerable_n": 184,
+      "gold_unanswerable_correct": 71,
+      "excluded_n": 8
+    }
+  }
+}

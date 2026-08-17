@@ -1,0 +1,136 @@
+{
+  "comparison_scope": "New full system configuration versus old full system configuration; differences are not attributable to retrieval alone because Fusion thinking and stochastic sampling also differ.",
+  "total": {
+    "total": 390,
+    "wrong_to_correct": 80,
+    "correct_to_wrong": 11,
+    "both_correct": 98,
+    "both_wrong": 201,
+    "net_correct_change": 69
+  },
+  "gold_answerable": {
+    "total": 186,
+    "wrong_to_correct": 7,
+    "correct_to_wrong": 8,
+    "both_correct": 95,
+    "both_wrong": 76,
+    "net_correct_change": -1
+  },
+  "gold_answerable_benchmark": {
+    "denominator": 186,
+    "old_correct": 103,
+    "new_correct": 102,
+    "absolute_correct_delta": -1,
+    "old_accuracy": 0.553763440860215,
+    "new_accuracy": 0.5483870967741935,
+    "percentage_point_delta": -0.5376344086021501
+  },
+  "same_route_flips": {
+    "direct": {
+      "total": 137,
+      "wrong_to_correct": 3,
+      "correct_to_wrong": 6,
+      "both_correct": 80,
+      "both_wrong": 48,
+      "net_correct_change": -3
+    },
+    "partial": {
+      "total": 34,
+      "wrong_to_correct": 1,
+      "correct_to_wrong": 3,
+      "both_correct": 14,
+      "both_wrong": 16,
+      "net_correct_change": -2
+    },
+    "morphology_only": {
+      "total": 19,
+      "wrong_to_correct": 1,
+      "correct_to_wrong": 2,
+      "both_correct": 4,
+      "both_wrong": 12,
+      "net_correct_change": -1
+    },
+    "forced_morphology_only": {
+      "total": 0,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "both_correct": 0,
+      "both_wrong": 0,
+      "net_correct_change": 0
+    },
+    "route_changed": {
+      "total": 200,
+      "wrong_to_correct": 75,
+      "correct_to_wrong": 0,
+      "both_correct": 0,
+      "both_wrong": 125,
+      "net_correct_change": 75,
+      "transitions": {
+        "abstained->forced_morphology_only": 200
+      }
+    }
+  },
+  "gold_answerable_same_route_flips": {
+    "direct": {
+      "total": 135,
+      "wrong_to_correct": 3,
+      "correct_to_wrong": 6,
+      "both_correct": 79,
+      "both_wrong": 47,
+      "net_correct_change": -3
+    },
+    "partial": {
+      "total": 32,
+      "wrong_to_correct": 1,
+      "correct_to_wrong": 2,
+      "both_correct": 14,
+      "both_wrong": 15,
+      "net_correct_change": -1
+    },
+    "morphology_only": {
+      "total": 11,
+      "wrong_to_correct": 1,
+      "correct_to_wrong": 0,
+      "both_correct": 2,
+      "both_wrong": 8,
+      "net_correct_change": 1
+    },
+    "forced_morphology_only": {
+      "total": 0,
+      "wrong_to_correct": 0,
+      "correct_to_wrong": 0,
+      "both_correct": 0,
+      "both_wrong": 0,
+      "net_correct_change": 0
+    },
+    "route_changed": {
+      "total": 8,
+      "wrong_to_correct": 2,
+      "correct_to_wrong": 0,
+      "both_correct": 0,
+      "both_wrong": 6,
+      "net_correct_change": 2,
+      "transitions": {
+        "abstained->forced_morphology_only": 8
+      }
+    }
+  },
+  "task_match_transitions": {
+    "abstained->none": 200,
+    "direct->direct": 137,
+    "none->none": 19,
+    "partial->partial": 34
+  },
+  "old_route_counts": {
+    "abstained": 200,
+    "direct": 137,
+    "morphology_only": 19,
+    "partial": 34
+  },
+  "new_route_counts": {
+    "direct": 137,
+    "forced_morphology_only": 200,
+    "morphology_only": 19,
+    "partial": 34
+  }
+}

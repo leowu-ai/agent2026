@@ -39,6 +39,14 @@ def main():
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
+        "--force_gate_false_morphology",
+        action="store_true",
+        help=(
+            "Answer frozen Gate=False questions through morphology-only evidence "
+            "without invoking the Router."
+        ),
+    )
+    parser.add_argument(
         "--morphology_retrieval_mode",
         choices=("broad", "question_similarity"),
         default=None,
@@ -86,6 +94,7 @@ def main():
         resume=not args.no_resume,
         answerability_labels=args.answerability_labels,
         comparison_answers=args.comparison_answers,
+        force_gate_false_morphology=args.force_gate_false_morphology,
     )
     print(f"Saved answers: {output}")
 

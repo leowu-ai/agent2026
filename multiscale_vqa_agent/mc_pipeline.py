@@ -9,6 +9,7 @@ import torch
 from .fusion_evidence import indexed_choices
 from .live_metrics import LiveAccuracyTracker
 from .pipeline import MultiScaleVQAPipeline
+from .schemas import ExecutionPlan
 
 
 class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
@@ -24,6 +25,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         resume: bool = True,
         answerability_labels: Optional[str] = None,
         comparison_answers: Optional[str] = None,
+        force_gate_false_morphology: bool = False,
     ) -> Path:
         if self.answerability_only:
             return super().run(
@@ -90,44 +92,67 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                 for item in case_items:
                     assessment = self._predict_answerability(item)
                     if not assessment["can_answer"]:
+                        if force_gate_false_morphology:
+                            answerable.append((
+                                item,
+                                assessment,
+                                self._forced_morphology_plan(item),
+                                True,
+                            ))
+                            continue
                         self._save_mc_result(
                             handle, self._abstained_result(item, assessment), tracker
                         )
                         continue
-                    answerable.append((item, assessment, self.planner.plan(item)))
+                    answerable.append((
+                        item, assessment, self.planner.plan(item), False
+                    ))
                 if not answerable:
                     print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
                     continue
 
                 print(
-                    f"infer {case_id} ({len(answerable)} answerable MC questions)",
+                    f"infer {case_id} ({len(answerable)} downstream MC questions)",
                     flush=True,
                 )
                 try:
                     scale_results = self.g2p.infer_case(case_id)
                 except Exception as error:
-                    for item, assessment, plan in answerable:
+                    for item, assessment, plan, forced in answerable:
                         self._save_mc_result(
                             handle,
-                            self._attach_answerability(
-                                self._error_result(item, plan, error), assessment
+                            self._attach_route_provenance(
+                                self._attach_answerability(
+                                    self._error_result(item, plan, error), assessment
+                                ),
+                                plan,
+                                forced,
                             ),
                             tracker,
                         )
                     continue
 
                 evidence_cache = {}
-                for item, assessment, plan in answerable:
+                for item, assessment, plan, forced in answerable:
                     try:
-                        result = self._attach_answerability(
-                            self._run_question(
-                                item, plan, scale_results, evidence_cache, crop_patches
+                        result = self._attach_route_provenance(
+                            self._attach_answerability(
+                                self._run_question(
+                                    item, plan, scale_results, evidence_cache,
+                                    crop_patches,
+                                ),
+                                assessment,
                             ),
-                            assessment,
+                            plan,
+                            forced,
                         )
                     except Exception as error:
-                        result = self._attach_answerability(
-                            self._error_result(item, plan, error), assessment
+                        result = self._attach_route_provenance(
+                            self._attach_answerability(
+                                self._error_result(item, plan, error), assessment
+                            ),
+                            plan,
+                            forced,
                         )
                     self._save_mc_result(handle, result, tracker)
 
@@ -137,6 +162,18 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                     torch.cuda.empty_cache()
         tracker.save_snapshot()
         self._evaluate_if_requested(destination, answerability_labels)
+        if force_gate_false_morphology:
+            from .forced_morphology_analysis import write_forced_morphology_summary
+
+            forced_summary = write_forced_morphology_summary(
+                destination,
+                Path(answerability_labels) if answerability_labels else None,
+            )
+            print(
+                "Forced morphology analysis: "
+                + json.dumps(forced_summary, ensure_ascii=False),
+                flush=True,
+            )
         if comparison_answers:
             if not answerability_labels:
                 raise ValueError(
@@ -164,6 +201,50 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                 flush=True,
             )
         return destination
+
+    @staticmethod
+    def _forced_morphology_plan(item: Dict[str, Any]) -> ExecutionPlan:
+        case_id = str(item.get("Id", item.get("case_id", "")))[:12]
+        question = str(item.get("Question", item.get("question", "")))
+        return ExecutionPlan(
+            case_id=case_id,
+            question=question,
+            target_phenotypes=[],
+            task_type="morphology",
+            metrics=[],
+            answer_mode="multiple_choice",
+            supported=False,
+            support_reason=(
+                "Frozen Gate=False; forced morphology-only downstream experiment."
+            ),
+            task_match="none",
+            evidence_route="morphology_only",
+            selected_prototype_ids=[],
+            prototype_support_type="none",
+            prototype_coverage="none",
+            local_morphology_useful=True,
+        )
+
+    @staticmethod
+    def _attach_route_provenance(
+        result: Dict[str, Any], plan: ExecutionPlan, forced: bool
+    ) -> Dict[str, Any]:
+        if forced:
+            original_route = None
+            effective_route = "forced_morphology_only"
+        elif plan.task_match in {"direct", "partial"}:
+            original_route = plan.task_match
+            effective_route = plan.task_match
+        else:
+            original_route = plan.evidence_route
+            effective_route = plan.evidence_route
+        result.update({
+            "gate_can_answer": bool(result.get("predicted_can_answer")),
+            "original_router_route": original_route,
+            "effective_route": effective_route,
+            "forced_morphology_from_gate_false": bool(forced),
+        })
+        return result
 
     @staticmethod
     def _error_result(item: Dict[str, Any], plan: Any, error: Exception) -> Dict[str, Any]:
