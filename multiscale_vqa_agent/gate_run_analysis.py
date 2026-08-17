@@ -127,14 +127,6 @@ def write_gate_run_analysis(
     }
     valid_new = [new_rows[key] for key in valid_keys]
     routed = [row for row in new_rows.values() if row.get("plan")]
-    router_questions = [
-        row for row in routed
-        if not row.get("forced_morphology_from_gate_false", False)
-    ]
-    forced_morphology = [
-        row for row in routed
-        if row.get("forced_morphology_from_gate_false", False)
-    ]
     pathology_questions = [
         row for row in routed
         if (row.get("pathology_evidence") or {}).get("backend")
@@ -159,8 +151,7 @@ def write_gate_run_analysis(
         },
         "downstream": {
             "questions_entered": len(routed),
-            "router_calls": len(router_questions),
-            "router_skipped_forced_morphology": len(forced_morphology),
+            "router_calls": len(routed),
             "g2p_question_routes": len(routed),
             "g2p_patient_cases": len({row.get("case_id") for row in routed}),
             "pathology_agent_questions": len(pathology_questions),

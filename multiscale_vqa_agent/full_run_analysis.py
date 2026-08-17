@@ -57,10 +57,6 @@ def _evidence_route(row: Dict[str, Any]) -> str:
 
 
 def _route(row: Dict[str, Any]) -> str:
-    if row.get("effective_route") == "forced_morphology_only" or row.get(
-        "forced_morphology_from_gate_false"
-    ):
-        return "forced_morphology_only"
     task_match = _task_match(row)
     if task_match in {"direct", "partial"}:
         return task_match
@@ -113,9 +109,7 @@ def _flip_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
 
 def _route_flip_summary(rows: List[Dict[str, Any]]) -> Dict[str, Any]:
     summary = {}
-    for route in (
-        "direct", "partial", "morphology_only", "forced_morphology_only"
-    ):
+    for route in ("direct", "partial", "morphology_only"):
         same_route = [
             row for row in rows
             if row["old_route"] == route and row["new_route"] == route
@@ -134,9 +128,7 @@ def _route_gold_summary(
     gold: Dict[Tuple[str, str], Dict[str, Any]],
 ) -> Dict[str, Any]:
     output = {}
-    for route in (
-        "direct", "partial", "morphology_only", "forced_morphology_only"
-    ):
+    for route in ("direct", "partial", "morphology_only"):
         selected = [
             (key, row) for key, row in rows.items() if _route(row) == route
         ]

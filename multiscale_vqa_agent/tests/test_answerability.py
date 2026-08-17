@@ -216,56 +216,6 @@ class AnswerabilityPipelineTest(unittest.TestCase):
         self.assertEqual(pipeline.calls["fusion"], 1)
         self.assertEqual(sum(row["abstained"] for row in rows), 1)
 
-    def test_forced_gate_false_uses_morphology_without_router_or_abstention(self):
-        items = [self.item("q true"), self.item("q false")]
-        with tempfile.TemporaryDirectory() as directory:
-            directory = Path(directory)
-            source = directory / "questions.json"
-            output = directory / "answers.jsonl"
-            frozen = directory / "gate.jsonl"
-            source.write_text(json.dumps(items), encoding="utf-8")
-            frozen.write_text("".join(
-                json.dumps({
-                    "case_id": item["Id"],
-                    "question": item["Question"],
-                    "predicted_can_answer": decision,
-                    "answerability_confidence": 0.8,
-                    "answerability_reason": "frozen",
-                    "answerability_fallback_used": False,
-                }) + "\n"
-                for item, decision in zip(items, (True, False))
-            ), encoding="utf-8")
-            pipeline = self.make_pipeline({}, CountingMCPipeline)
-            pipeline.answerability = FailingGate()
-            pipeline.precomputed_answerability = PrecomputedAnswerabilityStore(
-                str(frozen)
-            )
-            pipeline.run_multiple_choice(
-                str(source),
-                str(output),
-                resume=False,
-                crop_patches=False,
-                force_gate_false_morphology=True,
-            )
-            rows = [json.loads(line) for line in output.read_text().splitlines()]
-            summary = json.loads(
-                (directory / "forced_morphology_summary.json").read_text()
-            )
-
-        self.assertEqual(pipeline.calls["planner"], 1)
-        self.assertEqual(pipeline.calls["g2p"], 1)
-        self.assertEqual(pipeline.calls["fusion"], 2)
-        self.assertEqual(sum(row["abstained"] for row in rows), 0)
-        forced = next(row for row in rows if not row["predicted_can_answer"])
-        self.assertFalse(forced["gate_can_answer"])
-        self.assertIsNone(forced["original_router_route"])
-        self.assertEqual(forced["effective_route"], "forced_morphology_only")
-        self.assertTrue(forced["forced_morphology_from_gate_false"])
-        self.assertEqual(forced["plan"]["target_phenotypes"], [])
-        self.assertEqual(forced["plan"]["evidence_route"], "morphology_only")
-        self.assertEqual(summary["forced_morphology"]["n"], 1)
-        self.assertEqual(summary["integrity"]["abstained"], 0)
-
     def test_missing_precomputed_key_is_fatal_without_online_fallback(self):
         item = self.item("missing question")
         with tempfile.TemporaryDirectory() as directory:
