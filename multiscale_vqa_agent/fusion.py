@@ -53,10 +53,12 @@ class FusionVerificationAgent:
         relations: Any,
         pathology: Dict[str, Any],
         broad_g2p_predictions: Any = None,
+        agent_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         answer, _ = self.answer_with_summary(
             plan, choices, phenotype_results, relations, pathology,
             broad_g2p_predictions=broad_g2p_predictions,
+            agent_context=agent_context,
         )
         return answer
 
@@ -68,12 +70,13 @@ class FusionVerificationAgent:
         relations: Any,
         pathology: Dict[str, Any],
         broad_g2p_predictions: Any = None,
+        agent_context: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Dict[str, Any], Dict[str, Any]]:
         structured = build_structured_summary(plan, choices, phenotype_results)
         self._attach_option_alignment(plan, choices, structured)
         answer = self._answer_prepared(
             plan, choices, structured, relations, pathology,
-            broad_g2p_predictions,
+            broad_g2p_predictions, agent_context,
         )
         return answer, structured
 
@@ -85,10 +88,11 @@ class FusionVerificationAgent:
         relations: Any,
         pathology: Dict[str, Any],
         broad_g2p_predictions: Any = None,
+        agent_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         evidence = self._build_evidence_packet(
             plan, choices, structured, relations, pathology,
-            broad_g2p_predictions,
+            broad_g2p_predictions, agent_context,
         )
         system_prompt = MINIMAL_NONE_SYSTEM if structured.get("task_match") == "none" else load_fusion_prompt()
         if not self.client.enabled:
@@ -189,10 +193,11 @@ class FusionVerificationAgent:
         relations: Any,
         pathology: Dict[str, Any],
         broad_g2p_predictions: Any = None,
+        agent_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         visual = self._visual_summary(pathology.get("description"))
         if structured.get("task_match") == "none":
-            return {
+            packet = {
                 "question": plan.question,
                 "choices": indexed_choices(choices),
                 "task_match": "none",
@@ -202,6 +207,7 @@ class FusionVerificationAgent:
                 "available_visual_summary": visual,
                 "evidence_availability": "broad_g2p_plus_visual",
             }
+            return self._attach_agent_context(packet, agent_context)
         primary_fields = set(structured.get("primary_fields", []))
         supporting_fields = set(structured.get("supporting_fields", []))
         predictions = structured.get("predictions", [])
@@ -226,7 +232,7 @@ class FusionVerificationAgent:
                 "field_coverage": row.get("field_coverage", 0.0),
                 "evidence_coverage": row.get("evidence_coverage", 0.0),
             })
-        return {
+        packet = {
             "question": plan.question,
             "choices": indexed_choices(choices),
             "task_match": structured.get("task_match"),
@@ -260,6 +266,22 @@ class FusionVerificationAgent:
             ],
             "code_generated_base_confidence": structured.get("structured_candidate_confidence"),
         }
+        return self._attach_agent_context(packet, agent_context)
+
+    @staticmethod
+    def _attach_agent_context(
+        packet: Dict[str, Any], agent_context: Optional[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        if not agent_context:
+            return packet
+        packet["hierarchical_agent_context"] = agent_context
+        packet.setdefault("rules", []).extend([
+            "Knowledge RAG describes evidence semantics and limitations; it never supplies an answer label.",
+            "Accumulated visual observations are direct pixel descriptions from separate evidence rounds.",
+            "Program and gene observations are supportive WSI-derived evidence only and cannot become measured assay facts.",
+            "Only the final fusion may select an option, using the accumulated evidence and its limitations.",
+        ])
+        return packet
 
     @staticmethod
     def _compact_prediction(row: Dict[str, Any]) -> Dict[str, Any]:

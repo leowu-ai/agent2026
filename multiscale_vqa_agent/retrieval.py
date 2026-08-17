@@ -88,6 +88,164 @@ class MultiScaleRetrievalAgent:
             group.evidence_source = "selected_phenotype"
         return groups
 
+    def retrieve_phenotype_only(
+        self,
+        field: str,
+        scale_results: Dict[int, Dict[str, Any]],
+        scale: int,
+    ) -> List[EvidenceGroup]:
+        """Retrieve one spatial scale without program or gene attention."""
+        scale = self._require_scale(scale, scale_results)
+        phenotype_index = self.registry.field_to_index[field]
+        candidates = []
+        for slide in scale_results[scale]["slides"]:
+            candidates.extend(self._from_attention(
+                scale,
+                slide,
+                "phenotype",
+                [phenotype_index],
+                [field],
+                1.0,
+            ))
+        return self._single_scale_groups(
+            self._deduplicate(candidates), scale, "selected_phenotype"
+        )
+
+    def retrieve_all_phenotypes_scale(
+        self,
+        scale_results: Dict[int, Dict[str, Any]],
+        scale: int,
+    ) -> List[EvidenceGroup]:
+        """Retrieve broad morphology/context/diversity at exactly one scale."""
+        scale = self._require_scale(scale, scale_results)
+        indices = list(range(len(self.registry.phenotype_fields)))
+        names = [
+            f"{self.registry.field_to_prototype_id[field]}:{field}"
+            for field in self.registry.phenotype_fields
+        ]
+        high_attention = []
+        context = []
+        diversity = []
+        for slide in scale_results[scale]["slides"]:
+            high_attention.extend(self._from_attention(
+                scale,
+                slide,
+                "phenotype",
+                indices,
+                names,
+                1.0,
+                top_per_prototype=self.all_phenotype_top_per_prototype,
+            ))
+            context.extend(self._context_candidates(scale, slide))
+            diversity.extend(self._feature_diversity_candidates(scale, slide))
+        candidates = self._balanced_morphology_candidates(
+            high_attention, context, diversity
+        )
+        return self._single_scale_groups(
+            candidates, scale, "broad_phenotype"
+        )
+
+    def retrieve_question_scale(
+        self,
+        question_feature: np.ndarray,
+        scale_results: Dict[int, Dict[str, Any]],
+        scale: int,
+    ) -> List[EvidenceGroup]:
+        """Retrieve question-similar patches from exactly one spatial scale."""
+        scale = self._require_scale(scale, scale_results)
+        question_feature = np.asarray(question_feature, dtype=np.float32)
+        if question_feature.ndim != 1:
+            raise ValueError(
+                f"Question feature must be 1D, got shape {question_feature.shape}"
+            )
+        norm = float(np.linalg.norm(question_feature))
+        if not np.isfinite(norm) or norm <= 1e-8:
+            raise ValueError("Question feature must be finite and non-zero")
+        question_feature = question_feature / norm
+        candidates = []
+        for slide in scale_results[scale]["slides"]:
+            candidates.extend(self._from_question_similarity(
+                scale, slide, question_feature
+            ))
+        return self._single_scale_groups(
+            self._deduplicate(candidates), scale, "question_similarity"
+        )
+
+    def retrieve_program_1024(
+        self,
+        program_index: int,
+        scale_results: Dict[int, Dict[str, Any]],
+    ) -> List[EvidenceGroup]:
+        program_index = int(program_index)
+        if not 0 <= program_index < len(self.registry.programs):
+            raise IndexError(f"Invalid program index: {program_index}")
+        scale = self._require_scale(1024, scale_results)
+        candidates = []
+        for slide in scale_results[scale]["slides"]:
+            candidates.extend(self._from_attention(
+                scale,
+                slide,
+                "program",
+                [program_index],
+                [self.registry.programs[program_index]],
+                1.0,
+            ))
+        return self._single_scale_groups(
+            self._deduplicate(candidates), scale, "program_support"
+        )
+
+    def retrieve_gene_1024(
+        self,
+        gene_index: int,
+        scale_results: Dict[int, Dict[str, Any]],
+    ) -> List[EvidenceGroup]:
+        gene_index = int(gene_index)
+        if not 0 <= gene_index < len(self.registry.genes):
+            raise IndexError(f"Invalid gene index: {gene_index}")
+        scale = self._require_scale(1024, scale_results)
+        candidates = []
+        for slide in scale_results[scale]["slides"]:
+            candidates.extend(self._from_attention(
+                scale,
+                slide,
+                "gene",
+                [gene_index],
+                [self.registry.genes[gene_index]],
+                1.0,
+            ))
+        return self._single_scale_groups(
+            self._deduplicate(candidates), scale, "gene_support"
+        )
+
+    def slice_groups_to_scale(
+        self,
+        groups: List[EvidenceGroup],
+        scale: int,
+        allowed_source_types: Optional[Iterable[str]] = None,
+    ) -> List[EvidenceGroup]:
+        """Copy one scale from existing groups with an optional source guard."""
+        allowed = set(allowed_source_types or [])
+        result = []
+        for group in groups:
+            patch = group.patches.get(int(scale))
+            if patch is None:
+                continue
+            copied = deepcopy(patch)
+            if allowed:
+                copied.sources = [
+                    source for source in copied.sources
+                    if source.get("type") in allowed
+                ]
+                if not copied.sources:
+                    continue
+            result.append(EvidenceGroup(
+                group_id=len(result) + 1,
+                score=float(group.score),
+                patches={int(scale): copied},
+                evidence_source=group.evidence_source,
+            ))
+        return result[: self.max_groups]
+
     def retrieve_all_phenotypes(
         self,
         scale_results: Dict[int, Dict[str, Any]],
@@ -184,6 +342,19 @@ class MultiScaleRetrievalAgent:
         for index, group in enumerate(selected, 1):
             group.group_id = index
         return selected
+
+    def merge_hybrid_scale_groups(
+        self,
+        question_groups: List[EvidenceGroup],
+        phenotype_groups: List[EvidenceGroup],
+    ) -> List[EvidenceGroup]:
+        """Merge single-scale question and phenotype evidence."""
+        return self.merge_hybrid_groups(
+            question_groups,
+            phenotype_groups,
+            question_limit=3,
+            prototype_limit=2,
+        )[: self.max_groups]
 
     def _groups_duplicate(
         self, left: EvidenceGroup, right: EvidenceGroup
@@ -484,6 +655,31 @@ class MultiScaleRetrievalAgent:
             )
             duplicate.score = max(duplicate.score, candidate.score) + 0.05 * min(len(duplicate.sources) - 1, 3)
         return sorted(kept, key=lambda item: item.score, reverse=True)
+
+    def _single_scale_groups(
+        self,
+        candidates: List[PatchCandidate],
+        scale: int,
+        evidence_source: str,
+    ) -> List[EvidenceGroup]:
+        groups = []
+        for candidate in candidates[: self.max_groups]:
+            groups.append(EvidenceGroup(
+                group_id=len(groups) + 1,
+                score=float(candidate.score),
+                patches={int(scale): candidate},
+                evidence_source=evidence_source,
+            ))
+        return groups
+
+    @staticmethod
+    def _require_scale(
+        scale: int, scale_results: Dict[int, Dict[str, Any]]
+    ) -> int:
+        scale = int(scale)
+        if scale not in scale_results:
+            raise KeyError(f"Scale {scale} is not available")
+        return scale
 
     def _build_pyramids(self, by_scale: Dict[int, List[PatchCandidate]]) -> List[EvidenceGroup]:
         groups: List[EvidenceGroup] = []

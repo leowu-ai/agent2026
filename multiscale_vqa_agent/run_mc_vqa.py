@@ -39,6 +39,17 @@ def main():
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
+        "--agent_mode",
+        choices=("legacy", "hierarchical_rag"),
+        default="legacy",
+        help="Evidence acquisition mode. Defaults to the unchanged legacy pipeline.",
+    )
+    parser.add_argument(
+        "--knowledge_base",
+        default=None,
+        help="Knowledge-base ZIP required by --agent_mode hierarchical_rag.",
+    )
+    parser.add_argument(
         "--morphology_retrieval_mode",
         choices=("broad", "question_similarity"),
         default=None,
@@ -76,6 +87,8 @@ def main():
         morphology_retrieval_mode=args.morphology_retrieval_mode,
         partial_retrieval_mode=args.partial_retrieval_mode,
         direct_retrieval_mode=args.direct_retrieval_mode,
+        agent_mode=args.agent_mode,
+        knowledge_base=args.knowledge_base,
     )
     output = pipeline.run_multiple_choice(
         vqa_path=args.vqa_json,

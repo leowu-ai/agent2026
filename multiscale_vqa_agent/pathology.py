@@ -15,6 +15,7 @@ class PathologyAgent:
         field: str,
         groups: List[EvidenceGroup],
         overview_paths: Optional[List[str]] = None,
+        hide_provenance: bool = False,
     ) -> Dict[str, Any]:
         del field  # Retrieval provenance must not bias the visual expert.
         entries = self._image_entries(groups, overview_paths or [])
@@ -38,7 +39,7 @@ class PathologyAgent:
                 "request_attempts": 0,
                 "evidence_groups": evidence,
                 "image_metadata": [
-                    self._entry_metadata(entry, index)
+                    self._entry_metadata(entry, index, hide_provenance)
                     for index, entry in enumerate(entries, 1)
                 ],
             }
@@ -57,7 +58,7 @@ class PathologyAgent:
             user = json.dumps({
                 "question": question,
                 "image_order": [
-                    self._entry_metadata(entry, index)
+                    self._entry_metadata(entry, index, hide_provenance)
                     for index, entry in enumerate(selected, 1)
                 ],
                 "evidence_rule": (
@@ -86,7 +87,7 @@ class PathologyAgent:
                     "retry_history": failures,
                     "evidence_groups": evidence,
                     "image_metadata": [
-                        self._entry_metadata(entry, index)
+                        self._entry_metadata(entry, index, hide_provenance)
                         for index, entry in enumerate(selected, 1)
                     ],
                 }
@@ -105,7 +106,7 @@ class PathologyAgent:
             "retry_history": failures,
             "evidence_groups": evidence,
             "image_metadata": [
-                self._entry_metadata(entry, index)
+                self._entry_metadata(entry, index, hide_provenance)
                 for index, entry in enumerate(
                     self._select_entries(entries, attempts[-1][0]), 1
                 )
@@ -141,14 +142,17 @@ class PathologyAgent:
         return overviews + patches
 
     @staticmethod
-    def _entry_metadata(entry: Dict[str, Any], ordinal: int) -> Dict[str, Any]:
+    def _entry_metadata(
+        entry: Dict[str, Any], ordinal: int, hide_provenance: bool = False
+    ) -> Dict[str, Any]:
         result = {"ordinal": ordinal, "kind": entry["kind"]}
         if entry["kind"] == "patch":
             result.update({
                 "group_id": entry["group_id"],
                 "scale": entry["scale"],
-                "evidence_source": entry.get("evidence_source"),
             })
+            if not hide_provenance:
+                result["evidence_source"] = entry.get("evidence_source")
         return result
 
     @staticmethod

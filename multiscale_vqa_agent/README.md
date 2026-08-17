@@ -139,3 +139,30 @@ The runner prioritizes diagnostic `DX` slides, caches patient thumbnails,
 resumes by default, saves every answer immediately, and updates live accuracy.
 
 The full 735-question run is a pipeline demonstration because most cases overlap the G2P training or validation split. It is not an unbiased test estimate.
+
+## Hierarchical RAG Agent
+
+The optional `hierarchical_rag` mode keeps the frozen feasibility gate,
+existing planner, patient-level G2P cache, and multiscale structured prediction.
+It acquires new visual evidence incrementally in this order:
+
+```text
+4096 -> 2048 -> 1024 -> Program@1024 -> Gene@1024
+```
+
+Program and gene observations are supportive WSI-derived evidence, not measured
+RNA or clinical assays. The default `legacy` mode retains the previous pipeline.
+
+Use a previously frozen Gate JSONL; do not substitute online answerability or a
+Gold-label file for `<FROZEN_GATE_V2_JSONL>`:
+
+```bash
+/home/wl/anaconda3/envs/mil/bin/python \
+  multiscale_vqa_agent/run_mc_vqa.py \
+  --config multiscale_vqa_agent/config.servers.json \
+  --agent_mode hierarchical_rag \
+  --knowledge_base /home/wl/agent_2026/g2p_toolbank_brca/hybrid_pathology_knowledge_base_v1.zip \
+  --precomputed_answerability <FROZEN_GATE_V2_JSONL> \
+  --limit 1 \
+  --no_resume
+```
