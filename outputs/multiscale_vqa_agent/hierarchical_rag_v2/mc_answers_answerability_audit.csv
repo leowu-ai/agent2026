@@ -1,0 +1,391 @@
+case_id,question,gold_can_answer,predicted_can_answer,answerability_confidence,answerability_fallback_used,excluded,abstained,reference_answer,agent_answer,correct
+TCGA-LD-A74U,what is the patient's diagnosis?,True,True,1.0,False,False,False,invasive lobular carcinoma,invasive lobular carcinoma,True
+TCGA-LD-A74U,what is the tumor size approximately?,False,False,1.0,False,False,True,70mm,,False
+TCGA-LD-A74U,what is the nuclear grade of the tumor?,True,True,1.0,False,False,False,not mentioned,intermediate,False
+TCGA-LD-A74U,is there any in-situ component in the tumor?,True,True,0.95,False,False,False,no,no,True
+TCGA-AR-A1AI,what type of breast cancer does jeb have?,True,True,0.95,False,False,False,medullary carcinoma,invasive ductal carcinoma,False
+TCGA-AR-A1AI,what was the size of the mass in jeb's breast?,False,False,1.0,False,False,True,4.5 x 3.0 x 2.0 cm,,False
+TCGA-AR-A1AI,what was the status of the surgical margins in jeb's case?,False,False,1.0,False,False,True,"negative, indicating removal of all cancer.",,False
+TCGA-B6-A0WZ,what is the size of the tumor?,False,False,1.0,False,False,True,3 cm,,False
+TCGA-B6-A0WZ,what subtype of infiltrating ductal carcinoma is present?,True,True,0.95,False,False,False,tubulolobular subtype,lobular cacinoma,False
+TCGA-B6-A0WZ,is there evidence of multifocal tumor?,False,True,0.95,False,False,False,no,cannot determine,False
+TCGA-B6-A0WZ,what are the preliminary results of the hormone receptor analysis?,True,True,0.95,False,False,False,positive for estrogen receptors,positive for estrogen receptors,True
+TCGA-BH-A5IZ,what is the size of the tumor?,,False,1.0,False,True,True,negative for invasive carcinoma,,False
+TCGA-BH-A5IZ,what percentage of the tumor volume constitutes ductal carcinoma in situ (dcis)?,,False,1.0,False,True,True,focal atypical ductal hyperplasia,,False
+TCGA-BH-A5IZ,what is the nottingham score for the tumor?,True,True,0.95,False,False,False,negative for invasive carcinoma,9/9,False
+TCGA-BH-A5IZ,what are the hormone receptor status of the tumor?,True,True,0.95,False,False,False,positive for estrogen and progesterone receptors,negative for progesterone receptors,False
+TCGA-BH-A5IZ,what type of non-neoplastic breast tissue changes were observed?,True,True,0.95,False,False,False,focal atypical ductal hyperplasia,fibrocystic changes,False
+TCGA-BH-A0AZ,what is the tumor size range?,False,False,1.0,False,False,True,0.6 cm to 21 cm,,False
+TCGA-BH-A0AZ,what is the nottingham score?,True,True,0.95,False,False,False,6 out of 9,6 out of 9,True
+TCGA-BH-A0AZ,what percentage of tumor volume does ductal carcinoma in situ (dcis) represent?,False,False,1.0,False,False,True,less than 1%,,False
+TCGA-BH-A0AZ,what were the results of the immunohistochemical staining?,True,True,0.95,False,False,False,equivocal estrogen and progesterone receptors,positive estrogen and negative progesterone receptors,False
+TCGA-EW-A1PF,what is the total size of the tumor?,False,False,1.0,False,False,True,2.0 cm,,False
+TCGA-EW-A1PF,what is the grade of the invasive ductal carcinoma?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-EW-A1PF,what is the size of the comedo necrosis in the ductal carcinoma in situ?,False,False,1.0,False,False,True,less than 5%,,False
+TCGA-EW-A1PF,what is the pending immunohistochemistry for?,False,False,1.0,False,False,True,keratin,,False
+TCGA-BH-A0BV,what is the size of the infiltrating ductal carcinoma in the breast?,False,False,1.0,False,False,True,3.0 cm,,False
+TCGA-BH-A0BV,what is the nottingham score of the infiltrating ductal carcinoma?,True,True,1.0,False,False,False,7/9,7/9,True
+TCGA-BH-A0BV,what is the closest margin of resection for the infiltrating ductal carcinoma?,False,False,1.0,False,False,True,2.0 cm,,False
+TCGA-BH-A0BV,what is the tumor type of the ductal carcinoma in situ?,True,True,0.95,False,False,False,solid and cribriform,solid and cribriform,True
+TCGA-BH-A0BV,what is the pathological stage of the breast cancer?,False,False,1.0,False,False,True,t2 n1 mx,,False
+TCGA-BH-A202,what was the size of the primary invasive carcinoma?,False,False,1.0,False,False,True,2.8 cm,,False
+TCGA-BH-A202,what was the score for estrogen receptors?,False,True,0.95,False,False,False,250,negative,False
+TCGA-BH-A202,what type of carcinoma was found in the breast segmental mastectomy?,True,True,0.95,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-BH-A202,was lymphovascular invasion identified?,True,True,1.0,False,False,False,no,yes,False
+TCGA-BH-A202,what was the pathologic stage?,False,False,1.0,False,False,True,pt4an0mx,,False
+TCGA-BH-A202,was there amplification of the her2/neu gene?,True,False,1.0,False,False,True,no,,False
+TCGA-AR-A0U3,what type of cancer was found in the breast?,True,True,0.95,False,False,False,invasive ductal adenocarcinoma,invasive ductal adenocarcinoma,True
+TCGA-AR-A0U3,what was the size of the tumor?,False,False,1.0,False,False,True,2.3 x 2.0 cm,,False
+TCGA-AR-A0U3,what was the stage classification of the tumor?,False,False,1.0,False,False,True,t2,,False
+TCGA-AR-A0U3,how much of the tumor was accounted for by ductal carcinoma in-situ?,False,False,1.0,False,False,True,10%,,False
+TCGA-AR-A0U3,what was the result of the estrogen receptor (er) staining?,True,True,0.95,False,False,False,positive with more than 10% nuclear staining,positive with more than 10% nuclear staining,True
+TCGA-AO-A0JE,what is the grade of the invasive ductal carcinoma?,True,True,0.95,False,False,False,high grade,high grade,True
+TCGA-AO-A0JE,what additional findings are present in the tumor?,True,True,0.95,False,False,False,calcifications and microvascular invasion,no additional findings,False
+TCGA-AO-A0JE,what is found in the surrounding breast tissue?,True,True,0.95,False,False,False,benign changes,high-grade ductal carcinoma,False
+TCGA-AO-A0JE,where were receptor studies performed?,False,False,1.0,False,False,True,on the right breast mass,,False
+TCGA-A1-A0SF,what is the size of the infiltrating ductal carcinoma in the breast?,False,False,1.0,False,False,True,2.4 cm,,False
+TCGA-A1-A0SF,what is the grade of the invasive tumor in the breast?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-A1-A0SF,what is the result of her2/neu testing?,True,True,0.95,False,False,False,not provided,negative,False
+TCGA-A1-A0SF,what is the pathological finding in the soft tissue in the breast?,True,True,0.95,False,False,False,benign breast tissue,infiltrating ductal carcinoma,False
+TCGA-A1-A0SF,what is the pathological finding in the ovary?,False,True,0.95,False,False,False,benign paratubal cyst,malignant tumor,False
+TCGA-EW-A1P7,what was the grade assigned to the breast cancer according to the nottingham score?,True,False,0.95,False,False,True,grade 2,,False
+TCGA-EW-A1P7,what was the nuclear grade of the ductal adenocarcinoma found in the breast mass?,True,True,0.95,False,False,False,high,high,True
+TCGA-EW-A1P7,what were the results of the tumor margin assessment?,False,False,1.0,False,False,True,negative,,False
+TCGA-EW-A1P7,what was the receptor status for estrogen receptor (er) and progesterone receptor (pr)?,True,True,0.95,False,False,False,negative,positive,False
+TCGA-EW-A1P7,what was the receptor status for her 2-neu?,True,False,1.0,False,False,True,equivocal,,False
+TCGA-BH-A0DG,what is the pathological stage of the tumor?,False,False,1.0,False,False,True,pt2n0,,False
+TCGA-BH-A0DG,what percentage of the tumor volume comprises the in situ component?,False,False,1.0,False,False,True,approximately 20%,,False
+TCGA-BH-A0DG,what is the grade of the tumor according to the nottingham score?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-BH-A0DG,what is the hormonal receptor status of the tumor?,True,True,1.0,False,False,False,"er-positive, pr-positive, her-2-negative","er-positive, pr-positive, her-2-negative",True
+TCGA-BH-A0DG,what type of breast tissue is present besides the tumor?,True,True,0.95,False,False,False,both fibrocystic change and fibroadenoma,non-neoplastic breast tissue,False
+TCGA-BH-A0DD,what is the histological finding of the breast simple mastectomy?,True,True,0.95,False,False,False,"adipose breast tissue,","adipose breast tissue,",True
+TCGA-BH-A0DD,what is the histological finding of the modified radical mastectomy?,True,True,0.95,False,False,False,"lymphoplasmacytic infiltrate and necrosis,","ductal carcinoma in situ,",False
+TCGA-BH-A0DD,what is the classification of the invasive component of the tumor?,True,True,0.95,False,False,False,"ductal adenocarcinoma, nuclear grade 2,","ductal adenocarcinoma, nuclear grade 2,",True
+TCGA-BH-A0DD,what is the receptor status mentioned in the slide?,True,True,0.95,False,False,True,"estrogen receptors are positive,",,False
+TCGA-B6-A0IA,what type of carcinoma was found in the patient's breast biopsy?,True,True,0.95,False,False,False,infiltrating carcinoma,infiltrating carcinoma,True
+TCGA-B6-A0IA,what is the size of the tumor found in the patient's breast?,False,False,1.0,False,False,True,2.0 cm,,False
+TCGA-B6-A0IA,what other changes were found in the patient's breast?,True,True,0.95,False,False,False,hyperplasia,fibrosis,False
+TCGA-B6-A0IA,was there any residual carcinoma in the previous biopsy site?,False,False,1.0,False,False,True,no,,False
+TCGA-AC-A2FF,what type of carcinoma did the patient have?,True,True,0.95,False,False,False,lobular carcinoma,lobular carcinoma,True
+TCGA-AC-A2FF,where was the metastatic involvement found?,False,False,1.0,False,False,True,lymph nodes,,False
+TCGA-AC-A2FF,what type of procedure did the patient undergo?,False,False,1.0,False,False,True,lumpectomy,,False
+TCGA-AC-A2FF,what additional tests were performed?,False,False,1.0,False,False,True,immunostains,,False
+TCGA-AC-A2FF,what does the surgical slide provide information on?,False,False,1.0,False,False,True,tumor size and characteristics,,False
+TCGA-AC-A2FF,what type of node was involved in the metastatic carcinoma?,False,False,1.0,False,False,True,sentinel lymph node,,False
+TCGA-AC-A2FG,what is the histological type of the breast tumor?,True,True,1.0,False,False,False,invasive lobular carcinoma,invasive lobular carcinoma,True
+TCGA-AC-A2FG,what is the size of the tumor?,False,False,1.0,False,False,True,2.1 cm,,False
+TCGA-AC-A2FG,what is the elston modification of bloom-richardson grade?,True,True,0.95,False,False,False,grade 2/3,grade 2/3,True
+TCGA-AC-A2FG,what is the status of the surgical margins?,False,False,1.0,False,False,True,negative,,False
+TCGA-AC-A2FG,what other findings were observed in the pathological slide?,True,True,0.95,False,False,False,fibroids and hemorrhage,no other findings,False
+TCGA-A2-A259,what was the grade of the invasive ductal carcinoma present in the patient's breast?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-A2-A259,what were the findings related to her2 neu in the patient's breast tissue?,True,True,0.9,False,False,False,her2 neu was negative,there were no findings related to her2 neu,False
+TCGA-A2-A259,what was the size of the patient's tumor?,False,False,1.0,False,False,True,1.5 cm,,False
+TCGA-A2-A259,which hormone receptors were positive in the patient's breast tissue?,True,True,0.95,False,False,False,both estrogen and progesterone receptors,both estrogen and progesterone receptors,True
+TCGA-A2-A259,what type of carcinoma was present along with invasive ductal carcinoma?,True,True,0.95,False,False,False,invasive lobular carcinoma,invasive lobular carcinoma,True
+TCGA-A1-A0SJ,what is the pathological finding of the breast?,True,True,0.95,False,False,False,invasive ductal carcinoma with dcis and microcalcifications,invasive ductal carcinoma with dcis and microcalcifications,True
+TCGA-A1-A0SJ,what is the immunohistochemical finding of the tumor?,,False,1.0,False,True,True,renal tumor,,False
+TCGA-E9-A1N6,what was the size of the breast tumor?,False,False,1.0,False,False,True,2.3 x 2.3 x 2 mm,,False
+TCGA-E9-A1N6,was the tumor well-differentiated or poorly differentiated?,True,True,1.0,False,False,False,poorly differentiated,poorly differentiated,True
+TCGA-E9-A1N6,what type of carcinoma was identified in the tumor?,True,True,0.95,False,False,False,infiltrating ductal carcinoma,infiltrating ductal carcinoma,True
+TCGA-E9-A1N6,what was the missing data preventing the determination of the nottingham histologic score?,False,False,1.0,False,False,True,"tubule formation, nuclear pleomorphism, and mitotic count",,False
+TCGA-E9-A1N6,was any information provided on neo-adjuvant treatment?,False,False,1.0,False,False,True,no,,False
+TCGA-LL-A5YP,what was the size of the high-grade ductal carcinoma in situ (dcis) in the breast?,False,False,1.0,False,False,True,1.8 cm,,False
+TCGA-LL-A5YP,what was the grade of the invasive ductal carcinoma in the breast?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-LL-A5YP,were the margins involved with tumor?,False,False,1.0,False,False,True,no,,False
+TCGA-LL-A5YP,what additional findings were noted apart from the carcinomas?,True,True,0.95,False,False,False,proliferative fibrocystic changes and neurofibromatosis,proliferative fibrocystic changes and neurofibromatosis,True
+TCGA-AO-A03T,what type of cancer is mentioned in the slide?,True,True,0.95,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-AO-A03T,where has the tumor spread to?,False,False,1.0,False,False,True,left axilla,,False
+TCGA-AO-A03T,what type of tissue changes are mentioned in the slide?,True,True,0.95,False,False,False,non-neoplastic breast tissue changes,invasive ductal carcinoma,False
+TCGA-AO-A03T,which hormone receptors show positivity in the tissue?,True,True,0.9,False,False,False,estrogen receptor positivity,progesterone receptor positivity,False
+TCGA-AO-A03T,what does the slide confirm about the diagnosis?,True,True,0.9,False,False,False,involvement of the skin by the carcinoma,non-neoplastic breast tissue changes,False
+TCGA-AO-A03T,what stains were performed on the tissue?,False,False,1.0,False,False,True,special stains,,False
+TCGA-C8-A3M7,what is the histological grade of the primary tumor?,True,True,1.0,False,False,False,grade 3,grade 2,False
+TCGA-C8-A3M7,what is the patient's karnofsky performance scale score indicating?,False,False,1.0,False,False,True,asymptomatic,,False
+TCGA-C8-A3M7,what type of carcinoma is the primary tumor?,True,True,0.95,False,False,False,lobular carcinoma,lobular carcinoma,True
+TCGA-C8-A3M7,is the patient currently on any medications?,False,False,1.0,False,False,True,not specified,,False
+TCGA-C8-A3M7,is there any information about the presence of distant metastasis?,False,False,1.0,False,False,True,no,,False
+TCGA-E9-A227,what was the size of the tumor?,False,False,1.0,False,False,True,2.1 x 1.8 x 1.4 cm,,False
+TCGA-EW-A1IY,what were the findings of the examination of the sentinel node #3?,False,False,1.0,False,False,True,additional testing is in progress.,,False
+TCGA-EW-A1IY,what is the size of the infiltrating ductal carcinoma in the breast?,False,False,1.0,False,False,True,2.0 cm in greatest dimension.,,False
+TCGA-EW-A1IY,what is the nuclear grade of the infiltrating ductal carcinoma?,True,True,1.0,False,False,False,intermediate nuclear grade.,high nuclear grade.,False
+TCGA-EW-A1IY,were there any lymphovascular invasions observed?,True,True,0.95,False,False,False,"no, lymphovascular invasion was observed.","yes, lymphovascular invasion was observed.",False
+TCGA-EW-A1IY,which immunostain was positive in the tumor cells?,False,False,1.0,False,False,True,estrogen receptors.,,False
+TCGA-LL-A442,what is the histologic grade of the infiltrating ductal carcinoma?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-LL-A442,is there any invasive tumor seen at the surgical margins?,False,True,0.95,False,False,False,no,can't tell,False
+TCGA-LL-A442,what is the size of the breast tumor?,False,False,1.0,False,False,True,2.7 cm,,False
+TCGA-LL-A442,what is the histologic type of the breast tumor?,True,True,1.0,False,False,False,infiltrating ductal carcinoma,infiltrating ductal carcinoma,True
+TCGA-LL-A442,does the slide provide information about the hormonal receptor status of the breast cancer?,True,False,1.0,False,False,True,yes,,False
+TCGA-EW-A2FW,what is the size of the tumor?,False,False,1.0,False,False,True,2.8 cm,,False
+TCGA-EW-A2FW,what is the histological grade of the invasive carcinoma?,True,True,0.95,False,False,False,grade 3,grade 2,False
+TCGA-EW-A2FW,what is the presence of estrogen and progesterone receptors in tumor cells?,False,False,1.0,False,False,True,21%,,False
+TCGA-EW-A2FW,what is the final pathologic stage of the tumor?,False,False,1.0,False,False,True,pt2 n0 mx,,False
+TCGA-EW-A2FW,what is the status of her2?,True,True,0.95,False,False,False,negative,negative,True
+TCGA-E2-A105,what size was the stellate mass found in the breast?,False,False,1.0,False,False,True,1.1 cm,,False
+TCGA-E2-A105,what is the final diagnosis?,True,True,1.0,False,False,False,"invasive mammary carcinoma, tubulolobular type","invasive mammary carcinoma, ductal type",False
+TCGA-E2-A105,are the surgical margins free of tumor?,False,False,1.0,False,False,True,yes,,False
+TCGA-AR-A255,what was the size of the mass that was excised?,False,False,1.0,False,False,True,1.3 x 1.3 x 1.2 cm,,False
+TCGA-A2-A0EW,what was the final pathological stage of the patient's cancer?,False,False,1.0,False,False,True,pt1c n2 mx,,False
+TCGA-A2-A0EW,where in the patient's breast were the two tumors found?,False,False,1.0,False,False,True,lower outer quadrant and upper middle quadrant,,False
+TCGA-A2-A0EW,what were the tumors positive for and negative for?,True,True,0.95,False,False,False,"positive for her2, estrogen, and progesterone receptors","negative for her2, positive for estrogen and progesterone receptors",False
+TCGA-A8-A08R,what is the final tumor classification for the breast?,,False,1.0,False,True,True,"nos (not otherwise specified), g3 (grade 3), pt2n1a, lovoro",,False
+TCGA-A8-A08R,what is the tumor diameter in the breast?,False,False,1.0,False,False,True,4 cm,,False
+TCGA-A8-A08R,what is the type of carcinoma found in the breast?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-A8-A08R,"is there any lymphatic, vascular, or perineural invasion present?",True,True,1.0,False,False,False,"yes, perineural invasion present",no,False
+TCGA-A8-A08R,what is the grade of the tumor in the breast?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-BH-A0HL,what is the size of the tumor?,False,False,1.0,False,False,True,3x2.5x2.4 cm,,False
+TCGA-BH-A0HL,what was found in the breast tissue besides invasive ductal carcinoma?,True,True,0.95,False,False,False,intracystic papillary carcinoma,fibrocystic changes,False
+TCGA-BH-A0HL,what percentage of the tumor mass accounts for ductal carcinoma in situ?,False,False,1.0,False,False,True,5%,,False
+TCGA-BH-A0HL,what is the closest margin to the tumor?,False,False,1.0,False,False,True,1.2 cm,,False
+TCGA-BH-A0HL,what is the t stage of the tumor?,False,False,1.0,False,False,True,pr2,,False
+TCGA-E2-A15E,what is the size of the invasive ductal carcinoma in the breast?,False,False,1.0,False,False,True,1.1 cm,,False
+TCGA-E2-A15E,what is the grade of the invasive ductal carcinoma in the breast?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-E2-A15E,which type of carcinoma shows necrosis?,True,True,0.95,False,False,False,ductal carcinoma in situ,none of the above,False
+TCGA-E2-A15E,"what are the results for er, pr, and her2?",True,True,0.95,False,False,False,all positive,"er and pr positive, her2 negative",False
+TCGA-B6-A0WV,what is the size of the infiltrating tumor in the breast?,False,False,1.0,False,False,True,3.5 cm,,False
+TCGA-B6-A0WV,what is the histologic grade of the infiltrating ductal carcinoma?,True,True,1.0,False,False,False,grade 2,grade 2,True
+TCGA-B6-A0WV,is there any residual carcinoma in the mastectomy specimen?,False,True,0.95,False,False,False,no,no,True
+TCGA-B6-A0WV,what type of proliferative changes were observed in the breast?,True,True,0.95,False,False,False,epithelial hyperplasia,invasive carcinoma,False
+TCGA-B6-A0WV,is there any vascular invasion identified in the biopsied sample?,True,True,1.0,False,False,False,yes,yes,True
+TCGA-E9-A1RA,what type of carcinoma was observed?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-E9-A1RA,what was the size of the lump in the breast?,False,False,1.0,False,False,True,1.2 x 1.3 cm,,False
+TCGA-E9-A1RA,were there any specific histological details provided?,False,False,1.0,False,False,True,no,,False
+TCGA-E9-A1RA,what is the extent of the tumor?,False,False,1.0,False,False,True,unknown,,False
+TCGA-BH-A0BT,what were the characteristics of the invasive ductal carcinoma in the breast segmental mastectomy?,False,False,1.0,False,False,True,all of the above.,,False
+TCGA-BH-A0BT,what is the result in the medial new margin?,False,False,1.0,False,False,True,negative for tumor.,,False
+TCGA-BH-A0HX,what is the nottingham grade for the ductal carcinoma in the breast?,True,True,0.95,False,False,False,grade 3,grade 2,False
+TCGA-BH-A0HX,what is the hormone receptor status of the tumor in the breast?,True,True,1.0,False,False,False,estrogen receptor positive and progesterone receptor negative,estrogen receptor positive and progesterone receptor positive,False
+TCGA-BH-A0HX,what is the grade of lobular carcinoma in the breast?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-BH-A0HX,what findings are mentioned in the breast?,False,False,1.0,False,False,True,columnar cell change and sclerosing adenosis,,False
+TCGA-A8-A08Z,what is the diameter of the tumor?,False,False,1.0,False,False,True,5.0 cm,,False
+TCGA-A8-A08Z,what is the classification of the tumor?,False,False,1.0,False,False,True,"nos, g ii, pt4bn3al1voro",,False
+TCGA-A8-A08Z,what is the status of the dorsal resection margin?,False,False,1.0,False,False,True,tumor-free,,False
+TCGA-A8-A08Z,what is the level of angioinvasion in the tumor?,True,True,0.9,False,False,False,focal,not mentioned,False
+TCGA-D8-A1JL,what is the final diagnosis of the patient's breast condition?,True,True,1.0,False,False,False,invasive ductal carcinoma of the right breast.,invasive ductal carcinoma of the right breast.,True
+TCGA-D8-A1JL,what was the size of the tumor found in the patient's breast?,False,False,1.0,False,False,True,2.1 x 2.2 x 0.8 cm.,,False
+TCGA-D8-A1JL,which hormone receptors were found to be absent in the neoplastic cell nuclei?,True,True,0.95,False,False,False,both estrogen and progesterone receptors.,both estrogen and progesterone receptors.,True
+TCGA-D8-A1JL,what is the type of breast cancer indicated by the examination?,True,True,1.0,False,False,False,invasive ductal carcinoma.,invasive ductal carcinoma.,True
+TCGA-D8-A1JL,what type of lesion was found in the glandular tissue surrounding the tumor?,True,True,0.95,False,False,False,mastopathy fibrosa et cystica.,mastopathy fibrosa et cystica.,True
+TCGA-B6-A0RO,what was the size of the mass in the medial portion of the specimen?,False,False,1.0,False,False,True,3.5 cm,,False
+TCGA-B6-A0RO,what is the histological type of the carcinoma?,True,True,1.0,False,False,False,infiltrating ductal carcinoma,infiltrating ductal carcinoma,True
+TCGA-B6-A0RO,what percentage of the carcinoma is comprised of intraductal carcinoma?,False,False,1.0,False,False,True,less than 5%,,False
+TCGA-B6-A0RO,was there any tumor seen in the deep surgical margin?,False,False,1.0,False,False,True,no,,False
+TCGA-B6-A0RO,what non-neoplastic changes were observed in the breast tissue?,True,True,1.0,False,False,False,apocrine metaplasia,apocrine metaplasia,True
+TCGA-GM-A2D9,what is the size of the tumor?,False,False,1.0,False,False,True,1.6 x 1.6 x 1.2 cm,,False
+TCGA-GM-A2D9,what is the nuclear grade of the invasive ductal carcinoma?,True,True,0.95,False,False,False,modified black's nuclear grade 1,modified black's nuclear grade 2,False
+TCGA-GM-A2D9,what percentage of the total tumor comprises focal intraductal carcinoma?,False,False,1.0,False,False,True,less than 5%,,False
+TCGA-GM-A2D9,are there any lymphatic/vascular invasions found in the slide?,True,True,1.0,False,False,False,no,yes,False
+TCGA-GM-A2D9,what is the ki-67 proliferation index of the invasive carcinoma?,False,False,1.0,False,False,True,10%,,False
+TCGA-A2-A0T6,what type of procedure did the patient have?,False,False,1.0,False,False,True,bilateral simple mastectomy with sentinel node biopsy.,,False
+TCGA-A2-A0T6,in which breast did the slide find a benign sentinel node?,False,False,1.0,False,False,True,left,,False
+TCGA-A2-A0T6,what size was the benign sentinel node?,False,False,1.0,False,False,True,2.5 x 1.0 x 1.0 cm,,False
+TCGA-A2-A0T6,what was found in the breast?,True,True,0.95,False,False,False,invasive breast cancer,both a and b,False
+TCGA-A2-A0T6,what was the size of the irregular fibrous nodule found in the slide?,False,False,1.0,False,False,True,7.0 cm,,False
+TCGA-A2-A0T6,what does the slide suggest about the presence of breast cancer?,True,True,0.95,False,False,False,there is the presence of invasive breast cancer in both breasts.,there is no presence of breast cancer.,False
+TCGA-AQ-A7U7,what is the classification of the tumor?,True,True,1.0,False,False,False,invasive lobular carcinoma,invasive lobular carcinoma,True
+TCGA-AQ-A7U7,what is the histologic grade of the tumor?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-AQ-A7U7,what is the size of the tumor?,False,False,1.0,False,False,True,4.1 cm,,False
+TCGA-AQ-A7U7,is lymphovascular invasion present?,True,True,1.0,False,False,False,no,no,True
+TCGA-AQ-A7U7,what additional condition is present along with invasive lobular carcinoma?,True,True,0.95,False,False,False,lobular carcinoma in situ',lobular carcinoma in situ',True
+TCGA-AQ-A7U7,what is the stage of breast cancer for the patient?,False,False,1.0,False,False,True,stage iib',,False
+TCGA-AN-A0XS,what type of cancer does the patient have?,True,True,1.0,False,False,False,breast cancer,breast cancer,True
+TCGA-AN-A0XS,what is the grade of the tumor?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-AN-A0XS,what is the stage of the tumor?,False,False,1.0,False,False,True,t1n0m0,,False
+TCGA-AN-A0XS,has any treatment been administered yet?,False,False,1.0,False,False,True,no,,False
+TCGA-AN-A0XS,what type of carcinoma is the tumor?,True,True,0.95,False,False,False,infiltrative ductal carcinoma,infiltrative ductal carcinoma,True
+TCGA-AN-A0XS,what was obtained in addition to the tumor sample?,False,False,1.0,False,False,True,normal blood sample,,False
+TCGA-E9-A2JS,what type of tumor was identified in the breast specimen?,True,True,1.0,False,False,False,lobular carcinoma,invasive ductal carcinoma,False
+TCGA-E9-A2JS,what is the size of the tumor in the breast?,,False,1.0,False,True,True,2.4x0x2.8cm,,False
+TCGA-E9-A2JS,what is the histologic score for the tumor?,True,True,1.0,False,False,False,nottingham histologic score is not determined,nottingham histologic score is not determined,True
+TCGA-E9-A2JS,was there any evidence of neo-adjuvant treatment?,False,False,1.0,False,False,True,no evidence of neo-adjuvant treatment,,False
+TCGA-BH-A0DK,what is the grade of the invasive ductal carcinoma in the patient's breast tissue?,True,True,1.0,False,False,False,nottingham grade 2,nottingham grade 3,False
+TCGA-BH-A0DK,what is the size of the invasive tumor in the patient's breast tissue?,False,False,1.0,False,False,True,2.5 cm,,False
+TCGA-BH-A0DK,what type of changes are observed in the patient's breast tissue?,True,True,1.0,False,False,False,fibrocystic changes and invasive ductal carcinoma,invasive ductal carcinoma only,False
+TCGA-BH-A0DK,is there evidence of lymphovascular invasion in the patient's breast tissue?,True,True,1.0,False,False,False,yes,yes,True
+TCGA-C8-A8HR,what is the patient's age?,False,False,1.0,False,False,True,46,,False
+TCGA-C8-A8HR,what type of consent did the patient provide?,False,False,1.0,False,False,True,written consent,,False
+TCGA-C8-A8HR,what is the staging of the tumor?,False,False,1.0,False,False,True,pt2 n2 mo stage a,,False
+TCGA-C8-A8HR,what does the pathological description indicate about the tumor?,False,True,0.95,False,False,False,presence of a primary tumor with an extension,presence of a primary tumor with an extension,True
+TCGA-C8-A8HR,who signed the slide?,False,False,1.0,False,False,True,director of research pathology,,False
+TCGA-E9-A22H,what was the size of the tumor in the patient's breast?,False,False,1.0,False,False,True,2.7 x 2.7 x 2.5 cm,,False
+TCGA-E9-A22H,what type of breast cancer was identified in the patient?,True,True,1.0,False,False,False,infiltrating ductal carcinoma,infiltrating ductal carcinoma,True
+TCGA-E9-A22H,was the nottingham histologic score determined for the patient?,False,False,1.0,False,False,True,no,,False
+TCGA-E9-A22H,did the patient receive neo-adjuvant treatment?,False,False,1.0,False,False,True,no,,False
+TCGA-E9-A22H,were there any additional pathologic findings slideed apart from breast cancer?,True,False,0.95,False,False,True,no,,False
+TCGA-LL-A7T0,what was the size of the largest invasive carcinoma?,False,False,1.0,False,False,True,2.8 cm,,False
+TCGA-LL-A7T0,what was the depth of the closest margin for the invasive carcinoma?,False,False,1.0,False,False,True,4 mm deep,,False
+TCGA-LL-A7T0,what was the tumor grade based on the nottingham histologic score?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-LL-A7T0,what were the results of the estrogen receptor and progesterone receptor tests?,True,True,0.95,False,False,False,positive,positive,True
+TCGA-LL-A7T0,what were the results of the her2 test?,True,True,0.95,False,False,False,positive,positive,True
+TCGA-C8-A135,what additional markers are mentioned in the slide?,False,False,1.0,False,False,True,"er, pr, and her-2/neu",,False
+TCGA-C8-A135,what does the slide describe about the microscopic appearance of the tumor?,True,True,0.95,False,False,False,the tumor's cellular differentiation,the tumor's cellular differentiation,True
+TCGA-C8-A135,what does the slide include information on?,False,False,1.0,False,False,True,"the primary tumor, lymph nodes, and pathological staging",,False
+TCGA-C8-A135,what are some features observed in the tumor?,True,True,1.0,False,False,False,nuclear atypia,adenocarcinoma,False
+TCGA-C8-A135,what are the comments or notes from the pathologist in the slide?,False,False,1.0,False,False,True,no remarks were made,,False
+TCGA-C8-A135,what is the histological diagnosis based on?,False,False,1.0,False,False,True,microscopic examination,,False
+TCGA-A8-A08L,what type of breast cancer does the patient have?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-A8-A08L,what is the size of the tumor?,False,False,1.0,False,False,True,6 cm,,False
+TCGA-A8-A08L,how far has the tumor invaded?,False,False,1.0,False,False,True,"lymph vessels, up to the base of the nipple, and pectoral muscle",,False
+TCGA-A8-A08L,what is the tumor grade?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-A8-A08L,what is the cancer stage?,False,False,1.0,False,False,True,stage iii a,,False
+TCGA-AO-A0J9,"what is the size of the labeled ""right breast"" specimen received?",False,False,1.0,False,False,True,30.5 x 8 cm,,False
+TCGA-AO-A0J9,what is the measurement of the biopsy cavity?,False,False,1.0,False,False,True,4 x 4 cm,,False
+TCGA-AO-A0J9,which sections are included in the pathological slide?,False,False,1.0,False,False,True,"nipple base, skin defect, and upper inner quadrant",,False
+TCGA-AO-A0J9,what does the pathology slide confirm the presence of in the breast?,True,True,0.95,False,False,False,invasive lobular carcinoma,invasive lobular carcinoma,True
+TCGA-AO-A0J9,what are the recommendations for further evaluation and staging?,False,False,1.0,False,False,True,perform hormone receptor and her2 testing,,False
+TCGA-D8-A1JK,what is the histopathological diagnosis of the breast?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-D8-A1JK,which hormone receptors were found in the neoplastic cell nuclei?,True,True,0.95,False,False,False,neither estrogen nor progesterone receptors,neither estrogen nor progesterone receptors,True
+TCGA-D8-A1JK,what was the reaction of the her2 protein test in the invasive cancerous cells?,True,True,0.95,False,False,True,negative reaction,,False
+TCGA-D8-A1JK,what is the tumor grade of the breast?,True,True,0.95,False,False,False,nhg3,nhg3,True
+TCGA-D8-A1JK,what is the pathological tumor size of the breast?,False,False,1.0,False,False,True,pt2,,False
+TCGA-A2-A0CK,what was the size of the tumor?,False,False,1.0,False,False,True,0.5 cm,,False
+TCGA-A2-A0CK,what was the pre-operative diagnosis?,False,False,1.0,False,False,True,fibrous tissue,,False
+TCGA-A2-A0CK,what was the ajcc staging determined for this case?,False,False,1.0,False,False,True,stage i,,False
+TCGA-A2-A0CK,what was the result of the evaluation for her2-neu overexpression?,True,True,0.95,False,False,True,negative (1+),,False
+TCGA-A2-A0CK,what was the result of the her2/neu fish analysis?,False,False,1.0,False,False,True,gene amplification not detected,,False
+TCGA-A2-A0CK,what was the result of the er/pr immunostains?,True,True,0.95,False,False,False,negative,positive,False
+TCGA-OL-A5RX,what was the grade of the invasive ductal carcinoma found in the patient?,True,True,0.95,False,False,False,grade 1,grade 2,False
+TCGA-OL-A5RX,was there any blood vessel or lymphatic invasion identified in the mastectomy specimen?,True,True,0.95,False,False,False,no,yes,False
+TCGA-OL-A5RX,what is the ptnm staging of the tumor in the patient?,False,False,1.0,False,False,True,"pt1c(m), no, mx",,False
+TCGA-OL-A5RX,what type of changes were found in the breast tissue of the patient?,True,True,0.95,False,False,False,all of the above,all of the above,True
+TCGA-OL-A5RX,were the excisional biopsy margins free of tumor?,False,False,1.0,False,False,True,yes,,False
+TCGA-A2-A3XY,what is the final diagnosis of the patient?,True,True,0.95,False,False,False,invasive ductal carcinoma (no special type) in right breast,invasive ductal carcinoma (no special type) in right breast,True
+TCGA-A2-A3XY,what is the nuclear grade of the ductal carcinoma in situ?,True,True,1.0,False,False,False,grade 3,grade 3,True
+TCGA-A2-A3XY,what are the hormone receptors of the patient?,True,True,1.0,False,False,False,both estrogen and progesterone receptor negative,"estrogen receptors positive, progesterone receptors negative",False
+TCGA-A2-A3XY,is there any necrosis present in the tumor?,True,True,1.0,False,False,False,"yes, necrosis is present in both invasive and ductal carcinoma in situ.","no, there is no necrosis in either invasive or ductal carcinoma in situ",False
+TCGA-A2-A3XY,how big is the unifocal tumor?,False,False,1.0,False,False,True,2.5 cm in greatest dimension,,False
+TCGA-D8-A27M,what type of cancer has the patient been diagnosed with?,True,True,0.95,False,False,False,breast cancer,breast cancer,True
+TCGA-D8-A27M,what is the size of the tumor?,False,False,1.0,False,False,True,2.6 x 1.2 x 1.8 cm,,False
+TCGA-D8-A27M,does the cancer have estrogen and progesterone receptors?,True,True,0.95,False,False,False,no,the slide doesn't mention it,False
+TCGA-D8-A27M,was the her2 protein staining positive or negative?,True,True,0.95,False,False,False,negative,insufficient information,False
+TCGA-D8-A27M,what is the assigned histopathological grade?,True,True,1.0,False,False,False,nhg3,nhg3,True
+TCGA-AO-A1KP,what is the recommended treatment for the patient?,False,False,1.0,False,False,True,total mastectomy,,False
+TCGA-AO-A1KP,what is the diagnosis of the patient based on?,False,False,1.0,False,False,True,biopsy results,,False
+TCGA-AO-A1KP,what is the nuclear grade of the invasive ductal carcinoma?,True,True,0.95,False,False,False,moderate,moderate,True
+TCGA-AO-A1KP,are all the tumor masses well-circumscribed and firm?,False,False,1.0,False,False,True,yes,,False
+TCGA-OL-A66P,what is the finding in the superior mastectomy flap?,False,True,0.95,False,False,False,fibroadipose tissue with focal fat necrosis;,fibroadipose tissue with focal fat necrosis;,True
+TCGA-OL-A66P,how many foci of invasive ductal carcinoma are found in the breast simple mastectomy?,False,False,1.0,False,False,True,two;,,False
+TCGA-OL-A66P,what is one of the changes mentioned in the slide outside the primary finding?,False,False,1.0,False,False,True,fibroadipose tissue in the inferior and medial flaps;,,False
+TCGA-D8-A73U,what is the clinical diagnosis of the patient?,False,False,1.0,False,False,True,suspicion of cancer in the left breast,,False
+TCGA-D8-A73U,what is the histopathological examination result of the tumor?,True,True,1.0,False,False,False,invasive lobular carcinoma,invasive lobular carcinoma,True
+TCGA-D8-A73U,what was the size of the tumor?,False,False,1.0,False,False,True,4x2.2x1.6cm,,False
+TCGA-D8-A73U,what type of carcinoma was identified microscopically?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive lobular carcinoma,False
+TCGA-D8-A73U,what percentage of neoplastic cell nuclei had estrogen and progesterone receptors?,False,False,1.0,False,False,True,75%,,False
+TCGA-AO-A12D,what does the pathological slide indicate about the biopsy of the breast?,True,True,0.95,False,False,False,the biopsy is positive for carcinoma,the biopsy is positive for carcinoma,True
+TCGA-AO-A12D,what other findings are mentioned in the pathological slide?,True,False,0.95,False,False,True,the presence of sclerosing adenosis and focal ductal carcinoma,,False
+TCGA-AO-A12D,what additional tests are pending according to the slide?,False,False,1.0,False,False,True,staining and test results,,False
+TCGA-AO-A12D,is the diagnosis of carcinoma confirmed by the pathological slide?,True,True,0.95,False,False,False,"yes, it is confirmed","yes, it is confirmed",True
+TCGA-E9-A1RE,what was the size of the tumor found in the breast?,False,False,1.0,False,False,True,3.5 cm,,False
+TCGA-E9-A1RE,what type of carcinoma was found?,True,True,1.0,False,False,False,infiltrating ductal carcinoma,infiltrating ductal carcinoma,True
+TCGA-E9-A1RE,were the margins of the tumor involved?,False,False,1.0,False,False,True,no,,False
+TCGA-E9-A1RE,was there evidence of venous invasion?,True,True,1.0,False,False,False,no,not specified,False
+TCGA-D8-A1JB,what was the size of the tumor in the breast?,False,False,1.0,False,False,True,3.0 x 2.1 x 1.3 cm,,False
+TCGA-D8-A1JB,what additional lesions were found in the glandular tissue?,True,True,0.95,False,False,False,lobular carcinoma in situ (lcs) and mastopathia fibrosa et cystica,columnar cell changes (ccc) and ductal carcinoma in situ (ocis),False
+TCGA-D8-A1JB,what was the diagnosis of the cancer in the breast?,True,True,1.0,False,False,False,invasive ductal carcinoma (nhg2) with foci of ductal carcinoma in situ (ocis),invasive ductal carcinoma (nhg2) with foci of ductal carcinoma in situ (ocis),True
+TCGA-D8-A1JB,what was the immunophenotype of the neoplastic cells?,False,True,0.95,False,False,False,e-cadherin positive and ck7 positive,estrogen receptors positive and progesterone receptors positive,False
+TCGA-C8-A1HJ,what is the chief complaint of the patient?,False,False,1.0,False,False,True,pain,,False
+TCGA-C8-A1HJ,what are the symptoms slideed by the patient?,False,False,1.0,False,False,True,breast tumor,,False
+TCGA-C8-A1HJ,what is the performance scale of the patient?,,False,1.0,False,True,True,pain,,False
+TCGA-C8-A1HJ,what is the menopausal status of the patient?,,False,1.0,False,True,True,pain,,False
+TCGA-C8-A1HJ,what methods of birth control does the patient use?,,False,1.0,False,True,True,pain,,False
+TCGA-C8-A1HJ,what information is not provided in the caption?,False,False,1.0,False,False,True,birth control methods,,False
+TCGA-A2-A1FW,what kind of cancer did the patient have?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-A2-A1FW,what surgical procedures did the patient undergo?,False,False,1.0,False,False,True,mastectomy and sentinel lymph node biopsy,,False
+TCGA-A2-A1FW,what was the size of the tumor?,False,False,1.0,False,False,True,75 mm,,False
+TCGA-A2-A1FW,what is the final pathological stage of the cancer?,False,False,1.0,False,False,True,stage iiia,,False
+TCGA-A2-A1FW,what additional findings were noted on examination?,True,True,0.95,False,False,False,extensive angiolymphatic invasion and microcalcifications,extensive angiolymphatic invasion and microcalcifications,True
+TCGA-A2-A25A,what type of carcinoma was observed in the breast?,True,True,0.95,False,False,False,lobular carcinoma,lobular carcinoma,True
+TCGA-A2-A25A,what type of hyperplasia was observed in the breast?,True,True,0.95,False,False,False,atypical lobular hyperplasia,focal hyperplasia,False
+TCGA-A2-A25A,what was the percentage of nuclear staining for progesterone receptors in the patient's breast?,False,False,1.0,False,False,True,80-90%,,False
+TCGA-A2-A25A,was her2/neu amplification observed in the patient's slide?,False,False,1.0,False,False,True,no,,False
+TCGA-A2-A25A,what significant findings were observed in the patient's slide apart from breast carcinoma?,False,False,1.0,False,False,True,no other significant finding is mentioned in the slide.,,False
+TCGA-A2-A25A,which breast was scheduled for sentinel node biopsy?,False,False,1.0,False,False,True,left breast,,False
+TCGA-A8-A09Q,what is the size of the breast tumor mentioned in the slide?,False,False,1.0,False,False,True,4.5 cm,,False
+TCGA-A8-A09Q,what is the invasive status of the tumor mentioned in the slide?,True,True,0.95,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-A8-A09Q,which breast tissue is affected by fibrolipomatous changes?,False,True,0.95,False,False,False,rest of the breast tissue,rest of the breast tissue,True
+TCGA-A8-A09Q,what is the grade of differentiation of the tumor mentioned in the slide?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-A8-A09Q,what is the recommended next step mentioned in the slide?,False,False,1.0,False,False,True,additional malignancy testing,,False
+TCGA-BH-A0EE,what is the diagnosis of the breast tumor?,True,True,1.0,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-BH-A0EE,what is the size of the tumor?,False,False,1.0,False,False,True,5.5 cm,,False
+TCGA-BH-A0EE,what is the nottingham score of the tumor?,True,True,0.95,False,False,False,8/9,6/9,False
+TCGA-BH-A0EE,what is the hormone receptor status of the tumor?,True,True,1.0,False,False,False,er and pr negative,er and pr negative,True
+TCGA-BH-A0EE,what is the her-2/neu status of the tumor?,True,True,1.0,False,False,False,her-2/neu positive,her-2/neu negative,False
+TCGA-BH-A0EE,what is the final pathological stage of the tumor?,False,False,1.0,False,False,True,"pt3, pn0, pmx",,False
+TCGA-A2-A0CZ,what type of breast cancer did the patient have?,True,True,1.0,False,False,False,invasive ductal carcinoma with lobular features,invasive ductal carcinoma with lobular features,True
+TCGA-A2-A0CZ,was there any tumor necrosis or microcalcifications?,True,True,1.0,False,False,False,"no, there was no tumor necrosis or microcalcifications","there were microcalcifications, but no tumor necrosis",False
+TCGA-A2-A0CZ,what was the final pathologic stage of the cancer?,False,False,1.0,False,False,True,pt2n0,,False
+TCGA-A2-A0CZ,was her-2 positive or negative by immunohistochemistry?,True,False,0.95,False,False,True,negative,,False
+TCGA-A2-A0CZ,what type of additional pathologic changes were mentioned?,False,False,1.0,False,False,True,"cystic change, apocrine metaplasia, and columnar cell change",,False
+TCGA-AQ-A54N,what was the size of the tumor?,False,False,1.0,False,False,True,4.9 cm,,False
+TCGA-AQ-A54N,was lymphovascular invasion present?,True,True,1.0,False,False,False,no,yes,False
+TCGA-AQ-A54N,what was the grade of the tumor?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-AQ-A54N,was the tumor multifocal or unifocal?,False,True,0.9,False,False,False,unifocal,not mentioned,False
+TCGA-AQ-A54N,were any microcalcifications identified?,True,True,1.0,False,False,False,no,yes,False
+TCGA-D8-A13Z,what were the measurements of the tumor in the breast?,False,False,1.0,False,False,True,45.2*2.5 cm,,False
+TCGA-D8-A13Z,what were the results of the examination for estrogen and progesterone receptors?,True,True,0.95,False,False,False,negative,negative,True
+TCGA-D8-A13Z,what was the reaction of the her2 protein?,True,True,0.95,False,False,False,negative,negative,True
+TCGA-D8-A13Z,what size was the second tumor?,False,False,1.0,False,False,True,1.1*1.3 cm,,False
+TCGA-BH-A42U,what is the size of the tumor?,False,False,1.0,False,False,True,3 cm,,False
+TCGA-BH-A42U,what is the result of cadherin immunostaining?,False,True,0.95,False,False,True,negative,,False
+TCGA-BH-A42U,what is the status of lymphatic or vascular invasion?,True,True,1.0,False,False,False,negative,negative,True
+TCGA-BH-A42U,what is the stage classification of the tumor?,False,False,1.0,False,False,True,t2n0mx,,False
+TCGA-AC-A3TM,what is the size of the invasive tumor in the breast?,False,False,1.0,False,False,True,7 cm,,False
+TCGA-AC-A3TM,what is the grade of the cancer according to the bloom-richardson grading system?,True,True,1.0,False,False,False,grade ii,grade ii,True
+TCGA-AC-A3TM,what is the tnm stage of the cancer?,False,False,1.0,False,False,True,t3n(mi),,False
+TCGA-AC-A3TM,are the surgical margins positive or negative?,False,False,1.0,False,False,True,negative,,False
+TCGA-A8-A07U,what is the size of the invasive ductal breast carcinoma?,False,False,1.0,False,False,True,2.2 centimeters,,False
+TCGA-A8-A07U,what type of tumor is the breast carcinoma?,True,True,0.95,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-A8-A07U,what is the grade of the tumor?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-A8-A07U,what stage is the tumor classified as?,False,False,1.0,False,False,True,stage iiia,,False
+TCGA-A2-A0EM,what is the ajcc staging for this case?,False,False,1.0,False,False,True,"t1bnomx,",,False
+TCGA-A2-A0EM,what is the size of the infiltrative ductal carcinoma?,False,False,1.0,False,False,True,"1cm,",,False
+TCGA-A2-A0EM,what type of pattern does the infiltrative ductal carcinoma demonstrate?,True,True,0.95,False,False,False,cribiform pattern,"acinar pattern,",False
+TCGA-A2-A0EM,what can be found in fibrocystic changes?,True,True,1.0,False,False,False,all of the above,all of the above,True
+TCGA-A2-A0EM,was lymphovascular space invasion identified?,True,True,1.0,False,False,False,"no,","yes,",False
+TCGA-A2-A0EM,what is the distance between the nearest margin and the tumor?,False,False,1.0,False,False,True,"2mm,",,False
+TCGA-A8-A097,what is the provisional tumor classification?,True,True,0.95,False,False,False,"not otherwise specified (nos), grade iii","not otherwise specified (nos), grade iii",True
+TCGA-A8-A097,what is the size of the tumor?,False,False,1.0,False,False,True,2.8 cm,,False
+TCGA-A8-A097,what is the diagnosis given in the pathological slide?,True,True,1.0,False,False,False,poorly differentiated invasive ductal carcinoma with an intraductal component,poorly differentiated invasive ductal carcinoma with an intraductal component,True
+TCGA-A8-A097,what is the stage of the tumor?,False,False,1.0,False,False,True,stage t2,,False
+TCGA-A8-A097,what is the presence of micrometastasis?,False,False,1.0,False,False,True,presence of micrometastasis -n1mi(sn)lovoro,,False
+TCGA-A8-A097,what is the tumor grade?,True,True,0.95,False,False,False,grade iii,grade iii,True
+TCGA-A2-A1FX,what was the patient's pre-operative diagnosis?,False,False,1.0,False,False,True,breast cancer,,False
+TCGA-A2-A1FX,what stains were performed to support the diagnosis?,False,False,1.0,False,False,True,cytokeratin and e-cadherin,,False
+TCGA-A2-A1FX,what was the final diagnosis of the patient?,True,False,1.0,False,False,True,infiltrating carcinoma in the right breast,,False
+TCGA-A2-A1FX,what was the patient’s tnm classification?,False,False,1.0,False,False,True,t2n2a,,False
+TCGA-A2-A1FX,where was metastasis detected?,False,False,1.0,False,False,True,axillary contents,,False
+TCGA-A2-A3XU,what was the size of the infiltrative ductal carcinoma?,False,False,1.0,False,False,True,4.6cm,,False
+TCGA-A2-A3XU,what is the grade of the tumor?,True,True,1.0,False,False,False,grade iii,grade iii,True
+TCGA-A2-A3XU,is there any evidence of dcis?,True,True,1.0,False,False,False,no,no,True
+TCGA-A2-A3XU,in which margin(s) the surgical margins are involved?,False,False,1.0,False,False,True,superior margin,,False
+TCGA-A2-A3XU,what is the tnm classification of the tumor?,False,False,1.0,False,False,True,"t2, n1mi, mx",,False
+TCGA-AR-A24S,what was the grade of the tumor?,True,True,1.0,False,False,False,nottingham grade ii,nottingham grade iii,False
+TCGA-AR-A24S,was ductal carcinoma in situ present?,True,True,1.0,False,False,False,not applicable,insufficient information,False
+TCGA-AR-A24S,what was the size of the tumor?,False,False,1.0,False,False,True,1.0 x 0.9 x 0.8 cm,,False
+TCGA-AR-A24S,did the biopsy site show any changes?,False,False,0.95,False,False,True,not applicable,,False
+TCGA-AR-A24S,what type of breast tissue changes were observed?,True,True,0.95,False,False,False,no observable changes,no observable changes,True
+TCGA-AR-A1AU,what was the grade of the infiltrating ductal carcinoma?,True,True,0.95,False,False,False,nottingham grade iii,nottingham grade ii,False
+TCGA-AR-A1AU,was there any evidence of distant metastasis?,False,False,1.0,False,False,True,no,,False
+TCGA-E2-A14P,what is the size of the largest metastasis found?,False,False,1.0,False,False,True,3.5 cm,,False
+TCGA-E2-A14P,what type of carcinoma is found in the breast lumpectomy specimen?,True,True,0.95,False,False,False,invasive ductal carcinoma,invasive ductal carcinoma,True
+TCGA-E2-A14P,what is the size of the tumor found in the breast lumpectomy specimen?,False,False,1.0,False,False,True,3 cm,,False
+TCGA-E2-A14P,what is present in the breast lumpectomy specimen besides invasive ductal carcinoma?,True,True,0.95,False,False,False,ductal carcinoma in situ,ductal carcinoma in situ,True
+TCGA-AC-A5XS,what was the size of the invasive lobular carcinoma in the breast?,False,False,1.0,False,False,True,2.6 cm,,False
+TCGA-AC-A5XS,what was the grade of the invasive lobular carcinoma?,True,True,0.95,False,False,False,grade 1,grade 2,False
+TCGA-AC-A5XS,what were the results of the sentinel node biopsy?,False,False,1.0,False,False,True,negative for lymph node involvement,,False
+TCGA-AC-A5XS,what were the results of the tumor receptor testing?,True,True,0.95,False,False,False,"negative for her2, positive for estrogen and progesterone receptors","negative for her2, positive for estrogen and progesterone receptors",True
+TCGA-AC-A5XS,what were the margin of excision results?,False,False,1.0,False,False,True,negative for carcinoma,,False
+TCGA-BH-A0BQ,what was the total score for the excision of the breast?,False,False,1.0,False,False,True,score of 6,,False
+TCGA-BH-A0BQ,what type of tumor is the invasive component?,True,True,0.95,False,False,False,ductal adenocarcinoma,ductal adenocarcinoma,True
+TCGA-BH-A0BQ,was lymphovascular space invasion identified?,True,True,1.0,False,False,False,no,not enough information,False
+TCGA-BH-A0BQ,what was the nottingham grade for the tumor type?,True,True,0.95,False,False,False,grade 2,grade 2,True
+TCGA-BH-A0BQ,were the surgical margins involved by the invasive component?,False,True,0.95,False,False,False,no,not enough information,False
+TCGA-AR-A0TP,what was the grade of the infiltrating ductal carcinoma?,True,True,0.95,False,False,False,grade 3,grade 3,True
+TCGA-AR-A0TP,what was the size of the tumor?,False,False,1.0,False,False,True,3 x 3 x 2.5 cm,,False
+TCGA-AR-A0TP,what percentage of the tumor was in situ?,False,False,1.0,False,False,True,less than 10%,,False
+TCGA-AR-A0TP,was vascular invasion detected?,True,True,1.0,False,False,False,no,yes,False
+TCGA-AN-A0XW,what is the patient's cancer diagnosis?,True,True,1.0,False,False,False,infiltrative ductal carcinoma,infiltrative ductal carcinoma,True
+TCGA-AN-A0XW,what is the patient's cancer grade?,True,True,0.95,False,False,False,2,3,False
+TCGA-AN-A0XW,what is the tumor stage?,False,False,1.0,False,False,True,2,,False
+TCGA-AN-A0XW,what is the patient's treatment status?,False,False,1.0,False,False,True,no treatment,,False
+TCGA-AN-A0XW,what is the anatomic site for the normal sample?,False,False,1.0,False,False,True,blood sample,,False
+TCGA-AN-A0XW,what is the specimen format for the normal sample?,False,False,1.0,False,False,True,frozen,,False

@@ -1,0 +1,255 @@
+{
+  "updated_at": "2026-08-18T02:26:07+08:00",
+  "selected_total": 390,
+  "processed": 390,
+  "answered": 186,
+  "abstained": 204,
+  "coverage": 0.47692307692307695,
+  "answered_correct": 111,
+  "selective_accuracy": 0.5967741935483871,
+  "remaining": 0,
+  "completion": 1.0,
+  "scorable": 186,
+  "correct": 111,
+  "errors": 0,
+  "accuracy": 0.2846153846153846,
+  "accuracy_scorable": 0.5967741935483871,
+  "supported_processed": 169,
+  "supported_correct": 104,
+  "supported_accuracy": 0.6153846153846154,
+  "unsupported_processed": 17,
+  "unsupported_correct": 7,
+  "unsupported_accuracy": 0.4117647058823529,
+  "json_parse_failures": 1,
+  "answers_outside_choices": 0,
+  "multifield_incomplete": 0,
+  "structured_overrides": 13,
+  "override_structured_accuracy": 0.3076923076923077,
+  "override_agent_accuracy": 0.38461538461538464,
+  "per_task_match": {
+    "direct": {
+      "processed": 21,
+      "scorable": 21,
+      "correct": 13,
+      "errors": 0,
+      "accuracy": 0.6190476190476191,
+      "accuracy_scorable": 0.6190476190476191
+    },
+    "none": {
+      "processed": 17,
+      "scorable": 17,
+      "correct": 7,
+      "errors": 0,
+      "accuracy": 0.4117647058823529,
+      "accuracy_scorable": 0.4117647058823529
+    },
+    "partial": {
+      "processed": 148,
+      "scorable": 148,
+      "correct": 91,
+      "errors": 0,
+      "accuracy": 0.6148648648648649,
+      "accuracy_scorable": 0.6148648648648649
+    }
+  },
+  "per_task": {
+    "ER_status_label": {
+      "processed": 2,
+      "scorable": 2,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 0.5,
+      "accuracy_scorable": 0.5
+    },
+    "ER_status_label+PR_status_label": {
+      "processed": 14,
+      "scorable": 14,
+      "correct": 7,
+      "errors": 0,
+      "accuracy": 0.5,
+      "accuracy_scorable": 0.5
+    },
+    "ER_status_label+PR_status_label+HER2_status_label": {
+      "processed": 6,
+      "scorable": 6,
+      "correct": 2,
+      "errors": 0,
+      "accuracy": 0.3333333333333333,
+      "accuracy_scorable": 0.3333333333333333
+    },
+    "HER2_status_label": {
+      "processed": 7,
+      "scorable": 7,
+      "correct": 3,
+      "errors": 0,
+      "accuracy": 0.42857142857142855,
+      "accuracy_scorable": 0.42857142857142855
+    },
+    "dcis_binary": {
+      "processed": 2,
+      "scorable": 2,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 0.5,
+      "accuracy_scorable": 0.5
+    },
+    "histologic_grade_label": {
+      "processed": 41,
+      "scorable": 41,
+      "correct": 29,
+      "errors": 0,
+      "accuracy": 0.7073170731707317,
+      "accuracy_scorable": 0.7073170731707317
+    },
+    "histologic_grade_label+nottingham_total_score": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "histological_type_label": {
+      "processed": 59,
+      "scorable": 59,
+      "correct": 42,
+      "errors": 0,
+      "accuracy": 0.711864406779661,
+      "accuracy_scorable": 0.711864406779661
+    },
+    "histological_type_label+dcis_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "histological_type_label+dcis_binary+lcis_binary": {
+      "processed": 2,
+      "scorable": 2,
+      "correct": 2,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "histological_type_label+ductal_binary+lobular_binary+dcis_binary": {
+      "processed": 2,
+      "scorable": 2,
+      "correct": 2,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "histological_type_label+histologic_grade_label": {
+      "processed": 4,
+      "scorable": 4,
+      "correct": 4,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "histological_type_label+lobular_binary+dcis_binary+lcis_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "histological_type_label+lymphovascular_invasion_label": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 1.0,
+      "accuracy_scorable": 1.0
+    },
+    "histological_type_label+necrosis_binary+microcalcification_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "lymphovascular_invasion_label": {
+      "processed": 14,
+      "scorable": 14,
+      "correct": 4,
+      "errors": 0,
+      "accuracy": 0.2857142857142857,
+      "accuracy_scorable": 0.2857142857142857
+    },
+    "lymphovascular_invasion_label+microcalcification_binary": {
+      "processed": 2,
+      "scorable": 2,
+      "correct": 1,
+      "errors": 0,
+      "accuracy": 0.5,
+      "accuracy_scorable": 0.5
+    },
+    "microcalcification_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "necrosis_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "necrosis_binary+comedonecrosis_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "necrosis_binary+microcalcification_binary": {
+      "processed": 1,
+      "scorable": 1,
+      "correct": 0,
+      "errors": 0,
+      "accuracy": 0.0,
+      "accuracy_scorable": 0.0
+    },
+    "nottingham_total_score": {
+      "processed": 5,
+      "scorable": 5,
+      "correct": 3,
+      "errors": 0,
+      "accuracy": 0.6,
+      "accuracy_scorable": 0.6
+    },
+    "unrouted": {
+      "processed": 17,
+      "scorable": 17,
+      "correct": 7,
+      "errors": 0,
+      "accuracy": 0.4117647058823529,
+      "accuracy_scorable": 0.4117647058823529
+    }
+  },
+  "last": {
+    "case_id": "TCGA-AN-A0XW",
+    "question": "what is the patient's cancer grade?",
+    "task": "histologic_grade_label",
+    "task_match": "partial",
+    "supported": true,
+    "correct": false,
+    "error": null,
+    "predicted": "3",
+    "reference": "2",
+    "answer_in_choices": true,
+    "json_parse_success": true,
+    "override_occurred": false
+  }
+}
