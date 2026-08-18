@@ -7,6 +7,12 @@ from typing import Any, Dict, Iterable, List, Optional, Set, Tuple
 
 TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 
+SCALE_VISUAL_ROLES = {
+    "4096": "Use this scale for question-relevant global architecture and broad tissue organization.",
+    "2048": "Use this scale for question-relevant intermediate structural patterns and local tissue relationships.",
+    "1024": "Use this scale for question-relevant fine morphology and cytology.",
+}
+
 
 def _tokens(value: Any) -> Set[str]:
     return set(TOKEN_PATTERN.findall(str(value or "").lower()))
@@ -272,11 +278,13 @@ class KnowledgeRAG:
             for strategy in row.get("scale_strategy", []) or []
         )
         relevant_rules = self._retrieve_rules(query_tokens, bool(targets))
+        scale_guidance = self._scale_specific_visual_guidance(matched)
         return {
             "matched_concepts": matched,
             "direct_tools": direct_tools,
             "supportive_tools": supportive_tools,
             "scale_strategy": scale_strategy[:8],
+            "scale_specific_visual_guidance": scale_guidance,
             "candidate_programs": candidate_programs,
             "candidate_genes": candidate_genes,
             "limitations": limitations[:10],
@@ -351,7 +359,36 @@ class KnowledgeRAG:
             "supportive_visual_evidence": row.get(
                 "supportive_visual_evidence", []
             )[:3],
+            "scale_strategy": row.get("scale_strategy", [])[:3],
             "relevance": round(float(score), 6),
+        }
+
+    @staticmethod
+    def _scale_specific_visual_guidance(
+        matched_concepts: List[Dict[str, Any]],
+    ) -> Dict[str, List[str]]:
+        guidance = {
+            scale: [role] for scale, role in SCALE_VISUAL_ROLES.items()
+        }
+        for concept in matched_concepts:
+            name = str(concept.get("concept") or "matched concept")
+            direct = list(concept.get("direct_visual_evidence", []) or [])
+            supportive = list(
+                concept.get("supportive_visual_evidence", []) or []
+            )
+            visible_cue = next(iter(direct or supportive), None)
+            for strategy in concept.get("scale_strategy", []) or []:
+                match = re.match(r"^\s*(4096|2048|1024)\s*:\s*(.+)$", str(strategy))
+                if not match:
+                    continue
+                scale, focus = match.groups()
+                text = f"{name}: focus on {focus.strip()}"
+                if visible_cue:
+                    text += f"; look for whether this is visible: {visible_cue}"
+                guidance[scale].append(text[:600])
+        return {
+            scale: list(dict.fromkeys(rows))[:5]
+            for scale, rows in guidance.items()
         }
 
     @staticmethod

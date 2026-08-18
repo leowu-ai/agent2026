@@ -13,7 +13,11 @@ from multiscale_vqa_agent.agent_memory import (
     WorkingMemory,
 )
 from multiscale_vqa_agent.fusion import FusionVerificationAgent
-from multiscale_vqa_agent.fusion_evidence import primary_semantic_choice_alignment
+from multiscale_vqa_agent.fusion_evidence import (
+    build_structured_summary,
+    multi_field_semantic_choice_alignment,
+    primary_semantic_choice_alignment,
+)
 from multiscale_vqa_agent.knowledge_rag import KnowledgeRAG
 from multiscale_vqa_agent.pathology import PATHOLOGY_SYSTEM_PROMPT, PathologyAgent
 from multiscale_vqa_agent.pipeline import MultiScaleVQAPipeline
@@ -99,6 +103,19 @@ class KnowledgeRAGTest(unittest.TestCase):
         parameters = inspect.signature(KnowledgeRAG.retrieve).parameters
         self.assertNotIn("reference_answer", parameters)
         self.assertNotIn("gold", parameters)
+
+    def test_scale_guidance_is_resolution_specific_and_question_relevant(self):
+        result = self.rag.retrieve(
+            "Is the growth pattern lobular?", ["yes", "no"], ["lobular_binary"]
+        )
+        guidance = result["scale_specific_visual_guidance"]
+        self.assertIn("global architecture", guidance["4096"][0])
+        self.assertIn("intermediate", guidance["2048"][0])
+        self.assertIn("cytology", guidance["1024"][0])
+        joined = " ".join(
+            row for rows in guidance.values() for row in rows
+        ).lower()
+        self.assertTrue("lobular" in joined or "single-file" in joined)
 
 
 class RetrievalSeparationTest(unittest.TestCase):
@@ -501,6 +518,24 @@ class PathologyIsolationTest(unittest.TestCase):
         ):
             self.assertIn(forbidden, prompt)
 
+    def test_guidance_is_labeled_as_lookup_not_observation(self):
+        client = self.Client()
+        PathologyAgent(client).describe(
+            "question", "field", [self.group()],
+            choices=["A", "B"], current_scale=1024,
+            evidence_role="direct",
+            visual_guidance=["Look for fine cellular cohesion."],
+            hide_provenance=True,
+        )
+        payload = json.loads(client.user)
+        self.assertEqual(payload["current_scale"], 1024)
+        self.assertEqual(
+            payload["scale_specific_visual_guidance"],
+            ["Look for fine cellular cohesion."],
+        )
+        self.assertIn("not what is present", payload["evidence_rule"])
+        self.assertIn("not patient evidence", PATHOLOGY_SYSTEM_PROMPT.lower())
+
     def test_parser_sanitizes_molecular_claim(self):
         parsed = PathologyAgent._normalize_morphology(json.dumps({
             "architecture": "single cell pattern",
@@ -517,6 +552,69 @@ class PathologyIsolationTest(unittest.TestCase):
 
 
 class FusionContextTest(unittest.TestCase):
+    @staticmethod
+    def categorical_prediction(field, label, probability, validation):
+        predicted_class = 1 if label == "positive" else 0
+        return {
+            "field": field,
+            "label_semantics": {
+                "class_to_label": {"0": "negative", "1": "positive"}
+            },
+            "fused": {
+                "probabilities": [1.0 - probability, probability],
+                "predicted_class": predicted_class,
+                "predicted_label": label,
+            },
+            "per_scale": {
+                str(scale): {
+                    "predicted_class": predicted_class,
+                    "predicted_label": label,
+                }
+                for scale in (1024, 2048, 4096)
+            },
+            "validation_metrics": {
+                str(scale): {
+                    "metric_name": "AUC", "metric_value": validation,
+                }
+                for scale in (1024, 2048, 4096)
+            },
+        }
+
+    @staticmethod
+    def direct_plan(fields):
+        return ExecutionPlan(
+            case_id="case", question="status", target_phenotypes=list(fields),
+            task_type="multiclass", metrics=[], answer_mode="multiple_choice",
+            supported=True, support_reason="", task_match="direct",
+            phenotype_relevance_score=1.0, prototype_coverage="complete",
+        )
+
+    def test_validation_reliability_attenuates_high_softmax(self):
+        plan = self.direct_plan(["ER_status_label"])
+        strong = build_structured_summary(plan, ["positive", "negative"], [
+            self.categorical_prediction("ER_status_label", "positive", 0.95, 0.90)
+        ])
+        weak = build_structured_summary(plan, ["positive", "negative"], [
+            self.categorical_prediction("ER_status_label", "positive", 0.95, 0.45)
+        ])
+        self.assertGreater(
+            strong["structured_candidate_confidence"],
+            weak["structured_candidate_confidence"],
+        )
+        self.assertGreater(strong["overall_structured_reliability"], 0.0)
+
+    def test_validation_reliability_is_monotonic(self):
+        plan = self.direct_plan(["ER_status_label"])
+        values = []
+        for validation in (0.3, 0.6, 0.9):
+            summary = build_structured_summary(plan, ["positive", "negative"], [
+                self.categorical_prediction(
+                    "ER_status_label", "positive", 0.9, validation
+                )
+            ])
+            values.append(summary["structured_candidate_confidence"])
+        self.assertEqual(values, sorted(values))
+
     def test_primary_er_alignment_is_not_blocked_by_supporting_pr(self):
         structured = {
             "primary_fields": ["ER_status_label"],
@@ -533,6 +631,71 @@ class FusionContextTest(unittest.TestCase):
         ])
         self.assertEqual(alignment["choice_id"], "A")
         self.assertTrue(alignment["mapping_complete"])
+
+    def test_joint_er_pr_her2_alignment(self):
+        structured = {
+            "requested_fields": [
+                "ER_status_label", "PR_status_label", "HER2_status_label"
+            ],
+            "predictions": [
+                {"field": "ER_status_label", "predicted_label": "positive"},
+                {"field": "PR_status_label", "predicted_label": "negative"},
+                {"field": "HER2_status_label", "predicted_label": "positive"},
+            ],
+        }
+        alignment = multi_field_semantic_choice_alignment(structured, [
+            "ER+/PR+/HER2+", "ER+/PR-/HER2+",
+            "ER-/PR-/HER2-", "ER+/PR-/HER2-",
+        ])
+        self.assertTrue(alignment["mapping_complete"])
+        self.assertEqual(alignment["choice_id"], "B")
+
+    def test_joint_alignment_precedes_single_primary_in_fusion(self):
+        fields = ["ER_status_label", "PR_status_label", "HER2_status_label"]
+        predictions = [
+            self.categorical_prediction(fields[0], "positive", 0.9, 0.8),
+            self.categorical_prediction(fields[1], "negative", 0.1, 0.8),
+            self.categorical_prediction(fields[2], "positive", 0.9, 0.8),
+        ]
+        fusion = FusionVerificationAgent(SimpleNamespace(enabled=False))
+        structured = fusion.prepare_structured_summary(
+            self.direct_plan(fields),
+            ["ER+/PR+/HER2+", "ER+/PR-/HER2+", "ER-/PR-/HER2-"],
+            predictions,
+        )
+        self.assertEqual(structured["structured_candidate_id"], "B")
+        self.assertTrue(structured["joint_mapping_complete"])
+        self.assertEqual(structured["primary_fields"], fields)
+
+    def test_incomplete_joint_state_is_not_mapped(self):
+        structured = {
+            "requested_fields": [
+                "ER_status_label", "PR_status_label", "HER2_status_label"
+            ],
+            "predictions": [
+                {"field": "ER_status_label", "predicted_label": "positive"},
+                {"field": "PR_status_label", "predicted_label": "negative"},
+            ],
+        }
+        alignment = multi_field_semantic_choice_alignment(
+            structured, ["ER+/PR-/HER2+", "ER+/PR-/HER2-"]
+        )
+        self.assertFalse(alignment["mapping_complete"])
+        self.assertIsNone(alignment["choice_id"])
+
+    def test_ambiguous_joint_options_are_not_mapped(self):
+        structured = {
+            "requested_fields": ["ER_status_label", "PR_status_label"],
+            "predictions": [
+                {"field": "ER_status_label", "predicted_label": "positive"},
+                {"field": "PR_status_label", "predicted_label": "negative"},
+            ],
+        }
+        alignment = multi_field_semantic_choice_alignment(
+            structured, ["ER+/PR-", "ER positive and PR negative"]
+        )
+        self.assertFalse(alignment["mapping_complete"])
+        self.assertIsNone(alignment["choice_id"])
 
     def test_verifier_distinguishes_categorical_status_from_assay(self):
         prompt = VERIFIER_SYSTEM_PROMPT.lower()
@@ -661,7 +824,10 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
 
     class FakePathology:
         @staticmethod
-        def describe(question, field, groups, overview_paths=None, hide_provenance=False):
+        def describe(
+            question, field, groups, overview_paths=None,
+            hide_provenance=False, **kwargs,
+        ):
             assert hide_provenance
             scales = sorted({scale for group in groups for scale in group.patches})
             return {

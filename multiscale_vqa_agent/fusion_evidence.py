@@ -129,6 +129,115 @@ def primary_semantic_choice_alignment(
     }
 
 
+STATE_ALIASES = {
+    "positive": "positive",
+    "pos": "positive",
+    "+": "positive",
+    "yes": "positive",
+    "present": "positive",
+    "negative": "negative",
+    "neg": "negative",
+    "-": "negative",
+    "no": "negative",
+    "absent": "negative",
+}
+
+
+def _categorical_state(value: Any) -> Optional[str]:
+    normalized = _literal_normalize(value)
+    return STATE_ALIASES.get(normalized, STATE_ALIASES.get(str(value).strip().lower()))
+
+
+def _field_aliases(field: str) -> List[str]:
+    explicit = FIELD_OPTION_TERMS.get(field)
+    if explicit:
+        return list(explicit)
+    base = re.sub(r"_(?:status_)?label$|_binary$", "", field, flags=re.I)
+    normalized = " ".join(base.split("_")).strip().lower()
+    aliases = [normalized]
+    compact = normalized.replace(" ", "")
+    if compact != normalized:
+        aliases.append(compact)
+    return [value for value in dict.fromkeys(aliases) if value]
+
+
+def _choice_field_states(choice: str, field: str) -> List[str]:
+    text = str(choice).lower()
+    text = re.sub(r"her\s*-\s*2", "her2", text)
+    text = re.sub(r"-\s*(positive|negative|pos|neg)\b", r" \1", text)
+    state_pattern = r"(?:positive|negative|pos|neg|present|absent|yes|no|\+|-)"
+    states = []
+    for alias in _field_aliases(field):
+        alias_pattern = re.escape(alias).replace(r"\ ", r"[\s-]+")
+        alias_pattern = rf"(?<![a-z0-9]){alias_pattern}(?![a-z0-9])"
+        patterns = (
+            rf"{alias_pattern}\s*(?:status\s*)?(?:(?:is|=|:)\s*)?({state_pattern})",
+            rf"({state_pattern})\s*(?:for\s+)?{alias_pattern}",
+        )
+        for pattern in patterns:
+            for match in re.finditer(pattern, text, flags=re.I):
+                state = _categorical_state(match.group(1))
+                if state:
+                    states.append(state)
+    return list(dict.fromkeys(states))
+
+
+def multi_field_semantic_choice_alignment(
+    structured: Dict[str, Any], choices: Sequence[str]
+) -> Optional[Dict[str, Any]]:
+    """Align a complete joint categorical state to exactly one option."""
+    requested = list(dict.fromkeys(structured.get("requested_fields", [])))
+    if len(requested) < 2:
+        return None
+    prediction_by_field = {
+        str(row.get("field")): row
+        for row in structured.get("predictions", [])
+        if row.get("field")
+    }
+    joint_state = {}
+    for field in requested:
+        row = prediction_by_field.get(field)
+        state = _categorical_state(row.get("predicted_label")) if row else None
+        if state:
+            joint_state[field] = state
+    result = {
+        "source": "deterministic_multi_field_clinical_semantics",
+        "joint_fields": requested,
+        "joint_state": joint_state,
+        "choice_id": None,
+        "mapping_complete": False,
+        "confidence": 0.0,
+        "reason": "Joint categorical mapping requires every requested field and one unique compatible choice.",
+    }
+    if len(joint_state) != len(requested):
+        return result
+
+    matches = []
+    for option in indexed_choices(choices):
+        if any(
+            _choice_field_states(option["text"], other_field)
+            for other_field in FIELD_OPTION_TERMS
+            if other_field not in requested
+        ):
+            continue
+        observed = {
+            field: _choice_field_states(option["text"], field)
+            for field in requested
+        }
+        if all(observed[field] == [joint_state[field]] for field in requested):
+            matches.append(option)
+    if len(matches) == 1:
+        result.update({
+            "choice_id": matches[0]["id"],
+            "mapping_complete": True,
+            "confidence": 0.98,
+            "reason": "All requested categorical fields map jointly and uniquely to this supplied choice.",
+        })
+    elif len(matches) > 1:
+        result["reason"] = "More than one supplied choice represents the same joint categorical state."
+    return result
+
+
 def _literal_choice_matches(
     prediction_rows: List[Dict[str, Any]],
     choices: Sequence[str],
@@ -197,8 +306,14 @@ def _validation_quality(prediction: Dict[str, Any]) -> Optional[float]:
             value = float(row.get("metric_value"))
         except (TypeError, ValueError):
             continue
-        if math.isfinite(value):
-            values.append(max(0.0, min(value, 1.0)))
+        if not math.isfinite(value):
+            continue
+        metric = str(row.get("metric_name") or "").strip().lower()
+        if metric in {"mae", "mse", "rmse", "loss"}:
+            value = 1.0 / (1.0 + max(value, 0.0))
+        elif metric in {"pearson", "spearman", "correlation"}:
+            value = (value + 1.0) / 2.0
+        values.append(max(0.0, min(value, 1.0)))
     return sum(values) / len(values) if values else None
 
 
@@ -211,22 +326,33 @@ def _structured_confidence(
     predictions: List[Dict[str, Any]],
     relevance: float,
     task_match: str,
-) -> float:
+) -> Dict[str, float]:
     if task_match == "none" or not predictions:
-        return 0.0
+        return {
+            "patient_evidence_strength": 0.0,
+            "validation_reliability": 0.0,
+            "reliability_adjusted_confidence": 0.0,
+        }
     primary = predictions[0]
     supporting = predictions[1:]
     primary_probability = _confidence(primary)
-    support_probability = _mean([_confidence(row) for row in supporting], primary_probability or 0.5)
+    primary_probability = primary_probability if primary_probability is not None else 0.5
+    support_probability = _mean(
+        [_confidence(row) for row in supporting], primary_probability
+    )
     agreement = _mean([_scale_agreement(row) for row in predictions], 0.5)
     validation = _mean([_validation_quality(row) for row in predictions], 0.5)
-    confidence = (
-        0.65 * (primary_probability if primary_probability is not None else 0.5)
-        + 0.10 * support_probability
+    patient_strength = (
+        0.70 * primary_probability
+        + 0.15 * support_probability
         + 0.15 * agreement
-        + 0.10 * validation
     )
-    return max(0.0, min(confidence * relevance, 0.98))
+    adjusted = patient_strength * validation * relevance
+    return {
+        "patient_evidence_strength": max(0.0, min(patient_strength, 1.0)),
+        "validation_reliability": max(0.0, min(validation, 1.0)),
+        "reliability_adjusted_confidence": max(0.0, min(adjusted, 1.0)),
+    }
 
 
 def build_structured_summary(
@@ -260,6 +386,15 @@ def build_structured_summary(
         confidence = _confidence(prediction)
         agreement = _scale_agreement(prediction)
         validation = _validation_quality(prediction)
+        field_patient_strength = (
+            0.85 * (confidence if confidence is not None else 0.5)
+            + 0.15 * (agreement if agreement is not None else 0.5)
+        )
+        field_reliability_adjusted = (
+            field_patient_strength
+            * (validation if validation is not None else 0.5)
+            * relevance
+        )
         if confidence is not None:
             confidences.append(confidence)
         if agreement is not None:
@@ -279,13 +414,26 @@ def build_structured_summary(
             "fused_probability_for_predicted_class": confidence,
             "cross_scale_agreement": agreement,
             "validation_quality": validation,
+            "validation_reliability_source": (
+                "prediction.validation_metrics_from_tool_metrics"
+            ),
+            "patient_evidence_strength": round(field_patient_strength, 6),
+            "reliability_adjusted_confidence": round(
+                max(0.0, min(field_reliability_adjusted, 1.0)), 6
+            ),
         })
 
     literal_match = _literal_choice_matches(rows, choices)
-    base_confidence = _structured_confidence(predictions, relevance, task_match)
+    confidence_parts = _structured_confidence(predictions, relevance, task_match)
+    base_confidence = confidence_parts["reliability_adjusted_confidence"]
     answerability = relevance * coverage if predictions and task_match != "none" else 0.0
-    primary_fields = executed[:1]
-    supporting_fields = executed[1:]
+    requested_executed = [field for field in requested if field in executed]
+    if len(requested) > 1:
+        primary_fields = requested_executed
+        supporting_fields = [field for field in executed if field not in primary_fields]
+    else:
+        primary_fields = executed[:1]
+        supporting_fields = executed[1:]
 
     return {
         "available": bool(predictions and task_match != "none"),
@@ -306,14 +454,33 @@ def build_structured_summary(
         "mapping_complete": False,
         "answer_unit": "llm_semantic_option_mapping",
         "option_compatibility": [],
+        "joint_fields": requested if len(requested) > 1 else [],
+        "joint_state": {},
+        "joint_alignment_source": None,
+        "joint_mapping_complete": False,
+        "joint_choice_id": None,
         **literal_match,
         "primary_fields": primary_fields,
         "supporting_fields": supporting_fields,
         "modifier_fields": missing,
         "contradictory_fields": [],
         "structured_candidate_confidence": round(base_confidence, 6),
+        "overall_structured_reliability": round(
+            confidence_parts["validation_reliability"], 6
+        ),
+        "validation_reliability_source": (
+            "per-scale prediction.validation_metrics from active ToolBank tool_metrics.csv"
+        ),
+        "reliability_adjusted_confidence": round(base_confidence, 6),
         "confidence_factors": {
-            "prediction_centered_confidence": round(base_confidence, 6),
+            "patient_evidence_strength": round(
+                confidence_parts["patient_evidence_strength"], 6
+            ),
+            "validation_reliability": round(
+                confidence_parts["validation_reliability"], 6
+            ),
+            "semantic_relevance": relevance,
+            "reliability_adjusted_confidence": round(base_confidence, 6),
             "mean_fused_probability": _mean(confidences, 0.0),
             "mean_multiscale_agreement": _mean(agreements, 0.0),
             "mean_validation_quality": _mean(validations, 0.5),

@@ -692,6 +692,9 @@ class MultiScaleVQAPipeline:
             structured_confidence=float(
                 structured_round0.get("structured_candidate_confidence") or 0.0
             ),
+            structured_reliability=float(
+                structured_round0.get("overall_structured_reliability") or 0.0
+            ),
             option_alignment=option_alignment,
             direct_evidence_state=(
                 "mapped"
@@ -903,6 +906,12 @@ class MultiScaleVQAPipeline:
                     groups,
                     overview_paths=round_overviews,
                     hide_provenance=True,
+                    choices=choices,
+                    current_scale=scale,
+                    evidence_role=observation_role,
+                    visual_guidance=knowledge.get(
+                        "scale_specific_visual_guidance", {}
+                    ).get(str(scale), []),
                 )
                 if plan.use_pathology_agent
                 else {
@@ -915,6 +924,9 @@ class MultiScaleVQAPipeline:
             )
             pathology["action"] = action
             pathology["scale"] = scale
+            pathology["scale_specific_visual_guidance"] = knowledge.get(
+                "scale_specific_visual_guidance", {}
+            ).get(str(scale), [])
             pathology_rounds.append(pathology)
             observation = EvidenceObservation(
                 round_index=round_index,

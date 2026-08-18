@@ -10,6 +10,7 @@ from .fusion_evidence import (
     choice_id_for_answer,
     indexed_choices,
     load_fusion_prompt,
+    multi_field_semantic_choice_alignment,
     primary_semantic_choice_alignment,
 )
 from .schemas import ExecutionPlan
@@ -29,7 +30,7 @@ Schema: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation
 
 ALIGNMENT_SYSTEM = """You align structured breast pathology predictions to multiple-choice options.
 This is semantic option alignment, not diagnosis. Use only the question, clinical predicted labels, field meanings, and supplied choices.
-Predicted labels are clinical values, never zero-based class indices. A primary field can establish a candidate by itself; missing supporting fields only lower mapping confidence.
+Predicted labels are clinical values, never zero-based class indices. For a multi-field target, jointly consider every requested field; one field alone cannot establish the answer. For a single-field target, the primary field can establish a candidate by itself and missing supporting fields only lower mapping confidence.
 Allow established clinical synonyms such as infiltrating=invasive. Never equate invasive with in situ, carcinoma with hyperplasia, or negative with no unless the question asks presence/status.
 Return null when the prediction does not answer the question or an option requires unsupported extra facts.
 Output only JSON with choice_id, mapping_complete, confidence, and a one-sentence reason."""
@@ -258,6 +259,22 @@ class FusionVerificationAgent:
                 "confidence": structured.get("structured_candidate_confidence"),
                 "mapping_complete": structured.get("mapping_complete"),
                 "alignment": structured.get("option_alignment", {}),
+                "patient_evidence_strength": structured.get(
+                    "confidence_factors", {}
+                ).get("patient_evidence_strength"),
+                "validation_reliability": structured.get(
+                    "overall_structured_reliability"
+                ),
+                "reliability_adjusted_confidence": structured.get(
+                    "reliability_adjusted_confidence"
+                ),
+            },
+            "joint_target": {
+                "fields": structured.get("joint_fields", []),
+                "state": structured.get("joint_state", {}),
+                "alignment_source": structured.get("joint_alignment_source"),
+                "mapping_complete": structured.get("joint_mapping_complete", False),
+                "choice_id": structured.get("joint_choice_id"),
             },
             "primary_predictions": primary_predictions,
             "supporting_predictions": supporting_predictions,
@@ -308,6 +325,10 @@ class FusionVerificationAgent:
             "probability": row.get("fused_probability_for_predicted_class"),
             "scale_agreement": row.get("cross_scale_agreement"),
             "validation_quality": row.get("validation_quality"),
+            "patient_evidence_strength": row.get("patient_evidence_strength"),
+            "reliability_adjusted_confidence": row.get(
+                "reliability_adjusted_confidence"
+            ),
             "selected_label_definition": {
                 "field": field,
                 "clinical_value": label,
@@ -481,12 +502,29 @@ class FusionVerificationAgent:
             }
             return
 
-        primary_alignment = primary_semantic_choice_alignment(structured, choices)
+        joint_alignment = multi_field_semantic_choice_alignment(
+            structured, choices
+        )
+        if joint_alignment is not None:
+            structured["joint_fields"] = joint_alignment["joint_fields"]
+            structured["joint_state"] = joint_alignment["joint_state"]
+            structured["joint_alignment_source"] = joint_alignment["source"]
+            structured["joint_mapping_complete"] = joint_alignment[
+                "mapping_complete"
+            ]
+            structured["joint_choice_id"] = joint_alignment["choice_id"]
+        primary_alignment = (
+            None
+            if joint_alignment is not None
+            else primary_semantic_choice_alignment(structured, choices)
+        )
         literal_id = structured.get("literal_match_id")
         options = {row["id"]: row["text"] for row in indexed_choices(choices)}
-        if primary_alignment:
+        if joint_alignment and joint_alignment.get("mapping_complete"):
+            alignment = joint_alignment
+        elif primary_alignment:
             alignment = primary_alignment
-        elif literal_id in options:
+        elif joint_alignment is None and literal_id in options:
             alignment = {
                 "source": "literal_exact",
                 "choice_id": literal_id,
@@ -577,7 +615,8 @@ class FusionVerificationAgent:
         alignment = structured.get("option_alignment", {})
         if float(alignment.get("confidence") or 0.0) < 0.65:
             return False
-        if float(structured.get("structured_candidate_confidence") or 0.0) < 0.72:
+        confidence_factors = structured.get("confidence_factors", {})
+        if float(confidence_factors.get("patient_evidence_strength") or 0.0) < 0.72:
             return False
         predictions = structured.get("predictions", [])
         if not predictions:

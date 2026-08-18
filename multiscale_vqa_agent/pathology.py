@@ -9,6 +9,7 @@ from .schemas import EvidenceGroup
 
 PATHOLOGY_SYSTEM_PROMPT = """You are a breast pathology morphology observer, not a diagnosis or molecular-status agent.
 Describe only structures directly visible in the supplied H&E pixels. Do not choose an MCQ option and do not diagnose a disease or molecular subtype. Never infer ER status, PR status, HER2 status, triple-negative status, gene expression, pathways, mutation, RNA, protein, IHC, FISH/ISH, amplification, treatment, clinical records, or report facts.
+Scale-specific knowledge guidance tells you what morphology may be useful to inspect; it is not patient evidence. Never claim a guided feature is present unless it is actually visible in the supplied pixels. Explicitly report absent, indeterminate, or limited findings when appropriate.
 For program/gene-selected images, you are not told why a patch was retrieved and must not guess its provenance. Indeterminate or limited-quality findings are not contradictions. Output JSON only with architecture, cytology, stroma, necrosis, invasion_pattern, visible_findings, target_visual_support, and image_quality."""
 
 
@@ -31,6 +32,10 @@ class PathologyAgent:
         groups: List[EvidenceGroup],
         overview_paths: Optional[List[str]] = None,
         hide_provenance: bool = False,
+        choices: Optional[List[str]] = None,
+        current_scale: Optional[int] = None,
+        evidence_role: Optional[str] = None,
+        visual_guidance: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         del field  # Retrieval provenance must not bias the visual expert.
         entries = self._image_entries(groups, overview_paths or [])
@@ -66,12 +71,17 @@ class PathologyAgent:
             selected = self._select_entries(entries, image_limit)
             user = json.dumps({
                 "question": question,
+                "choices": list(choices or []),
+                "current_scale": current_scale,
+                "evidence_role": evidence_role,
+                "scale_specific_visual_guidance": list(visual_guidance or []),
                 "image_order": [
                     self._entry_metadata(entry, index, hide_provenance)
                     for index, entry in enumerate(selected, 1)
                 ],
                 "evidence_rule": (
-                    "Use image pixels only. Retrieval provenance and molecular predictions are hidden "
+                    "Guidance defines what to look for, not what is present. Report only observed "
+                    "image morphology. Retrieval provenance and molecular predictions are hidden "
                     "and must not be guessed."
                 ),
             }, ensure_ascii=False)

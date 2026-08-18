@@ -29,6 +29,7 @@ class WorkingMemory:
     structured_evidence: Dict[str, Any] = field(default_factory=dict)
     structured_candidate: Optional[Dict[str, Any]] = None
     structured_confidence: float = 0.0
+    structured_reliability: float = 0.0
     option_alignment: Dict[str, Any] = field(default_factory=dict)
     direct_evidence_state: str = "unavailable"
     inspected_scales: List[int] = field(default_factory=list)
@@ -112,6 +113,7 @@ class WorkingMemory:
             "structured_evidence": self.structured_evidence,
             "structured_candidate": self.structured_candidate,
             "structured_confidence": self.structured_confidence,
+            "structured_reliability": self.structured_reliability,
             "option_alignment": self.option_alignment,
             "direct_evidence_state": self.direct_evidence_state,
             "inspected_scales": list(self.inspected_scales),

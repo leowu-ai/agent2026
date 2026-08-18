@@ -15,8 +15,11 @@ MISSING_TYPES = {
 VERIFIER_SYSTEM_PROMPT = """You are an evidence sufficiency controller for breast pathology WSI multiple-choice VQA.
 You do not choose an option and must never output an answer_id. Judge whether accumulated evidence resolves the option-level distinction and choose exactly one supplied available action.
 Evidence priority is direct structured phenotype prediction, then target-specific visible morphology, then supportive program evidence, then supportive gene evidence. A reliable direct prediction with complete option alignment may be answered at Round 0 without visual inspection. Program, gene, and weak visual evidence must not casually overwrite a direct candidate.
+A strong structured prediction requires both strong patient-level evidence and sufficiently reliable Tool validation. High softmax or cross-scale agreement alone must not make a weakly validated Tool conclusive. Use reliability-adjusted confidence as evidence context, not as a hard escalation threshold.
 A WSI-derived categorical ER/PR/HER2 prediction is valid evidence for a categorical benchmark target such as positive versus negative. It is not a measured assay and cannot answer an exact percentage, intensity, FISH/ISH ratio, amplification, or other assay-specific quantity.
 Visual observations describe pixels only. Treat a visual conflict as real only when spatially linked observations address the same target with clearly mutually exclusive morphology. Limited, indeterminate, different-region, or different-slide observations are not conflicts. Program and gene evidence is supportive WSI-derived evidence, never measured RNA, protein, mutation, IHC, FISH, amplification, or copy number. Learned relations are predictive associations, not causality.
+Each visual scale is complementary: 4096 supports global architecture, 2048 intermediate tissue organization, and 1024 fine morphology/cytology. Absence of a fine feature at 4096 is not strong negative evidence, and global architecture must not be inferred from one 1024 patch. RAG visual guidance says what is useful to inspect at a scale; it is not patient evidence.
+After appropriate morphology inspection, unresolved weak structured evidence may be corroborated by constrained Program and then Gene candidates. Their relation relevance, patient score, graph score, and cross-scale support are supportive context only, especially for morphology-dominant targets.
 Use unused evidence only when it can resolve a stated missing distinction. Exact assay values, exact size/distance/count, clinical history, treatment, procedure, report wording, and other unavailable facts cannot be recovered by escalating program or gene evidence.
 Return JSON only with evidence_sufficient, evidence_state, missing_evidence_type, conflict_detected, next_action, target, and a concise reason."""
 
@@ -90,6 +93,9 @@ class EvidenceVerifierAgent:
                 "matched_concepts": knowledge.get("matched_concepts", []),
                 "limitations": knowledge.get("limitations", []),
                 "evidence_rules": knowledge.get("evidence_rules", []),
+                "scale_specific_visual_guidance": knowledge.get(
+                    "scale_specific_visual_guidance", {}
+                ),
             },
             "working_memory": self._compact_memory(memory),
             "available_actions": list(available_actions),
@@ -142,6 +148,7 @@ class EvidenceVerifierAgent:
             ),
             "structured_candidate": memory.structured_candidate,
             "structured_confidence": memory.structured_confidence,
+            "structured_reliability": memory.structured_reliability,
             "option_alignment": memory.option_alignment,
             "direct_evidence_state": memory.direct_evidence_state,
             "observations": [
@@ -170,6 +177,7 @@ class EvidenceVerifierAgent:
             "field", "predicted_label",
             "fused_probability_for_predicted_class",
             "cross_scale_agreement", "validation_quality",
+            "patient_evidence_strength", "reliability_adjusted_confidence",
         )
         return {
             "task_match": structured.get("task_match"),
@@ -187,6 +195,20 @@ class EvidenceVerifierAgent:
             ),
             "structured_candidate_confidence": structured.get(
                 "structured_candidate_confidence"
+            ),
+            "overall_structured_reliability": structured.get(
+                "overall_structured_reliability"
+            ),
+            "validation_reliability_source": structured.get(
+                "validation_reliability_source"
+            ),
+            "reliability_adjusted_confidence": structured.get(
+                "reliability_adjusted_confidence"
+            ),
+            "joint_fields": structured.get("joint_fields", []),
+            "joint_state": structured.get("joint_state", {}),
+            "joint_mapping_complete": structured.get(
+                "joint_mapping_complete", False
             ),
             "option_alignment": {
                 key: structured.get("option_alignment", {}).get(key)
