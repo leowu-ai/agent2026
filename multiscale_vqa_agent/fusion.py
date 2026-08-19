@@ -118,7 +118,7 @@ class FusionVerificationAgent:
             raw = self.client.chat(
                 system_prompt,
                 json.dumps(evidence, ensure_ascii=False),
-                temperature=0.6,
+                temperature=0.1,
                 max_tokens=4096,
                 response_format={"type": "json_object"},
                 retries=2,
@@ -385,6 +385,7 @@ class FusionVerificationAgent:
         if (
             proposed_override
             and structured.get("task_match") == "direct"
+            and self._high_trust_candidate(structured)
             and not self._valid_counterevidence(parsed, structured)
         ):
             answer_id = candidate_id
@@ -621,11 +622,21 @@ class FusionVerificationAgent:
         predictions = structured.get("predictions", [])
         if not predictions:
             return False
-        primary = predictions[0]
-        return (
-            float(primary.get("fused_probability_for_predicted_class") or 0.0) >= 0.65
-            and float(primary.get("cross_scale_agreement") or 0.0) >= (2.0 / 3.0)
-            and float(primary.get("validation_quality") or 0.0) >= 0.5
+        requested = list(structured.get("requested_fields", []))
+        if len(requested) > 1:
+            if structured.get("missing_fields"):
+                return False
+            by_field = {row.get("field"): row for row in predictions}
+            required_predictions = [by_field.get(field) for field in requested]
+            if any(row is None for row in required_predictions):
+                return False
+        else:
+            required_predictions = predictions[:1]
+        return all(
+            float(row.get("fused_probability_for_predicted_class") or 0.0) >= 0.65
+            and float(row.get("cross_scale_agreement") or 0.0) >= (2.0 / 3.0)
+            and float(row.get("validation_quality") or 0.0) >= 0.5
+            for row in required_predictions
         )
 
     @staticmethod

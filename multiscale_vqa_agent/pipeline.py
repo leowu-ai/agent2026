@@ -714,6 +714,7 @@ class MultiScaleVQAPipeline:
         pathology_rounds = []
         overview_paths: List[str] = []
         post_search_abstained = False
+        verifier_requested_abstain = False
         verifier_failure_count = 0
         evidence_sufficiency_unverified = False
         allow_early_abstain = self._early_abstain_allowed(plan_dict, knowledge)
@@ -749,7 +750,8 @@ class MultiScaleVQAPipeline:
                 round0_decision.get("evidence_sufficiency_unverified")
             )
         elif action == "abstain":
-            post_search_abstained = True
+            verifier_requested_abstain = True
+            action = "answer"
 
         for round_index in range(1, 6):
             if action in {"answer", "abstain"}:
@@ -970,7 +972,7 @@ class MultiScaleVQAPipeline:
                 evidence_sufficiency_unverified = verifier_fallback_used
                 break
             if next_action == "abstain":
-                post_search_abstained = True
+                verifier_requested_abstain = True
                 break
             action = next_action
             target = decision.get("target")
@@ -989,20 +991,20 @@ class MultiScaleVQAPipeline:
             ),
             "rounds": pathology_rounds,
         }
-        if post_search_abstained:
-            structured = structured_round0
-            answer = None
-        else:
-            answer, structured = self.fusion.answer_with_summary(
-                plan,
-                choices,
-                predictions,
-                relations_by_field,
-                combined_pathology,
-                broad_g2p_predictions=broad_g2p_predictions,
-                agent_context=agent_context,
-                prepared_structured=structured_round0,
-            )
+        fusion_pathology = {
+            "backend": "incremental_pathology",
+            "description": "",
+        }
+        answer, structured = self.fusion.answer_with_summary(
+            plan,
+            choices,
+            predictions,
+            relations_by_field,
+            fusion_pathology,
+            broad_g2p_predictions=broad_g2p_predictions,
+            agent_context=agent_context,
+            prepared_structured=structured_round0,
+        )
 
         first_prediction = predictions[0] if predictions else {}
         first_relation = (
@@ -1029,6 +1031,7 @@ class MultiScaleVQAPipeline:
             "verifier_decisions": verifier_decisions,
             "final_evidence_state": final_evidence_state,
             "post_search_abstained": post_search_abstained,
+            "verifier_requested_abstain": verifier_requested_abstain,
             "verifier_failure_count": verifier_failure_count,
             "verifier_fallback_count": verifier_failure_count,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
@@ -1079,6 +1082,7 @@ class MultiScaleVQAPipeline:
             "working_memory": memory.to_dict(),
             "agent_trace": agent_trace,
             "post_search_abstained": post_search_abstained,
+            "verifier_requested_abstain": verifier_requested_abstain,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
             "verifier_failure_count": verifier_failure_count,
             "abstain_stage": (
@@ -1420,11 +1424,16 @@ class MultiScaleVQAPipeline:
             },
             "visual_observations": [
                 {
+                    "round": row.round_index,
                     "action": row.action,
                     "scale": row.scale,
+                    "target": row.target_type,
+                    "target_name": row.target_name,
+                    "evidence_role": row.evidence_role,
                     "description": row.visual_description,
                 }
                 for row in memory.observations
+                if row.evidence_type in {"phenotype", "morphology"}
             ],
             "supportive_biological_evidence": biological,
             "selected_program": (
