@@ -425,33 +425,6 @@ def build_structured_summary(
 
     literal_match = _literal_choice_matches(rows, choices)
     confidence_parts = _structured_confidence(predictions, relevance, task_match)
-    if len(requested) > 1:
-        rows_by_field = {row.get("field"): row for row in rows}
-        required_rows = [rows_by_field.get(field) for field in requested]
-        if all(row is not None for row in required_rows):
-            confidence_parts = {
-                "patient_evidence_strength": min(
-                    float(row["patient_evidence_strength"])
-                    for row in required_rows
-                ),
-                "validation_reliability": min(
-                    float(
-                        row["validation_quality"]
-                        if row["validation_quality"] is not None else 0.5
-                    )
-                    for row in required_rows
-                ),
-                "reliability_adjusted_confidence": min(
-                    float(row["reliability_adjusted_confidence"])
-                    for row in required_rows
-                ),
-            }
-        else:
-            confidence_parts = {
-                "patient_evidence_strength": 0.0,
-                "validation_reliability": 0.0,
-                "reliability_adjusted_confidence": 0.0,
-            }
     base_confidence = confidence_parts["reliability_adjusted_confidence"]
     answerability = relevance * coverage if predictions and task_match != "none" else 0.0
     requested_executed = [field for field in requested if field in executed]

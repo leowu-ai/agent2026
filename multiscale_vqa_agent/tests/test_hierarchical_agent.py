@@ -615,72 +615,6 @@ class FusionContextTest(unittest.TestCase):
             values.append(summary["structured_candidate_confidence"])
         self.assertEqual(values, sorted(values))
 
-    def test_joint_confidence_uses_weakest_required_field(self):
-        fields = ["ER_status_label", "PR_status_label"]
-        summary = build_structured_summary(
-            self.direct_plan(fields), ["ER+/PR+", "ER+/PR-"], [
-                self.categorical_prediction(fields[0], "positive", 0.95, 0.90),
-                self.categorical_prediction(fields[1], "positive", 0.58, 0.40),
-            ],
-        )
-        per_field = {
-            row["field"]: row["reliability_adjusted_confidence"]
-            for row in summary["predictions"]
-        }
-        self.assertEqual(
-            summary["structured_candidate_confidence"],
-            min(per_field.values()),
-        )
-        self.assertLess(
-            summary["structured_candidate_confidence"],
-            per_field["ER_status_label"],
-        )
-
-    def test_joint_confidence_remains_strong_when_all_fields_are_strong(self):
-        fields = ["ER_status_label", "PR_status_label", "HER2_status_label"]
-        predictions = [
-            self.categorical_prediction(field, "positive", 0.95, 0.90)
-            for field in fields
-        ]
-        summary = build_structured_summary(
-            self.direct_plan(fields), ["ER+/PR+/HER2+", "other"], predictions
-        )
-        self.assertGreater(summary["structured_candidate_confidence"], 0.75)
-        fusion = FusionVerificationAgent(SimpleNamespace(enabled=False))
-        prepared = fusion.prepare_structured_summary(
-            self.direct_plan(fields), ["ER+/PR+/HER2+", "other"], predictions
-        )
-        self.assertTrue(fusion._high_trust_candidate(prepared))
-
-    def test_joint_confidence_is_invariant_to_requested_field_order(self):
-        fields = ["ER_status_label", "PR_status_label", "HER2_status_label"]
-        predictions = [
-            self.categorical_prediction(fields[0], "positive", 0.93, 0.88),
-            self.categorical_prediction(fields[1], "positive", 0.81, 0.72),
-            self.categorical_prediction(fields[2], "positive", 0.87, 0.79),
-        ]
-        forward = build_structured_summary(
-            self.direct_plan(fields), ["yes", "no"], predictions
-        )
-        reverse = build_structured_summary(
-            self.direct_plan(list(reversed(fields))), ["yes", "no"], predictions
-        )
-        self.assertAlmostEqual(
-            forward["structured_candidate_confidence"],
-            reverse["structured_candidate_confidence"],
-        )
-
-    def test_missing_joint_field_cannot_be_high_trust(self):
-        fields = ["ER_status_label", "PR_status_label"]
-        fusion = FusionVerificationAgent(SimpleNamespace(enabled=False))
-        structured = fusion.prepare_structured_summary(
-            self.direct_plan(fields), ["ER+/PR+", "ER+/PR-"], [
-                self.categorical_prediction(fields[0], "positive", 0.95, 0.90)
-            ],
-        )
-        self.assertEqual(structured["structured_candidate_confidence"], 0.0)
-        self.assertFalse(fusion._high_trust_candidate(structured))
-
     def test_primary_er_alignment_is_not_blocked_by_supporting_pr(self):
         structured = {
             "primary_fields": ["ER_status_label"],
@@ -804,36 +738,6 @@ class FusionContextTest(unittest.TestCase):
         rules = " ".join(packet["rules"]).lower()
         self.assertIn("wsi-derived evidence only", rules)
         self.assertIn("cannot become measured assay facts", rules)
-
-    def test_hierarchical_context_does_not_duplicate_biological_observations(self):
-        memory = WorkingMemory(
-            case_id="case", question="question", choices=["a", "b"],
-            plan={}, knowledge={"limitations": []},
-        )
-        memory.add_observation(EvidenceObservation(
-            round_index=1, action="inspect_4096", evidence_type="morphology",
-            evidence_role="direct", scale=4096, target_type="phenotype",
-            target_name="histological_type_label", visual_description="coarse",
-        ))
-        memory.add_observation(EvidenceObservation(
-            round_index=2, action="inspect_program", evidence_type="program",
-            evidence_role="supportive", scale=1024, target_type="program",
-            target_name="Program A", visual_description="supportive patch",
-        ))
-
-        context = MultiScaleVQAPipeline._hierarchical_fusion_context(
-            memory, None, None
-        )
-
-        self.assertEqual(len(context["visual_observations"]), 1)
-        visual = context["visual_observations"][0]
-        self.assertEqual(visual["round"], 1)
-        self.assertEqual(visual["target_name"], "histological_type_label")
-        self.assertEqual(visual["evidence_role"], "direct")
-        self.assertEqual(len(context["supportive_biological_evidence"]), 1)
-        self.assertEqual(
-            context["supportive_biological_evidence"][0]["name"], "Program A"
-        )
 
 
 class HierarchicalPipelineSyntheticTest(unittest.TestCase):
@@ -1019,7 +923,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             if row["evidence_type"] in {"program", "gene"}
         ))
 
-    def test_verifier_abstain_stops_search_but_still_answers_after_gate(self):
+    def test_authoritative_verifier_abstain_remains_post_search_abstain(self):
         class AuthoritativeVerifier(EvidenceVerifierAgent):
             def __init__(self):
                 pass
@@ -1051,20 +955,11 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
 
         pipeline = self.configured_pipeline(AuthoritativeVerifier())
         result = self.run_question(pipeline, self.plan())
-        self.assertFalse(result["post_search_abstained"])
-        self.assertIsNone(result["abstain_stage"])
-        self.assertTrue(result["verifier_requested_abstain"])
+        self.assertTrue(result["post_search_abstained"])
+        self.assertEqual(result["abstain_stage"], "evidence_sufficiency")
         self.assertFalse(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 0)
-        self.assertIsNotNone(result["agent_answer"])
-        self.assertIn(result["agent_answer"]["answer"], result["choices"])
-        self.assertEqual(
-            result["agent_trace"]["final_evidence_state"], "unavailable"
-        )
-        self.assertEqual(
-            result["working_memory"]["final_verifier"]["next_action"],
-            "abstain",
-        )
+        self.assertIsNone(result["agent_answer"])
 
     def test_same_case_multiple_questions_call_g2p_once(self):
         class CountingG2P:

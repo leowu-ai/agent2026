@@ -22,21 +22,18 @@ def parsed_counterevidence(**overrides):
     return {"counterevidence": counterevidence}
 
 
-def candidate(field, task_match="direct", confidence=0.4, high_trust=True):
+def candidate(field, task_match="direct", confidence=0.4):
     return {
         "task_match": task_match,
         "structured_candidate_id": "A",
         "structured_candidate_answer": "structured",
         "structured_candidate_confidence": confidence,
-        "option_alignment": {"confidence": 0.9 if high_trust else 0.5},
-        "confidence_factors": {
-            "patient_evidence_strength": 0.85 if high_trust else 0.6,
-        },
+        "option_alignment": {"confidence": 0.5},
         "predictions": [{
             "field": field,
-            "fused_probability_for_predicted_class": 0.9 if high_trust else 0.55,
-            "cross_scale_agreement": 1.0 if high_trust else 0.5,
-            "validation_quality": 0.8 if high_trust else 0.4,
+            "fused_probability_for_predicted_class": 0.55,
+            "cross_scale_agreement": 0.5,
+            "validation_quality": 0.4,
         }],
     }
 
@@ -114,22 +111,9 @@ class DirectOverridePolicyTest(unittest.TestCase):
             retry_count=0,
         )
 
-    def test_low_trust_direct_candidate_allows_free_arbitration(self):
-        structured_summary = candidate(
-            "histological_type_label", confidence=0.4, high_trust=False
-        )
+    def test_low_confidence_direct_candidate_still_requires_counterevidence(self):
+        structured_summary = candidate("histological_type_label", confidence=0.4)
         self.assertFalse(self.agent._high_trust_candidate(structured_summary))
-
-        result = self.validate(proposed_answer(), structured_summary)
-
-        self.assertEqual(result["answer_id"], "B")
-        self.assertTrue(result["override_proposed"])
-        self.assertFalse(result["override_rejected"])
-        self.assertTrue(result["override_occurred"])
-
-    def test_high_trust_direct_candidate_rejects_invalid_counterevidence(self):
-        structured_summary = candidate("histological_type_label")
-        self.assertTrue(self.agent._high_trust_candidate(structured_summary))
 
         result = self.validate(proposed_answer(), structured_summary)
 

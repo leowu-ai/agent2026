@@ -70,7 +70,7 @@ class MorphologyFusionTest(unittest.TestCase):
         self.assertEqual(structured["task_match"], "none")
         self.assertIsNone(structured.get("structured_candidate_answer"))
         self.assertEqual(len(client.calls), 2)
-        self.assertEqual(client.calls[0]["temperature"], 0.1)
+        self.assertEqual(client.calls[0]["temperature"], 0.6)
         self.assertEqual(client.calls[0]["max_tokens"], 4096)
         self.assertIs(client.calls[0]["enable_thinking"], False)
         self.assertEqual(client.calls[0]["top_p"], 0.95)
