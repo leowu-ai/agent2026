@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+
+outputs/evidence_patches/
+outputs/pathagent_conch_ms_fixed20_5_smoke_v1/
+outputs/pathagent_conch_ms_fixed20_5_v1/

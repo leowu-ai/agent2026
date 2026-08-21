@@ -1,0 +1,35 @@
+{
+  "project_root": "/home/wl/agent_2026",
+  "pathagent_root": "/home/wl/agent_2026/pathagent",
+  "vqa_json": "/home/wl/agent_2026/dataset/WsiVQA_test.json",
+  "answerability_labels": "/home/wl/agent_2026/dataset/WsiVQA_answerability_binary_flat_v1.json",
+  "wsi_root": "/data_nas2/ljs/Share/TCGA_WSI/TCGA-BRCA",
+  "features": {
+    "4096": "/data_nas2/ljs/Share/Share_Embedd_CLAM/TCGA-BRCA/clam_gen_4096/conch_v1_5",
+    "2048": "/data_nas2/ljs/Share/Share_Embedd_CLAM/TCGA-BRCA/clam_gen_2048/conch_v1_5",
+    "1024": "/data_nas2/ljs/Share/TCGA_Embed/TCGA-BRCA/clam_gen_1024/conch_v1_5_new"
+  },
+  "conch_checkpoint": "/data_nas2/zd/paper1/models/conch/pytorch_model.bin",
+  "device": "cuda:0",
+  "qwen": {
+    "backend": "openai_compatible",
+    "base_url": "http://127.0.0.1:8000/v1",
+    "model": "Qwen3.5",
+    "api_key": "EMPTY"
+  },
+  "pathor1": {
+    "backend": "openai_compatible",
+    "base_url": "http://127.0.0.1:8001/v1",
+    "model": "Patho-R1-7B",
+    "api_key": "EMPTY"
+  },
+  "retrieval": {
+    "initial_patches": 20,
+    "replenish_patches": 5,
+    "max_attempts": 5,
+    "zoom_parent_topk": 2,
+    "max_zoom_actions": 1,
+    "perceptor_batch_size": 5
+  },
+  "output_dir": "/home/wl/agent_2026/pathagent/outputs/pathagent_conch_ms_fixed20_5_v1"
+}

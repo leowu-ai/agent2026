@@ -1,0 +1,9 @@
+{
+  "processed": 186,
+  "correct": 95,
+  "accuracy": 0.510752688172043,
+  "selection_policy": "gold_can_answer_oracle_filter",
+  "gold_answerable_n": 186,
+  "gold_answerable_correct": 95,
+  "gold_answerable_accuracy": 0.510752688172043
+}

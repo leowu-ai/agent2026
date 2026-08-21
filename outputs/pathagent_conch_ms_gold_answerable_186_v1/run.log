@@ -1,0 +1,270 @@
+nohup: ignoring input
+pathagent selected=186 completed=0 remaining=186
+/home/wl/anaconda3/envs/mil/lib/python3.9/site-packages/timm/models/layers/__init__.py:48: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+[1/79] load TCGA-LD-A74U (3 questions)
+pathagent processed=1/186 last_correct=False
+pathagent processed=2/186 last_correct=False
+pathagent processed=3/186 last_correct=True
+[2/79] load TCGA-AR-A1AI (1 questions)
+pathagent processed=4/186 last_correct=False
+[3/79] load TCGA-B6-A0WZ (2 questions)
+pathagent processed=5/186 last_correct=True
+pathagent processed=6/186 last_correct=True
+[4/79] load TCGA-BH-A5IZ (3 questions)
+pathagent processed=7/186 last_correct=True
+pathagent processed=8/186 last_correct=False
+pathagent processed=9/186 last_correct=False
+[5/79] load TCGA-BH-A0AZ (2 questions)
+pathagent processed=10/186 last_correct=True
+pathagent processed=11/186 last_correct=False
+[6/79] load TCGA-EW-A1PF (1 questions)
+pathagent processed=12/186 last_correct=True
+[7/79] load TCGA-BH-A0BV (2 questions)
+pathagent processed=13/186 last_correct=True
+pathagent processed=14/186 last_correct=True
+[8/79] load TCGA-BH-A202 (3 questions)
+pathagent processed=15/186 last_correct=True
+pathagent processed=16/186 last_correct=False
+pathagent processed=17/186 last_correct=True
+[9/79] load TCGA-AR-A0U3 (2 questions)
+pathagent processed=18/186 last_correct=False
+pathagent processed=19/186 last_correct=False
+[10/79] load TCGA-AO-A0JE (3 questions)
+pathagent processed=20/186 last_correct=False
+pathagent processed=21/186 last_correct=True
+pathagent processed=22/186 last_correct=True
+[11/79] load TCGA-A1-A0SF (3 questions)
+pathagent processed=23/186 last_correct=True
+pathagent processed=24/186 last_correct=True
+pathagent processed=25/186 last_correct=True
+[12/79] load TCGA-EW-A1P7 (4 questions)
+pathagent processed=26/186 last_correct=False
+pathagent processed=27/186 last_correct=False
+pathagent processed=28/186 last_correct=False
+pathagent processed=29/186 last_correct=False
+[13/79] load TCGA-BH-A0DG (3 questions)
+pathagent processed=30/186 last_correct=True
+pathagent processed=31/186 last_correct=False
+pathagent processed=32/186 last_correct=True
+[14/79] load TCGA-BH-A0DD (4 questions)
+pathagent processed=33/186 last_correct=False
+pathagent processed=34/186 last_correct=True
+pathagent processed=35/186 last_correct=True
+pathagent processed=36/186 last_correct=False
+[15/79] load TCGA-B6-A0IA (2 questions)
+pathagent processed=37/186 last_correct=True
+pathagent processed=38/186 last_correct=False
+[16/79] load TCGA-AC-A2FF (1 questions)
+pathagent processed=39/186 last_correct=False
+[17/79] load TCGA-AC-A2FG (3 questions)
+pathagent processed=40/186 last_correct=False
+pathagent processed=41/186 last_correct=False
+pathagent processed=42/186 last_correct=False
+[18/79] load TCGA-A2-A259 (4 questions)
+pathagent processed=43/186 last_correct=False
+pathagent processed=44/186 last_correct=False
+pathagent processed=45/186 last_correct=False
+pathagent processed=46/186 last_correct=True
+[19/79] load TCGA-A1-A0SJ (1 questions)
+pathagent processed=47/186 last_correct=True
+[20/79] load TCGA-E9-A1N6 (2 questions)
+pathagent processed=48/186 last_correct=True
+pathagent processed=49/186 last_correct=True
+[21/79] load TCGA-LL-A5YP (2 questions)
+pathagent processed=50/186 last_correct=False
+pathagent processed=51/186 last_correct=True
+[22/79] load TCGA-AO-A03T (4 questions)
+pathagent processed=52/186 last_correct=False
+pathagent processed=53/186 last_correct=True
+pathagent processed=54/186 last_correct=False
+pathagent processed=55/186 last_correct=False
+[23/79] load TCGA-C8-A3M7 (2 questions)
+pathagent processed=56/186 last_correct=False
+pathagent processed=57/186 last_correct=False
+[24/79] load TCGA-EW-A1IY (2 questions)
+pathagent processed=58/186 last_correct=False
+pathagent processed=59/186 last_correct=False
+[25/79] load TCGA-LL-A442 (3 questions)
+pathagent processed=60/186 last_correct=True
+pathagent processed=61/186 last_correct=True
+pathagent processed=62/186 last_correct=False
+[26/79] load TCGA-EW-A2FW (2 questions)
+pathagent processed=63/186 last_correct=False
+pathagent processed=64/186 last_correct=False
+[27/79] load TCGA-E2-A105 (1 questions)
+pathagent processed=65/186 last_correct=True
+[28/79] load TCGA-A2-A0EW (1 questions)
+pathagent processed=66/186 last_correct=False
+[29/79] load TCGA-A8-A08R (3 questions)
+pathagent processed=67/186 last_correct=True
+pathagent processed=68/186 last_correct=True
+pathagent processed=69/186 last_correct=True
+[30/79] load TCGA-BH-A0HL (1 questions)
+pathagent processed=70/186 last_correct=False
+[31/79] load TCGA-E2-A15E (3 questions)
+pathagent processed=71/186 last_correct=True
+pathagent processed=72/186 last_correct=False
+pathagent processed=73/186 last_correct=False
+[32/79] load TCGA-B6-A0WV (3 questions)
+pathagent processed=74/186 last_correct=False
+pathagent processed=75/186 last_correct=True
+pathagent processed=76/186 last_correct=False
+[33/79] load TCGA-E9-A1RA (1 questions)
+pathagent processed=77/186 last_correct=True
+[34/79] load TCGA-BH-A0HX (3 questions)
+pathagent processed=78/186 last_correct=True
+pathagent processed=79/186 last_correct=False
+pathagent processed=80/186 last_correct=False
+[35/79] load TCGA-A8-A08Z (1 questions)
+pathagent processed=81/186 last_correct=True
+[36/79] load TCGA-D8-A1JL (4 questions)
+pathagent processed=82/186 last_correct=False
+pathagent processed=83/186 last_correct=True
+pathagent processed=84/186 last_correct=True
+pathagent processed=85/186 last_correct=True
+[37/79] load TCGA-B6-A0RO (2 questions)
+pathagent processed=86/186 last_correct=True
+pathagent processed=87/186 last_correct=False
+[38/79] load TCGA-GM-A2D9 (2 questions)
+pathagent processed=88/186 last_correct=False
+pathagent processed=89/186 last_correct=True
+[39/79] load TCGA-A2-A0T6 (2 questions)
+pathagent processed=90/186 last_correct=False
+pathagent processed=91/186 last_correct=False
+[40/79] load TCGA-AQ-A7U7 (4 questions)
+pathagent processed=92/186 last_correct=False
+pathagent processed=93/186 last_correct=False
+pathagent processed=94/186 last_correct=True
+pathagent processed=95/186 last_correct=False
+[41/79] load TCGA-AN-A0XS (3 questions)
+pathagent processed=96/186 last_correct=True
+pathagent processed=97/186 last_correct=True
+pathagent processed=98/186 last_correct=True
+[42/79] load TCGA-E9-A2JS (2 questions)
+pathagent processed=99/186 last_correct=False
+pathagent processed=100/186 last_correct=True
+[43/79] load TCGA-BH-A0DK (3 questions)
+pathagent processed=101/186 last_correct=True
+pathagent processed=102/186 last_correct=True
+pathagent processed=103/186 last_correct=True
+[44/79] load TCGA-E9-A22H (2 questions)
+pathagent processed=104/186 last_correct=True
+pathagent processed=105/186 last_correct=True
+[45/79] load TCGA-LL-A7T0 (3 questions)
+pathagent processed=106/186 last_correct=False
+pathagent processed=107/186 last_correct=False
+pathagent processed=108/186 last_correct=False
+[46/79] load TCGA-C8-A135 (2 questions)
+pathagent processed=109/186 last_correct=True
+pathagent processed=110/186 last_correct=True
+[47/79] load TCGA-A8-A08L (2 questions)
+pathagent processed=111/186 last_correct=True
+pathagent processed=112/186 last_correct=True
+[48/79] load TCGA-AO-A0J9 (1 questions)
+pathagent processed=113/186 last_correct=False
+[49/79] load TCGA-D8-A1JK (4 questions)
+pathagent processed=114/186 last_correct=False
+pathagent processed=115/186 last_correct=True
+pathagent processed=116/186 last_correct=False
+pathagent processed=117/186 last_correct=True
+[50/79] load TCGA-A2-A0CK (2 questions)
+pathagent processed=118/186 last_correct=True
+pathagent processed=119/186 last_correct=False
+[51/79] load TCGA-OL-A5RX (3 questions)
+pathagent processed=120/186 last_correct=False
+pathagent processed=121/186 last_correct=True
+pathagent processed=122/186 last_correct=True
+[52/79] load TCGA-A2-A3XY (4 questions)
+pathagent processed=123/186 last_correct=True
+pathagent processed=124/186 last_correct=False
+pathagent processed=125/186 last_correct=True
+pathagent processed=126/186 last_correct=False
+[53/79] load TCGA-D8-A27M (4 questions)
+pathagent processed=127/186 last_correct=True
+pathagent processed=128/186 last_correct=False
+pathagent processed=129/186 last_correct=False
+pathagent processed=130/186 last_correct=False
+[54/79] load TCGA-AO-A1KP (1 questions)
+pathagent processed=131/186 last_correct=False
+[55/79] load TCGA-D8-A73U (2 questions)
+pathagent processed=132/186 last_correct=False
+pathagent processed=133/186 last_correct=True
+[56/79] load TCGA-AO-A12D (3 questions)
+pathagent processed=134/186 last_correct=False
+pathagent processed=135/186 last_correct=True
+pathagent processed=136/186 last_correct=True
+[57/79] load TCGA-E9-A1RE (2 questions)
+pathagent processed=137/186 last_correct=True
+pathagent processed=138/186 last_correct=True
+[58/79] load TCGA-D8-A1JB (2 questions)
+pathagent processed=139/186 last_correct=False
+pathagent processed=140/186 last_correct=True
+[59/79] load TCGA-A2-A1FW (2 questions)
+pathagent processed=141/186 last_correct=True
+pathagent processed=142/186 last_correct=True
+[60/79] load TCGA-A2-A25A (2 questions)
+pathagent processed=143/186 last_correct=False
+pathagent processed=144/186 last_correct=False
+[61/79] load TCGA-A8-A09Q (2 questions)
+pathagent processed=145/186 last_correct=True
+pathagent processed=146/186 last_correct=True
+[62/79] load TCGA-BH-A0EE (4 questions)
+pathagent processed=147/186 last_correct=True
+pathagent processed=148/186 last_correct=False
+pathagent processed=149/186 last_correct=True
+pathagent processed=150/186 last_correct=False
+[63/79] load TCGA-A2-A0CZ (3 questions)
+pathagent processed=151/186 last_correct=True
+pathagent processed=152/186 last_correct=True
+pathagent processed=153/186 last_correct=False
+[64/79] load TCGA-AQ-A54N (3 questions)
+pathagent processed=154/186 last_correct=True
+pathagent processed=155/186 last_correct=True
+pathagent processed=156/186 last_correct=False
+[65/79] load TCGA-D8-A13Z (2 questions)
+pathagent processed=157/186 last_correct=True
+pathagent processed=158/186 last_correct=False
+[66/79] load TCGA-BH-A42U (1 questions)
+pathagent processed=159/186 last_correct=True
+[67/79] load TCGA-AC-A3TM (1 questions)
+pathagent processed=160/186 last_correct=True
+[68/79] load TCGA-A8-A07U (2 questions)
+pathagent processed=161/186 last_correct=True
+pathagent processed=162/186 last_correct=True
+[69/79] load TCGA-A2-A0EM (3 questions)
+pathagent processed=163/186 last_correct=False
+pathagent processed=164/186 last_correct=True
+pathagent processed=165/186 last_correct=False
+[70/79] load TCGA-A8-A097 (3 questions)
+pathagent processed=166/186 last_correct=True
+pathagent processed=167/186 last_correct=True
+pathagent processed=168/186 last_correct=False
+[71/79] load TCGA-A2-A1FX (1 questions)
+pathagent processed=169/186 last_correct=False
+[72/79] load TCGA-A2-A3XU (2 questions)
+pathagent processed=170/186 last_correct=False
+pathagent processed=171/186 last_correct=True
+[73/79] load TCGA-AR-A24S (3 questions)
+pathagent processed=172/186 last_correct=False
+pathagent processed=173/186 last_correct=False
+pathagent processed=174/186 last_correct=False
+[74/79] load TCGA-AR-A1AU (1 questions)
+pathagent processed=175/186 last_correct=False
+[75/79] load TCGA-E2-A14P (2 questions)
+pathagent processed=176/186 last_correct=True
+pathagent processed=177/186 last_correct=True
+[76/79] load TCGA-AC-A5XS (2 questions)
+pathagent processed=178/186 last_correct=True
+pathagent processed=179/186 last_correct=False
+[77/79] load TCGA-BH-A0BQ (3 questions)
+pathagent processed=180/186 last_correct=True
+pathagent processed=181/186 last_correct=True
+pathagent processed=182/186 last_correct=False
+[78/79] load TCGA-AR-A0TP (2 questions)
+pathagent processed=183/186 last_correct=False
+pathagent processed=184/186 last_correct=False
+[79/79] load TCGA-AN-A0XW (2 questions)
+pathagent processed=185/186 last_correct=False
+pathagent processed=186/186 last_correct=True
+saved=/home/wl/agent_2026/pathagent/outputs/pathagent_conch_ms_gold_answerable_186_v1/mc_answers.jsonl
