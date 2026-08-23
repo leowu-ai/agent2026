@@ -1,0 +1,33 @@
+{
+  "source": "outputs/multiscale_vqa_agent/hierarchical_rag_kb_v2_structured_guard_full390_v1/mc_answers.jsonl",
+  "overall": {
+    "proposed": 21,
+    "accepted": 0,
+    "rejected": 21,
+    "structured_candidate_correct": 9,
+    "final_answer_correct": 9
+  },
+  "by_task_match": {
+    "direct": {
+      "proposed": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "structured_candidate_correct": 0,
+      "final_answer_correct": 0
+    },
+    "partial": {
+      "proposed": 21,
+      "accepted": 0,
+      "rejected": 21,
+      "structured_candidate_correct": 9,
+      "final_answer_correct": 9
+    },
+    "none": {
+      "proposed": 0,
+      "accepted": 0,
+      "rejected": 0,
+      "structured_candidate_correct": 0,
+      "final_answer_correct": 0
+    }
+  }
+}

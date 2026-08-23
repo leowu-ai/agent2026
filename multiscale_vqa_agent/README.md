@@ -164,6 +164,11 @@ Knowledge RAG v2 supplies evidence limitations and reasoning constraints, not
 patient answers. Optional `--answerability_labels` are read only after inference
 for evaluation:
 
+Final Fusion uses `structured_supported` mode for safely mapped direct/partial
+phenotype candidates: known patient-specific components remain anchored and
+generic examples/forced-choice rules are suppressed. Full v2 forced-choice
+context is reserved for `none` or otherwise unmapped evidence-exhausted cases.
+
 ```bash
 /home/wl/anaconda3/envs/mil/bin/python \
   multiscale_vqa_agent/run_mc_vqa.py \

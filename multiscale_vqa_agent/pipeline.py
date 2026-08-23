@@ -1111,6 +1111,9 @@ class MultiScaleVQAPipeline:
             "override_occurred": answer.get(
                 "override_occurred", False
             ) if answer else False,
+            "override_accepted": answer.get(
+                "override_accepted", False
+            ) if answer else False,
             "override_proposed": answer.get(
                 "override_proposed", False
             ) if answer else False,
@@ -1118,6 +1121,26 @@ class MultiScaleVQAPipeline:
                 "override_rejected", False
             ) if answer else False,
             "override_reason": answer.get("override_reason") if answer else None,
+            "override_guard_reason": answer.get(
+                "override_guard_reason"
+            ) if answer else None,
+            "override_evidence_type": answer.get(
+                "override_evidence_type"
+            ) if answer else None,
+            "kb_reasoning_mode": answer.get("kb_reasoning_mode") if answer else None,
+            "full_forced_choice_context_used": answer.get(
+                "full_forced_choice_context_used", False
+            ) if answer else False,
+            "generic_reasoning_examples_used": answer.get(
+                "generic_reasoning_examples_used", []
+            ) if answer else [],
+            "proxy_rules_used": answer.get("proxy_rules_used", []) if answer else [],
+            "supplied_to_final_fusion_reasoning_example_ids": answer.get(
+                "supplied_to_final_fusion_reasoning_example_ids", []
+            ) if answer else [],
+            "supplied_to_final_fusion_proxy_rule_ids": answer.get(
+                "supplied_to_final_fusion_proxy_rule_ids", []
+            ) if answer else [],
             "structured_visual_conflict": answer.get(
                 "structured_visual_conflict", False
             ) if answer else False,

@@ -238,6 +238,69 @@ def multi_field_semantic_choice_alignment(
     return result
 
 
+def structured_option_compatibility(
+    predictions: Sequence[Dict[str, Any]],
+    choices: Sequence[str],
+    primary_fields: Sequence[str],
+    supporting_fields: Sequence[str],
+) -> List[Dict[str, Any]]:
+    """Classify explicit categorical option claims as support/contradiction/unknown."""
+    predicted_states = {
+        str(row.get("field")): _categorical_state(row.get("predicted_label"))
+        for row in predictions
+        if row.get("field") and _categorical_state(row.get("predicted_label"))
+    }
+    if not predicted_states:
+        return []
+    primary = set(primary_fields)
+    supporting = set(supporting_fields)
+    rows = []
+    for option in indexed_choices(choices):
+        supported = []
+        contradicted_primary = []
+        contradicted_supporting = []
+        unknown = []
+        requirements = {}
+        for field, predicted_state in predicted_states.items():
+            option_states = _choice_field_states(option["text"], field)
+            if len(option_states) != 1:
+                unknown.append(field)
+                continue
+            requirements[field] = option_states[0]
+            if option_states[0] == predicted_state:
+                supported.append(field)
+            elif field in primary:
+                contradicted_primary.append(field)
+            elif field in supporting:
+                contradicted_supporting.append(field)
+            else:
+                contradicted_supporting.append(field)
+        rows.append({
+            "choice_id": option["id"],
+            "choice": option["text"],
+            "requirements": requirements,
+            "supported_fields": supported,
+            "missing_primary_fields": [
+                field for field in unknown if field in primary
+            ],
+            "missing_supporting_fields": [
+                field for field in unknown if field in supporting
+            ],
+            "contradicted_primary_fields": contradicted_primary,
+            "contradicted_supporting_fields": contradicted_supporting,
+            "uncertain_fields": unknown,
+            "field_coverage": (
+                len(requirements) / len(predicted_states)
+                if predicted_states else 0.0
+            ),
+            "evidence_coverage": (
+                len(supported) / len(predicted_states)
+                if predicted_states else 0.0
+            ),
+        })
+    return rows
+
+
 def _literal_choice_matches(
     prediction_rows: List[Dict[str, Any]],
     choices: Sequence[str],
@@ -434,6 +497,9 @@ def build_structured_summary(
     else:
         primary_fields = executed[:1]
         supporting_fields = executed[1:]
+    option_compatibility = structured_option_compatibility(
+        rows, choices, primary_fields, supporting_fields
+    )
 
     return {
         "available": bool(predictions and task_match != "none"),
@@ -453,7 +519,7 @@ def build_structured_summary(
         "fields_used": executed,
         "mapping_complete": False,
         "answer_unit": "llm_semantic_option_mapping",
-        "option_compatibility": [],
+        "option_compatibility": option_compatibility,
         "joint_fields": requested if len(requested) > 1 else [],
         "joint_state": {},
         "joint_alignment_source": None,
