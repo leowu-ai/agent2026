@@ -213,11 +213,11 @@ class StateMachineTest(unittest.TestCase):
     def test_spatial_and_biological_order(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_4096", True, True),
-            ["answer", "inspect_2048", "inspect_1024"],
+            ["answer", "inspect_2048", "inspect_1024", "finalize"],
         )
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_2048", True, True),
-            ["answer", "inspect_1024"],
+            ["answer", "inspect_1024", "finalize"],
         )
         self.assertNotIn(
             "inspect_gene",
@@ -228,49 +228,50 @@ class StateMachineTest(unittest.TestCase):
             EvidenceVerifierAgent.available_actions("inspect_program", True, True),
         )
 
-    def test_explicit_unavailable_semantics_allow_early_abstain(self):
+    def test_verifier_never_exposes_abstain(self):
         for action in ("inspect_4096", "inspect_2048"):
             available = EvidenceVerifierAgent.available_actions(
-                action, True, True, allow_early_abstain=True
+                action, True, True
             )
-            self.assertIn("abstain", available)
+            self.assertNotIn("abstain", available)
+            self.assertIn("finalize", available)
 
-    def test_1024_retains_program_or_terminal_abstain(self):
+    def test_1024_retains_optional_program_or_finalize(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_1024", True, False),
-            ["answer", "inspect_program", "abstain"],
+            ["answer", "inspect_program", "finalize"],
         )
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_1024", False, False),
-            ["answer", "abstain"],
+            ["answer", "finalize"],
         )
 
     def test_invalid_action_does_not_mechanically_deepen(self):
         verifier = EvidenceVerifierAgent(client=None)
         decision = verifier._normalize(
             {"next_action": "inspect_gene"},
-            ["answer", "inspect_2048", "abstain"],
+            ["answer", "inspect_2048", "finalize"],
             [],
             [],
         )
-        self.assertEqual(decision["next_action"], "answer")
+        self.assertEqual(decision["next_action"], "finalize")
         self.assertTrue(decision["verifier_fallback_used"])
         self.assertTrue(decision["evidence_sufficiency_unverified"])
 
     def test_disabled_verifier_does_not_yield_fixed_five_round_trace(self):
         verifier = EvidenceVerifierAgent(client=None)
         decision = verifier._fallback(
-            ["answer", "inspect_program", "abstain"], "synthetic"
+            ["answer", "inspect_program", "finalize"], "synthetic"
         )
-        self.assertEqual(decision["next_action"], "answer")
+        self.assertEqual(decision["next_action"], "finalize")
         self.assertNotEqual(decision["next_action"], "inspect_program")
 
     def test_round0_allows_adaptive_visual_scale_or_answer(self):
         actions = EvidenceVerifierAgent.available_actions(
-            "round0", True, False, allow_early_abstain=False
+            "round0", True, False
         )
         self.assertEqual(
-            actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
+            actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024", "finalize"]
         )
 
     def test_fallback_prefers_mapped_direct_candidate(self):
@@ -278,15 +279,16 @@ class StateMachineTest(unittest.TestCase):
         memory.structured_candidate = {"choice_id": "A", "answer": "positive"}
         memory.option_alignment = {"mapping_complete": True}
         decision = EvidenceVerifierAgent._fallback(
-            ["answer", "inspect_1024", "abstain"], "synthetic", memory
+            ["answer", "inspect_1024", "finalize"], "synthetic", memory
         )
-        self.assertEqual(decision["next_action"], "answer")
+        self.assertEqual(decision["next_action"], "finalize")
 
-    def test_terminal_failure_is_unverified_answer_not_abstain(self):
+    def test_terminal_failure_finalizes_without_certifying_evidence(self):
         decision = EvidenceVerifierAgent._fallback(
-            ["answer", "abstain"], "synthetic failure"
+            ["answer", "finalize"], "synthetic failure"
         )
-        self.assertEqual(decision["next_action"], "answer")
+        self.assertEqual(decision["next_action"], "finalize")
+        self.assertTrue(decision["search_exhausted"])
         self.assertTrue(decision["verifier_fallback_used"])
         self.assertTrue(decision["evidence_sufficiency_unverified"])
 
@@ -365,67 +367,8 @@ class GraphAndMemoryTest(unittest.TestCase):
 
 
 class EarlyAbstainAndProgramRankingTest(unittest.TestCase):
-    def test_early_abstain_uses_explicit_plan_or_rag_semantics(self):
-        helper = MultiScaleVQAPipeline._early_abstain_allowed
-        self.assertFalse(helper({}, {
-            "matched_concepts": [{"evidence_role": "supportive_domain_knowledge"}],
-            "evidence_rules": [{"id": "rule_morphology_coarse_to_fine"}],
-        }))
-        self.assertTrue(helper({"requires_unavailable_context": True}, {}))
-        self.assertTrue(helper({}, {
-            "matched_concepts": [{
-                "evidence_role": "unavailable_from_local_visual_evidence"
-            }],
-        }))
-        self.assertTrue(helper({}, {
-            "evidence_rules": [{"id": "rule_assay_specific_target"}],
-        }))
-        self.assertFalse(helper(
-            {"target_phenotypes": ["histological_type_label"]},
-            {"evidence_rules": [{"id": "rule_stage_and_outcome"}]},
-        ))
-
-    def test_target_or_useful_morphology_prevents_early_abstain(self):
-        helper = MultiScaleVQAPipeline._early_abstain_allowed
-        self.assertFalse(helper({
-            "target_phenotypes": ["lymphovascular_invasion_label"],
-            "prototype_coverage": "partial",
-            "requires_unavailable_context": True,
-            "local_morphology_useful": True,
-        }, {}))
-        self.assertFalse(helper({
-            "target_phenotypes": ["ER_status_label"],
-            "prototype_coverage": "partial",
-            "requires_unavailable_context": True,
-            "local_morphology_useful": False,
-        }, {}))
-        self.assertFalse(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": True,
-            "local_morphology_useful": True,
-        }, {}))
-        self.assertFalse(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": False,
-            "local_morphology_useful": True,
-        }, {
-            "evidence_rules": [{"id": "rule_assay_specific_target"}],
-        }))
-
-    def test_only_genuinely_unavailable_without_useful_evidence_allows_early_abstain(self):
-        helper = MultiScaleVQAPipeline._early_abstain_allowed
-        self.assertTrue(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": True,
-            "local_morphology_useful": False,
-        }, {}))
-        self.assertTrue(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": False,
-            "local_morphology_useful": False,
-        }, {
-            "evidence_rules": [{"id": "rule_assay_specific_target"}],
-        }))
+    def test_early_abstain_helper_is_removed(self):
+        self.assertFalse(hasattr(MultiScaleVQAPipeline, "_early_abstain_allowed"))
 
     def test_morphology_program_ranking_uses_all_scales_and_consensus(self):
         pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
@@ -897,7 +840,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             False,
         )
 
-    def test_strong_direct_candidate_answers_at_round0(self):
+    def test_disabled_verifier_finalizes_at_round0_and_calls_fusion(self):
         pipeline = self.configured_pipeline(
             EvidenceVerifierAgent(client=None)
         )
@@ -906,14 +849,15 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         self.assertEqual(actions, [])
         self.assertEqual(result["agent_trace"]["inspected_scales"], [])
         self.assertEqual(
-            result["agent_trace"]["round0_decision"]["next_action"], "answer"
+            result["agent_trace"]["round0_decision"]["next_action"], "finalize"
         )
         self.assertEqual(
             result["agent_trace"]["structured_candidate_before_visual"]["choice_id"],
             "A",
         )
-        self.assertFalse(result["post_search_abstained"])
-        self.assertIsNone(result["abstain_stage"])
+        self.assertTrue(result["search_exhausted"])
+        self.assertFalse(result["final_evidence_sufficient"])
+        self.assertFalse(result["abstained"])
         self.assertTrue(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 1)
         self.assertIsNotNone(result["agent_answer"])
@@ -923,7 +867,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             if row["evidence_type"] in {"program", "gene"}
         ))
 
-    def test_authoritative_verifier_abstain_remains_post_search_abstain(self):
+    def test_authoritative_finalize_still_invokes_fusion(self):
         class AuthoritativeVerifier(EvidenceVerifierAgent):
             def __init__(self):
                 pass
@@ -936,71 +880,33 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
                     ),
                     None,
                 )
-                action = next_evidence or "abstain"
+                action = next_evidence or "finalize"
                 return {
                     "evidence_sufficient": False,
                     "evidence_state": (
-                        "unavailable" if action == "abstain" else "insufficient"
+                        "unavailable" if action == "finalize" else "insufficient"
                     ),
                     "missing_evidence_type": (
-                        "unavailable" if action == "abstain" else "fine_visual"
+                        "unavailable" if action == "finalize" else "fine_visual"
                     ),
                     "conflict_detected": False,
                     "next_action": action,
                     "target": None,
                     "reason": "authoritative synthetic decision",
+                    "search_exhausted": action == "finalize",
                     "verifier_fallback_used": False,
                     "evidence_sufficiency_unverified": False,
                 }
 
         pipeline = self.configured_pipeline(AuthoritativeVerifier())
         result = self.run_question(pipeline, self.plan())
-        self.assertTrue(result["post_search_abstained"])
-        self.assertEqual(result["abstain_stage"], "evidence_sufficiency")
+        self.assertTrue(result["search_exhausted"])
+        self.assertEqual(result["final_evidence_state"], "unavailable")
         self.assertFalse(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 0)
-        self.assertIsNone(result["agent_answer"])
-
-    def test_force_answer_calls_fusion_after_authoritative_verifier_abstain(self):
-        class AuthoritativeVerifier:
-            @staticmethod
-            def available_actions(*args, **kwargs):
-                return ["answer", "abstain"]
-
-            @staticmethod
-            def decide(**kwargs):
-                return {
-                    "evidence_sufficient": False,
-                    "evidence_state": "unavailable",
-                    "missing_evidence_type": "unavailable",
-                    "conflict_detected": False,
-                    "next_action": "abstain",
-                    "target": None,
-                    "reason": "authoritative synthetic decision",
-                    "verifier_fallback_used": False,
-                    "evidence_sufficiency_unverified": False,
-                }
-
-        pipeline = self.configured_pipeline(AuthoritativeVerifier())
-        plan = self.plan()
-        result = pipeline._run_question(
-            {
-                "Id": "TCGA-AA-0001",
-                "Question": plan.question,
-                "Choice": ["ductal", "lobular"],
-                "Answer": "ductal",
-            },
-            plan,
-            synthetic_scale_results(),
-            {},
-            False,
-            force_answer=True,
-        )
-        self.assertTrue(result["post_search_abstained"])
-        self.assertTrue(result["forced_answer_after_verifier_abstain"])
         self.assertFalse(result["abstained"])
-        self.assertIsNone(result["abstain_stage"])
         self.assertIsNotNone(result["agent_answer"])
+        self.assertTrue(result["answer_in_choices"])
 
     def test_same_case_multiple_questions_call_g2p_once(self):
         class CountingG2P:

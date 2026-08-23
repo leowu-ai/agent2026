@@ -142,14 +142,16 @@ The full 735-question run is a pipeline demonstration because most cases overlap
 
 ## Hierarchical RAG Agent
 
-The optional `hierarchical_rag` mode keeps the frozen feasibility gate,
+The optional `hierarchical_rag` mode sends every selected MCQ through the
 existing planner, patient-level G2P cache, and multiscale structured prediction.
+There is no Answerability Gate in the inference path. Evidence search may
+`finalize` with unresolved evidence, but Final Fusion still returns one option.
 It first verifies compact structured G2P evidence at Round 0. When more
 evidence is needed, it adaptively selects a spatial scale and keeps finer
 visual rounds linked to the same WSI region:
 
 ```text
-structured Round 0 -> answer or 4096/2048/1024
+structured Round 0 -> answer, 4096/2048/1024, or finalize
 4096 -> optional spatial child at 2048 or 1024
 2048 -> optional spatial child at 1024
 1024 -> optional Program@1024 -> optional Gene@1024
@@ -158,16 +160,18 @@ structured Round 0 -> answer or 4096/2048/1024
 Program and gene observations are supportive WSI-derived evidence, not measured
 RNA or clinical assays. The default `legacy` mode retains the previous pipeline.
 
-Use a previously frozen Gate JSONL; do not substitute online answerability or a
-Gold-label file for `<FROZEN_GATE_V2_JSONL>`:
+Knowledge RAG v2 supplies evidence limitations and reasoning constraints, not
+patient answers. Optional `--answerability_labels` are read only after inference
+for evaluation:
 
 ```bash
 /home/wl/anaconda3/envs/mil/bin/python \
   multiscale_vqa_agent/run_mc_vqa.py \
   --config multiscale_vqa_agent/config.servers.json \
+  --vqa_json /home/wl/agent_2026/dataset/WsiVQA_test.json \
+  --output outputs/multiscale_vqa_agent/hierarchical_rag_kb_v2_full390/mc_answers.jsonl \
+  --metrics outputs/multiscale_vqa_agent/hierarchical_rag_kb_v2_full390/mc_answers_metrics.json \
   --agent_mode hierarchical_rag \
-  --knowledge_base /home/wl/agent_2026/g2p_toolbank_brca/hybrid_pathology_knowledge_base_v1.zip \
-  --precomputed_answerability <FROZEN_GATE_V2_JSONL> \
-  --limit 1 \
+  --knowledge_base /home/wl/agent_2026/g2p_toolbank_brca/hybrid_pathology_knowledge_base_v2.zip \
   --no_resume
 ```

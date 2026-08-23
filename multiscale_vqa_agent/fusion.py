@@ -16,10 +16,10 @@ from .fusion_evidence import (
 from .schemas import ExecutionPlan
 
 
-MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions using broad WSI-derived context.
-Select exactly one supplied option ID. Do not return null, refuse, or invent measurements.
-There is no Router-selected direct phenotype prototype. Broad G2P phenotype predictions are contextual WSI-derived predictions, not measured assays and not direct target evidence. Patho-R1 is a fallible summary of directly visible morphology. Combine broad G2P context with visual morphology and choose the most defensible option. Do not treat an unrelated phenotype prediction as a measurement of the requested target.
-If evidence is weak, choose with low confidence and say it is not confirmed.
+MINIMAL_NONE_SYSTEM = """You answer breast pathology multiple-choice questions using accumulated WSI-derived evidence and Knowledge RAG constraints.
+Return exactly one supplied option ID. There is no Router-selected direct phenotype prototype, so broad G2P predictions are contextual predictive evidence only and are not direct measurements of unrelated targets. Patho-R1 provides fallible visible morphology. Knowledge limitations, permitted proxy rules, invalid-inference warnings, forced-choice rules, and generic examples constrain reasoning; generic examples are not patient evidence.
+If direct evidence is insufficient, eliminate contradicted options, use valid morphology and permitted proxies, apply component-wise and unit/logical constraints, and prefer the option requiring the fewest unsupported assumptions. Keep confidence low when important facts are missing. Do not invent measurements, treatment, procedure, history, margin orientation, assay results, nodal status, or metastatic status.
+Never return null, abstain, refusal, or an answer outside the supplied options.
 Output only JSON: {\"answer_id\":\"<supplied option ID>\",\"confidence\":0.0,\"explanation\":\"one sentence\",\"limitations\":\"one sentence\"}"""
 
 
@@ -118,13 +118,12 @@ class FusionVerificationAgent:
             raw = self.client.chat(
                 system_prompt,
                 json.dumps(evidence, ensure_ascii=False),
-                temperature=0.6,
+                temperature=0.0,
                 max_tokens=4096,
                 response_format={"type": "json_object"},
                 retries=2,
                 enable_thinking=False,
-                top_p=0.95,
-                top_k=20,
+                top_p=1.0,
             )
             parsed = parse_json_response(raw)
             result = self._validate(parsed, choices, structured, raw, "parsed", retry_count)
@@ -159,6 +158,9 @@ class FusionVerificationAgent:
                     "conflicts": evidence.get("conflicts", []),
                 },
                 "visual_evidence_summary": evidence.get("visual_observations", evidence.get("available_visual_summary", "")),
+                "hierarchical_agent_context": evidence.get(
+                    "hierarchical_agent_context", {}
+                ),
                 "output_schema": {
                     "answer_id": "<one supplied option ID>",
                     "confidence": 0.0,
