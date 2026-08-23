@@ -39,6 +39,15 @@ def main():
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
+        "--force_answer_all",
+        action="store_true",
+        help=(
+            "Record the Answerability Gate decision but send all questions through "
+            "the unchanged Planner and downstream agent, forcing Final Fusion after "
+            "a terminal Verifier abstain."
+        ),
+    )
+    parser.add_argument(
         "--agent_mode",
         choices=("legacy", "hierarchical_rag"),
         default="legacy",
@@ -99,6 +108,7 @@ def main():
         resume=not args.no_resume,
         answerability_labels=args.answerability_labels,
         comparison_answers=args.comparison_answers,
+        force_answer_all=args.force_answer_all,
     )
     print(f"Saved answers: {output}")
 

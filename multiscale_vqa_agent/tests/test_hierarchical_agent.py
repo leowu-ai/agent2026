@@ -961,6 +961,47 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         self.assertEqual(result["verifier_failure_count"], 0)
         self.assertIsNone(result["agent_answer"])
 
+    def test_force_answer_calls_fusion_after_authoritative_verifier_abstain(self):
+        class AuthoritativeVerifier:
+            @staticmethod
+            def available_actions(*args, **kwargs):
+                return ["answer", "abstain"]
+
+            @staticmethod
+            def decide(**kwargs):
+                return {
+                    "evidence_sufficient": False,
+                    "evidence_state": "unavailable",
+                    "missing_evidence_type": "unavailable",
+                    "conflict_detected": False,
+                    "next_action": "abstain",
+                    "target": None,
+                    "reason": "authoritative synthetic decision",
+                    "verifier_fallback_used": False,
+                    "evidence_sufficiency_unverified": False,
+                }
+
+        pipeline = self.configured_pipeline(AuthoritativeVerifier())
+        plan = self.plan()
+        result = pipeline._run_question(
+            {
+                "Id": "TCGA-AA-0001",
+                "Question": plan.question,
+                "Choice": ["ductal", "lobular"],
+                "Answer": "ductal",
+            },
+            plan,
+            synthetic_scale_results(),
+            {},
+            False,
+            force_answer=True,
+        )
+        self.assertTrue(result["post_search_abstained"])
+        self.assertTrue(result["forced_answer_after_verifier_abstain"])
+        self.assertFalse(result["abstained"])
+        self.assertIsNone(result["abstain_stage"])
+        self.assertIsNotNone(result["agent_answer"])
+
     def test_same_case_multiple_questions_call_g2p_once(self):
         class CountingG2P:
             calls = 0

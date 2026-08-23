@@ -69,7 +69,10 @@ class CountingG2P:
 
 
 class CountingPipeline(MultiScaleVQAPipeline):
-    def _run_question(self, item, plan, scale_results, evidence_cache, crop_patches):
+    def _run_question(
+        self, item, plan, scale_results, evidence_cache, crop_patches,
+        force_answer=False,
+    ):
         self.calls["retrieval"] += 1
         self.calls["pathology"] += 1
         self.calls["fusion"] += 1
@@ -215,6 +218,29 @@ class AnswerabilityPipelineTest(unittest.TestCase):
         self.assertEqual(pipeline.calls["g2p"], 1)
         self.assertEqual(pipeline.calls["fusion"], 1)
         self.assertEqual(sum(row["abstained"] for row in rows), 1)
+
+    def test_force_answer_all_routes_gate_false_without_relabeling_gate(self):
+        items = [self.item("q true"), self.item("q false")]
+        pipeline = self.make_pipeline(
+            {"q true": True, "q false": False}, CountingMCPipeline
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            source = Path(directory) / "questions.json"
+            output = Path(directory) / "answers.jsonl"
+            source.write_text(json.dumps(items), encoding="utf-8")
+            pipeline.run_multiple_choice(
+                str(source), str(output), resume=False, crop_patches=False,
+                force_answer_all=True,
+            )
+            rows = [json.loads(line) for line in output.read_text().splitlines()]
+        self.assertEqual(pipeline.calls["planner"], 2)
+        self.assertEqual(pipeline.calls["g2p"], 1)
+        self.assertEqual(pipeline.calls["fusion"], 2)
+        self.assertEqual(sum(row["abstained"] for row in rows), 0)
+        false_row = next(row for row in rows if row["question"] == "q false")
+        self.assertFalse(false_row["predicted_can_answer"])
+        self.assertTrue(false_row["gate_bypassed"])
+        self.assertTrue(false_row["force_answer_all"])
 
     def test_missing_precomputed_key_is_fatal_without_online_fallback(self):
         item = self.item("missing question")

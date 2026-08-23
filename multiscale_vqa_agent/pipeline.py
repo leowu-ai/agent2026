@@ -346,10 +346,12 @@ class MultiScaleVQAPipeline:
         scale_results: Dict[int, Dict[str, Any]],
         evidence_cache: Dict[str, Any],
         crop_patches: bool,
+        force_answer: bool = False,
     ) -> Dict[str, Any]:
         if getattr(self, "agent_mode", "legacy") == "hierarchical_rag":
             return self._run_question_hierarchical(
-                item, plan, scale_results, evidence_cache, crop_patches
+                item, plan, scale_results, evidence_cache, crop_patches,
+                force_answer=force_answer,
             )
         return self._run_question_legacy(
             item, plan, scale_results, evidence_cache, crop_patches
@@ -633,6 +635,7 @@ class MultiScaleVQAPipeline:
         scale_results: Dict[int, Dict[str, Any]],
         evidence_cache: Dict[str, Any],
         crop_patches: bool,
+        force_answer: bool = False,
     ) -> Dict[str, Any]:
         choices = list(item.get("Choice", item.get("choices", [])) or [])
         plan_dict = plan.to_dict()
@@ -989,10 +992,14 @@ class MultiScaleVQAPipeline:
             ),
             "rounds": pathology_rounds,
         }
-        if post_search_abstained:
+        verifier_requested_abstain = post_search_abstained
+        effective_abstain = post_search_abstained and not force_answer
+        if effective_abstain:
             structured = structured_round0
             answer = None
         else:
+            if verifier_requested_abstain:
+                evidence_sufficiency_unverified = True
             answer, structured = self.fusion.answer_with_summary(
                 plan,
                 choices,
@@ -1029,6 +1036,9 @@ class MultiScaleVQAPipeline:
             "verifier_decisions": verifier_decisions,
             "final_evidence_state": final_evidence_state,
             "post_search_abstained": post_search_abstained,
+            "forced_answer_after_verifier_abstain": bool(
+                verifier_requested_abstain and force_answer
+            ),
             "verifier_failure_count": verifier_failure_count,
             "verifier_fallback_count": verifier_failure_count,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
@@ -1078,13 +1088,16 @@ class MultiScaleVQAPipeline:
             "knowledge_rag": knowledge,
             "working_memory": memory.to_dict(),
             "agent_trace": agent_trace,
-            "post_search_abstained": post_search_abstained,
+            "post_search_abstained": verifier_requested_abstain,
+            "forced_answer_after_verifier_abstain": bool(
+                verifier_requested_abstain and force_answer
+            ),
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
             "verifier_failure_count": verifier_failure_count,
             "abstain_stage": (
-                "evidence_sufficiency" if post_search_abstained else None
+                "evidence_sufficiency" if effective_abstain else None
             ),
-            "abstained": post_search_abstained,
+            "abstained": effective_abstain,
             "agent_answer": answer,
             "answer_in_choices": bool(
                 answer and answer.get("answer") in choices

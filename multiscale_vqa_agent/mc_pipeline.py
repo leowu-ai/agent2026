@@ -24,6 +24,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         resume: bool = True,
         answerability_labels: Optional[str] = None,
         comparison_answers: Optional[str] = None,
+        force_answer_all: bool = False,
     ) -> Path:
         if self.answerability_only:
             return super().run(
@@ -89,12 +90,16 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                 answerable = []
                 for item in case_items:
                     assessment = self._predict_answerability(item)
-                    if not assessment["can_answer"]:
+                    if not assessment["can_answer"] and not force_answer_all:
                         self._save_mc_result(
                             handle, self._abstained_result(item, assessment), tracker
                         )
                         continue
-                    answerable.append((item, assessment, self.planner.plan(item)))
+                    answerable.append((
+                        item,
+                        assessment,
+                        self.planner.plan(item),
+                    ))
                 if not answerable:
                     print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
                     continue
@@ -121,13 +126,22 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                     try:
                         result = self._attach_answerability(
                             self._run_question(
-                                item, plan, scale_results, evidence_cache, crop_patches
+                                item, plan, scale_results, evidence_cache, crop_patches,
+                                **({"force_answer": True} if force_answer_all else {}),
                             ),
                             assessment,
+                        )
+                        result["force_answer_all"] = bool(force_answer_all)
+                        result["gate_bypassed"] = bool(
+                            force_answer_all and not assessment["can_answer"]
                         )
                     except Exception as error:
                         result = self._attach_answerability(
                             self._error_result(item, plan, error), assessment
+                        )
+                        result["force_answer_all"] = bool(force_answer_all)
+                        result["gate_bypassed"] = bool(
+                            force_answer_all and not assessment["can_answer"]
                         )
                     self._save_mc_result(handle, result, tracker)
 
