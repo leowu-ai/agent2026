@@ -47,12 +47,6 @@ class KnowledgeRAG:
         "model_relations.jsonl": "model_relation_entries",
         "program_gene_candidates.jsonl": "program_gene_candidate_entries",
     }
-    V2_FILES = {
-        "evidence_limitations_v2.jsonl": "evidence_limitations_v2",
-        "proxy_evidence_rules_v2.jsonl": "proxy_evidence_rules_v2",
-        "forced_choice_reasoning_v2.jsonl": "forced_choice_reasoning_v2",
-        "reasoning_examples_v2.jsonl": "reasoning_examples_v2",
-    }
 
     def __init__(self, zip_path: str, registry: Any):
         self.zip_path = Path(zip_path)
@@ -68,30 +62,6 @@ class KnowledgeRAG:
         self.program_gene_candidates = self._read_jsonl(
             "program_gene_candidates.jsonl"
         )
-        self.knowledge_base_version = str(self.manifest.get("version") or "1.0")
-        self.evidence_limitations: List[Dict[str, Any]] = []
-        self.proxy_evidence_rules: List[Dict[str, Any]] = []
-        self.forced_choice_rules: List[Dict[str, Any]] = []
-        self.reasoning_examples: List[Dict[str, Any]] = []
-        if self._version_major(self.knowledge_base_version) >= 2:
-            missing = [
-                name for name in self.V2_FILES
-                if f"{self.prefix}{name}" not in self._members
-            ]
-            if missing:
-                raise ValueError(f"Knowledge base v2 ZIP is missing: {missing}")
-            self.evidence_limitations = self._read_jsonl(
-                "evidence_limitations_v2.jsonl"
-            )
-            self.proxy_evidence_rules = self._read_jsonl(
-                "proxy_evidence_rules_v2.jsonl"
-            )
-            self.forced_choice_rules = self._read_jsonl(
-                "forced_choice_reasoning_v2.jsonl"
-            )
-            self.reasoning_examples = self._read_jsonl(
-                "reasoning_examples_v2.jsonl"
-            )
         self._validate()
         self.tool_by_field = {
             str(row.get("field")): row for row in self.tool_semantics
@@ -102,13 +72,6 @@ class KnowledgeRAG:
         self.genes_by_program = {
             str(row.get("program")): row for row in self.program_gene_candidates
         }
-
-    @staticmethod
-    def _version_major(version: str) -> int:
-        try:
-            return int(str(version).split(".", 1)[0])
-        except (TypeError, ValueError):
-            return 1
 
     def _inspect_archive(self) -> Tuple[str, Set[str]]:
         with zipfile.ZipFile(self.zip_path) as archive:
@@ -170,20 +133,6 @@ class KnowledgeRAG:
                     f"Knowledge base count mismatch for {filename}: "
                     f"manifest={expected.get(count_key)!r}, loaded={len(rows)}"
                 )
-        if self._version_major(self.knowledge_base_version) >= 2:
-            v2_loaded = {
-                "evidence_limitations_v2.jsonl": self.evidence_limitations,
-                "proxy_evidence_rules_v2.jsonl": self.proxy_evidence_rules,
-                "forced_choice_reasoning_v2.jsonl": self.forced_choice_rules,
-                "reasoning_examples_v2.jsonl": self.reasoning_examples,
-            }
-            for filename, rows in v2_loaded.items():
-                count_key = self.V2_FILES[filename]
-                if int(expected.get(count_key, -1)) != len(rows):
-                    raise ValueError(
-                        f"Knowledge base count mismatch for {filename}: "
-                        f"manifest={expected.get(count_key)!r}, loaded={len(rows)}"
-                    )
         fields = {str(row.get("field")) for row in self.tool_semantics}
         registry_fields = set(getattr(self.registry, "phenotype_fields", []))
         if fields != registry_fields:
@@ -329,50 +278,6 @@ class KnowledgeRAG:
             for strategy in row.get("scale_strategy", []) or []
         )
         relevant_rules = self._retrieve_rules(query_tokens, bool(targets))
-        evidence_limitations = self._retrieve_v2_rows(
-            self.evidence_limitations,
-            query_text,
-            query_tokens,
-            ("applies_to", "target_type"),
-            ("id", "target_type", "recoverability", "direct_evidence",
-             "proxy_evidence", "invalid_inference", "forced_choice_policy"),
-            limit=5,
-        )
-        proxy_evidence_rules = self._retrieve_v2_rows(
-            self.proxy_evidence_rules,
-            query_text,
-            query_tokens,
-            ("target", "stronger_evidence", "allowed_proxy", "option_use"),
-            ("id", "target", "stronger_evidence", "allowed_proxy", "do_not",
-             "option_use"),
-            limit=5,
-        )
-        forced_choice_rules = [
-            {
-                "id": row.get("id"),
-                "priority": row.get("priority"),
-                "rule": row.get("rule"),
-                "evidence_role": "general_reasoning_constraint",
-                "patient_specific": False,
-            }
-            for row in sorted(
-                self.forced_choice_rules,
-                key=lambda row: (int(row.get("priority") or 999), str(row.get("id", ""))),
-            )[:12]
-        ]
-        reasoning_examples = self._retrieve_v2_rows(
-            self.reasoning_examples,
-            query_text,
-            query_tokens,
-            ("category", "question_template", "choices_template", "teaches"),
-            ("id", "category", "question_template", "choices_template", "evidence",
-             "reasoning", "teaches"),
-            limit=3,
-            minimum_score=2.5,
-        )
-        for row in reasoning_examples:
-            row["evidence_role"] = "generic_reasoning_example"
-            row["patient_specific"] = False
         scale_guidance = self._scale_specific_visual_guidance(matched)
         return {
             "matched_concepts": matched,
@@ -384,70 +289,14 @@ class KnowledgeRAG:
             "candidate_genes": candidate_genes,
             "limitations": limitations[:10],
             "evidence_rules": relevant_rules,
-            "evidence_limitations": evidence_limitations,
-            "proxy_evidence_rules": proxy_evidence_rules,
-            "forced_choice_rules": forced_choice_rules,
-            "reasoning_examples": reasoning_examples,
             "retrieval_trace": {
-                "method": "deterministic_lexical_v2" if self._version_major(
-                    self.knowledge_base_version
-                ) >= 2 else "deterministic_lexical_v1",
+                "method": "deterministic_lexical_v1",
                 "query_token_count": len(query_tokens),
                 "target_phenotypes_forced": targets,
                 "concept_candidates_scored": len(ranked),
-                "knowledge_base_version": self.knowledge_base_version,
-                "v2_limitation_ids": [row.get("id") for row in evidence_limitations],
-                "v2_proxy_rule_ids": [row.get("id") for row in proxy_evidence_rules],
-                "v2_example_ids": [row.get("id") for row in reasoning_examples],
+                "knowledge_base_version": self.manifest.get("version"),
             },
         }
-
-    @staticmethod
-    def _retrieve_v2_rows(
-        rows: List[Dict[str, Any]],
-        query_text: str,
-        query_tokens: Set[str],
-        search_keys: Iterable[str],
-        output_keys: Iterable[str],
-        limit: int,
-        minimum_score: float = 0.1,
-    ) -> List[Dict[str, Any]]:
-        lowered = query_text.lower()
-        ranked = []
-        generic = {
-            "a", "an", "and", "are", "as", "at", "be", "breast", "by",
-            "cancer", "for", "from", "has", "in", "is", "it", "of", "or",
-            "patient", "the", "this", "to", "tumor", "was", "what", "which",
-            "with",
-        }
-        meaningful_query = {
-            token for token in query_tokens - generic if not token.isdigit()
-        }
-        if "ptnm" in meaningful_query:
-            meaningful_query.add("tnm")
-        for row in rows:
-            values = _text_values(row, search_keys)
-            phrases = [value.lower().strip() for value in values if value.strip()]
-            phrase_hits = sum(
-                1 for phrase in phrases
-                if len(_tokens(phrase) - generic) >= 1 and phrase in lowered
-            )
-            searchable = {
-                token for token in _tokens(" ".join(values)) - generic
-                if not token.isdigit()
-            }
-            primary_values = _text_values(row, tuple(search_keys)[:2])
-            primary_tokens = _tokens(" ".join(primary_values)) - generic
-            overlap = len(meaningful_query & searchable)
-            primary_overlap = len(meaningful_query & primary_tokens)
-            score = 3.0 * phrase_hits + float(overlap) + float(primary_overlap)
-            if score >= minimum_score:
-                ranked.append((score, str(row.get("id", "")), row))
-        ranked.sort(key=lambda item: (-item[0], item[1]))
-        return [
-            {key: row.get(key) for key in output_keys if key in row}
-            for _, _, row in ranked[:limit]
-        ]
 
     @staticmethod
     def _concept_score(

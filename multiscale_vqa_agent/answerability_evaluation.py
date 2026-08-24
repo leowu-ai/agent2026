@@ -98,11 +98,6 @@ def _predicted_can_answer(row: Dict[str, Any]) -> Tuple[bool, bool]:
         return True, True
     if legacy == "unanswerable":
         return False, True
-    # The current no-Gate architecture processes every selected question.
-    # Treat that fixed execution policy as positive only for post-inference
-    # compatibility metrics; it is not an inference-time prediction.
-    if "agent_answer" in row or row.get("error"):
-        return True, True
     raise ValueError("Prediction is missing a boolean predicted_can_answer")
 
 

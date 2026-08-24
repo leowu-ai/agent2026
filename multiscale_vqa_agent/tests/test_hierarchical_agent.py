@@ -156,53 +156,6 @@ class RetrievalSeparationTest(unittest.TestCase):
         self.assertNotIn("program", self.source_types(broad))
         self.assertNotIn("gene", self.source_types(broad))
 
-    def test_morphology_hybrid_contains_question_and_broad_sources(self):
-        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
-        pipeline.retrieval = self.agent
-        pipeline.question_features = SimpleNamespace(
-            lookup=lambda question: np.asarray([1.0, 0.0, 0.0])
-        )
-        pipeline.morphology_retrieval_mode = "question_similarity"
-        pipeline.partial_retrieval_mode = "hybrid_question_prototype"
-        pipeline.direct_retrieval_mode = "hybrid_question_prototype"
-        plan = ExecutionPlan(
-            case_id="case", question="What change is visible?",
-            target_phenotypes=[], task_type="morphology", metrics=[],
-            answer_mode="multiple_choice", supported=False, support_reason="",
-            task_match="none", evidence_route="morphology_only",
-            local_morphology_useful=True,
-        )
-        groups = pipeline._hierarchical_spatial_groups(
-            plan, "morphology_only", self.results, {}, 4096, False
-        )
-        sources = {group.evidence_source for group in groups}
-        self.assertTrue(any("question_similarity" in source for source in sources))
-        self.assertTrue(any("broad_phenotype" in source for source in sources))
-
-    def test_visual_phenotype_hybrid_contains_question_and_selected_sources(self):
-        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
-        pipeline.retrieval = self.agent
-        pipeline.question_features = SimpleNamespace(
-            lookup=lambda question: np.asarray([1.0, 0.0, 0.0])
-        )
-        pipeline.morphology_retrieval_mode = "question_similarity"
-        pipeline.partial_retrieval_mode = "hybrid_question_prototype"
-        pipeline.direct_retrieval_mode = "hybrid_question_prototype"
-        plan = ExecutionPlan(
-            case_id="case", question="What is the histological type?",
-            target_phenotypes=["histological_type_label"],
-            task_type="multiclass", metrics=[], answer_mode="multiple_choice",
-            supported=True, support_reason="", task_match="direct",
-            evidence_route="phenotype_direct",
-        )
-        groups = pipeline._hierarchical_spatial_groups(
-            plan, "phenotype_direct", self.results, {}, 4096, False
-        )
-        sources = {group.evidence_source for group in groups}
-        self.assertTrue(any("question_similarity" in source for source in sources))
-        self.assertTrue(any("selected_phenotype" in source for source in sources))
-
-
     def test_program_and_gene_tools_are_1024_only(self):
         program = self.agent.retrieve_program_1024(0, self.results)
         gene = self.agent.retrieve_gene_1024(0, self.results)
@@ -256,52 +209,15 @@ class RetrievalSeparationTest(unittest.TestCase):
         self.assertTrue({"phenotype", "program", "gene"} <= self.source_types(groups))
 
 
-class VisualSearchPolicyTest(unittest.TestCase):
-    @staticmethod
-    def plan(**overrides):
-        values = {
-            "case_id": "case", "question": "question",
-            "target_phenotypes": [], "task_type": "morphology", "metrics": [],
-            "answer_mode": "multiple_choice", "supported": False,
-            "support_reason": "", "task_match": "none",
-            "evidence_route": "morphology_only",
-        }
-        values.update(overrides)
-        return ExecutionPlan(**values)
-
-    def test_patch_assessable_morphology_is_eligible(self):
-        policy = MultiScaleVQAPipeline._visual_search_policy(
-            self.plan(local_morphology_useful=True), {}
-        )
-        self.assertTrue(policy["eligible"])
-
-    def test_exact_nonvisual_context_skips_morphology(self):
-        policy = MultiScaleVQAPipeline._visual_search_policy(
-            self.plan(requires_unavailable_context=True), {}
-        )
-        self.assertFalse(policy["eligible"])
-
-    def test_receptor_status_uses_structured_evidence_without_visual_search(self):
-        policy = MultiScaleVQAPipeline._visual_search_policy(
-            self.plan(
-                target_phenotypes=["HER2_status_label"],
-                supported=True, task_match="direct",
-                evidence_route="phenotype_direct",
-            ),
-            {},
-        )
-        self.assertFalse(policy["eligible"])
-
-
 class StateMachineTest(unittest.TestCase):
     def test_spatial_and_biological_order(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_4096", True, True),
-            ["answer", "inspect_2048", "inspect_1024", "finalize"],
+            ["answer", "inspect_2048", "inspect_1024"],
         )
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_2048", True, True),
-            ["answer", "inspect_1024", "finalize"],
+            ["answer", "inspect_1024"],
         )
         self.assertNotIn(
             "inspect_gene",
@@ -312,50 +228,49 @@ class StateMachineTest(unittest.TestCase):
             EvidenceVerifierAgent.available_actions("inspect_program", True, True),
         )
 
-    def test_verifier_never_exposes_abstain(self):
+    def test_explicit_unavailable_semantics_allow_early_abstain(self):
         for action in ("inspect_4096", "inspect_2048"):
             available = EvidenceVerifierAgent.available_actions(
-                action, True, True
+                action, True, True, allow_early_abstain=True
             )
-            self.assertNotIn("abstain", available)
-            self.assertIn("finalize", available)
+            self.assertIn("abstain", available)
 
-    def test_1024_retains_optional_program_or_finalize(self):
+    def test_1024_retains_program_or_terminal_abstain(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_1024", True, False),
-            ["answer", "inspect_program", "finalize"],
+            ["answer", "inspect_program", "abstain"],
         )
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_1024", False, False),
-            ["answer", "finalize"],
+            ["answer", "abstain"],
         )
 
     def test_invalid_action_does_not_mechanically_deepen(self):
         verifier = EvidenceVerifierAgent(client=None)
         decision = verifier._normalize(
             {"next_action": "inspect_gene"},
-            ["answer", "inspect_2048", "finalize"],
+            ["answer", "inspect_2048", "abstain"],
             [],
             [],
         )
-        self.assertEqual(decision["next_action"], "finalize")
+        self.assertEqual(decision["next_action"], "answer")
         self.assertTrue(decision["verifier_fallback_used"])
         self.assertTrue(decision["evidence_sufficiency_unverified"])
 
     def test_disabled_verifier_does_not_yield_fixed_five_round_trace(self):
         verifier = EvidenceVerifierAgent(client=None)
         decision = verifier._fallback(
-            ["answer", "inspect_program", "finalize"], "synthetic"
+            ["answer", "inspect_program", "abstain"], "synthetic"
         )
-        self.assertEqual(decision["next_action"], "finalize")
+        self.assertEqual(decision["next_action"], "answer")
         self.assertNotEqual(decision["next_action"], "inspect_program")
 
     def test_round0_allows_adaptive_visual_scale_or_answer(self):
         actions = EvidenceVerifierAgent.available_actions(
-            "round0", True, False
+            "round0", True, False, allow_early_abstain=False
         )
         self.assertEqual(
-            actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024", "finalize"]
+            actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
         )
 
     def test_fallback_prefers_mapped_direct_candidate(self):
@@ -363,16 +278,15 @@ class StateMachineTest(unittest.TestCase):
         memory.structured_candidate = {"choice_id": "A", "answer": "positive"}
         memory.option_alignment = {"mapping_complete": True}
         decision = EvidenceVerifierAgent._fallback(
-            ["answer", "inspect_1024", "finalize"], "synthetic", memory
+            ["answer", "inspect_1024", "abstain"], "synthetic", memory
         )
-        self.assertEqual(decision["next_action"], "finalize")
+        self.assertEqual(decision["next_action"], "answer")
 
-    def test_terminal_failure_finalizes_without_certifying_evidence(self):
+    def test_terminal_failure_is_unverified_answer_not_abstain(self):
         decision = EvidenceVerifierAgent._fallback(
-            ["answer", "finalize"], "synthetic failure"
+            ["answer", "abstain"], "synthetic failure"
         )
-        self.assertEqual(decision["next_action"], "finalize")
-        self.assertTrue(decision["search_exhausted"])
+        self.assertEqual(decision["next_action"], "answer")
         self.assertTrue(decision["verifier_fallback_used"])
         self.assertTrue(decision["evidence_sufficiency_unverified"])
 
@@ -451,8 +365,67 @@ class GraphAndMemoryTest(unittest.TestCase):
 
 
 class EarlyAbstainAndProgramRankingTest(unittest.TestCase):
-    def test_early_abstain_helper_is_removed(self):
-        self.assertFalse(hasattr(MultiScaleVQAPipeline, "_early_abstain_allowed"))
+    def test_early_abstain_uses_explicit_plan_or_rag_semantics(self):
+        helper = MultiScaleVQAPipeline._early_abstain_allowed
+        self.assertFalse(helper({}, {
+            "matched_concepts": [{"evidence_role": "supportive_domain_knowledge"}],
+            "evidence_rules": [{"id": "rule_morphology_coarse_to_fine"}],
+        }))
+        self.assertTrue(helper({"requires_unavailable_context": True}, {}))
+        self.assertTrue(helper({}, {
+            "matched_concepts": [{
+                "evidence_role": "unavailable_from_local_visual_evidence"
+            }],
+        }))
+        self.assertTrue(helper({}, {
+            "evidence_rules": [{"id": "rule_assay_specific_target"}],
+        }))
+        self.assertFalse(helper(
+            {"target_phenotypes": ["histological_type_label"]},
+            {"evidence_rules": [{"id": "rule_stage_and_outcome"}]},
+        ))
+
+    def test_target_or_useful_morphology_prevents_early_abstain(self):
+        helper = MultiScaleVQAPipeline._early_abstain_allowed
+        self.assertFalse(helper({
+            "target_phenotypes": ["lymphovascular_invasion_label"],
+            "prototype_coverage": "partial",
+            "requires_unavailable_context": True,
+            "local_morphology_useful": True,
+        }, {}))
+        self.assertFalse(helper({
+            "target_phenotypes": ["ER_status_label"],
+            "prototype_coverage": "partial",
+            "requires_unavailable_context": True,
+            "local_morphology_useful": False,
+        }, {}))
+        self.assertFalse(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": True,
+            "local_morphology_useful": True,
+        }, {}))
+        self.assertFalse(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": False,
+            "local_morphology_useful": True,
+        }, {
+            "evidence_rules": [{"id": "rule_assay_specific_target"}],
+        }))
+
+    def test_only_genuinely_unavailable_without_useful_evidence_allows_early_abstain(self):
+        helper = MultiScaleVQAPipeline._early_abstain_allowed
+        self.assertTrue(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": True,
+            "local_morphology_useful": False,
+        }, {}))
+        self.assertTrue(helper({
+            "target_phenotypes": [],
+            "requires_unavailable_context": False,
+            "local_morphology_useful": False,
+        }, {
+            "evidence_rules": [{"id": "rule_assay_specific_target"}],
+        }))
 
     def test_morphology_program_ranking_uses_all_scales_and_consensus(self):
         pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
@@ -924,7 +897,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             False,
         )
 
-    def test_disabled_verifier_finalizes_at_round0_and_calls_fusion(self):
+    def test_strong_direct_candidate_answers_at_round0(self):
         pipeline = self.configured_pipeline(
             EvidenceVerifierAgent(client=None)
         )
@@ -933,15 +906,14 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         self.assertEqual(actions, [])
         self.assertEqual(result["agent_trace"]["inspected_scales"], [])
         self.assertEqual(
-            result["agent_trace"]["round0_decision"]["next_action"], "finalize"
+            result["agent_trace"]["round0_decision"]["next_action"], "answer"
         )
         self.assertEqual(
             result["agent_trace"]["structured_candidate_before_visual"]["choice_id"],
             "A",
         )
-        self.assertTrue(result["search_exhausted"])
-        self.assertFalse(result["final_evidence_sufficient"])
-        self.assertFalse(result["abstained"])
+        self.assertFalse(result["post_search_abstained"])
+        self.assertIsNone(result["abstain_stage"])
         self.assertTrue(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 1)
         self.assertIsNotNone(result["agent_answer"])
@@ -951,7 +923,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             if row["evidence_type"] in {"program", "gene"}
         ))
 
-    def test_authoritative_finalize_still_invokes_fusion(self):
+    def test_authoritative_verifier_abstain_remains_post_search_abstain(self):
         class AuthoritativeVerifier(EvidenceVerifierAgent):
             def __init__(self):
                 pass
@@ -964,79 +936,30 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
                     ),
                     None,
                 )
-                action = next_evidence or "finalize"
+                action = next_evidence or "abstain"
                 return {
                     "evidence_sufficient": False,
                     "evidence_state": (
-                        "unavailable" if action == "finalize" else "insufficient"
+                        "unavailable" if action == "abstain" else "insufficient"
                     ),
                     "missing_evidence_type": (
-                        "unavailable" if action == "finalize" else "fine_visual"
+                        "unavailable" if action == "abstain" else "fine_visual"
                     ),
                     "conflict_detected": False,
                     "next_action": action,
                     "target": None,
                     "reason": "authoritative synthetic decision",
-                    "search_exhausted": action == "finalize",
                     "verifier_fallback_used": False,
                     "evidence_sufficiency_unverified": False,
                 }
 
         pipeline = self.configured_pipeline(AuthoritativeVerifier())
         result = self.run_question(pipeline, self.plan())
-        self.assertTrue(result["search_exhausted"])
-        self.assertEqual(result["final_evidence_state"], "unavailable")
+        self.assertTrue(result["post_search_abstained"])
+        self.assertEqual(result["abstain_stage"], "evidence_sufficiency")
         self.assertFalse(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 0)
-        self.assertFalse(result["abstained"])
-        self.assertIsNotNone(result["agent_answer"])
-        self.assertTrue(result["answer_in_choices"])
-
-    def test_nonvisual_target_skips_pathology_and_still_invokes_fusion(self):
-        class PreferInspectionVerifier(EvidenceVerifierAgent):
-            def __init__(self):
-                pass
-
-            def decide(self, available_actions, **kwargs):
-                visual = next((
-                    action for action in available_actions
-                    if action.startswith("inspect_")
-                ), None)
-                action = visual or "finalize"
-                return {
-                    "evidence_sufficient": False,
-                    "evidence_state": "unavailable",
-                    "missing_evidence_type": "unavailable",
-                    "conflict_detected": False,
-                    "next_action": action,
-                    "target": None,
-                    "reason": "synthetic decision",
-                    "search_exhausted": action == "finalize",
-                    "verifier_fallback_used": False,
-                    "evidence_sufficiency_unverified": False,
-                }
-
-        class PathologyMustNotRun:
-            @staticmethod
-            def describe(*args, **kwargs):
-                raise AssertionError("Patho-R1 must not run for a nonvisual target")
-
-        plan = ExecutionPlan(
-            case_id="TCGA-AA-0001", question="What is the HER2 status?",
-            target_phenotypes=["HER2_status_label"], task_type="binary",
-            metrics=[], answer_mode="multiple_choice", supported=True,
-            support_reason="synthetic", task_match="direct",
-            evidence_route="phenotype_direct", selected_prototype_ids=["P013"],
-            prototype_support_type="target_evidence", prototype_coverage="complete",
-        )
-        pipeline = self.configured_pipeline(PreferInspectionVerifier())
-        pipeline.pathology = PathologyMustNotRun()
-        result = self.run_question(pipeline, plan)
-        self.assertFalse(result["visual_search_eligible"])
-        self.assertEqual(result["visual_retrieval_rounds"], [])
-        self.assertEqual(result["agent_trace"]["inspected_scales"], [])
-        self.assertIsNotNone(result["agent_answer"])
-        self.assertTrue(result["answer_in_choices"])
+        self.assertIsNone(result["agent_answer"])
 
     def test_same_case_multiple_questions_call_g2p_once(self):
         class CountingG2P:

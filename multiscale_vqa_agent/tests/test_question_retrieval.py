@@ -124,22 +124,6 @@ class QuestionRetrievalTest(unittest.TestCase):
             {"question_similarity", "phenotype"},
         )
 
-    def test_hybrid_broad_support_preserves_source_label(self):
-        question = EvidenceGroup(
-            1, 1.0, {4096: self.patch("question_similarity", "question")}
-        )
-        broad = EvidenceGroup(
-            1, 0.9, {4096: self.patch(
-                "phenotype", "context", x=5000, feature=[0.0, 1.0]
-            )},
-            evidence_source="broad_phenotype",
-        )
-        groups = self.agent().merge_hybrid_scale_groups([question], [broad])
-        self.assertEqual(
-            [group.evidence_source for group in groups],
-            ["question_similarity", "broad_phenotype"],
-        )
-
 
 class RetrievalSpy:
     def __init__(self):

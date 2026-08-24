@@ -24,21 +24,6 @@ from .router_audit import write_router_audit
 from .verifier import EvidenceVerifierAgent
 
 
-VISUAL_PHENOTYPE_FIELDS = {
-    "histological_type_label",
-    "ductal_binary",
-    "lobular_binary",
-    "dcis_binary",
-    "lcis_binary",
-    "histologic_grade_label",
-    "lymphovascular_invasion_label",
-    "necrosis_binary",
-    "comedonecrosis_binary",
-    "microcalcification_binary",
-    "mitotic_score",
-}
-
-
 class MultiScaleVQAPipeline:
     def __init__(
         self,
@@ -56,12 +41,10 @@ class MultiScaleVQAPipeline:
         with self.config_path.open(encoding="utf-8") as handle:
             self.config = json.load(handle)
         self.qwen = OpenAICompatibleClient(self.config["qwen"])
-        self.answerability = (
-            AnswerabilityAgent(self.qwen) if answerability_only else None
-        )
+        self.answerability = AnswerabilityAgent(self.qwen)
         self.precomputed_answerability = (
             PrecomputedAnswerabilityStore(precomputed_answerability)
-            if precomputed_answerability and answerability_only
+            if precomputed_answerability
             else None
         )
         self.planner_only = planner_only
@@ -171,7 +154,7 @@ class MultiScaleVQAPipeline:
                 item for item in items
                 if item.get("Choice", item.get("choices"))
             ]
-        if self.answerability_only and getattr(self, "precomputed_answerability", None) is not None:
+        if getattr(self, "precomputed_answerability", None) is not None:
             self.precomputed_answerability.validate_items(items)
             print(
                 "precomputed_answerability "
@@ -209,14 +192,21 @@ class MultiScaleVQAPipeline:
             with destination.open(mode, encoding="utf-8") as handle:
                 for case_items in grouped.values():
                     for item in case_items:
-                        plan = self.planner.plan(self._planner_item(item))
-                        plans.append((item, plan))
-                        result = {
-                            "case_id": plan.case_id,
-                            "question": plan.question,
-                            "input": item,
-                            "plan": plan.to_dict(),
-                        }
+                        assessment = self._predict_answerability(item)
+                        if not assessment["can_answer"]:
+                            result = self._abstained_result(item, assessment)
+                        else:
+                            plan = self.planner.plan(item)
+                            plans.append((item, plan))
+                            result = self._attach_answerability(
+                                {
+                                    "case_id": plan.case_id,
+                                    "question": plan.question,
+                                    "input": item,
+                                    "plan": plan.to_dict(),
+                                },
+                                assessment,
+                            )
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
             summary = write_router_audit(plans, destination)
             print(f"Router audit: {json.dumps(summary, ensure_ascii=False)}", flush=True)
@@ -225,30 +215,45 @@ class MultiScaleVQAPipeline:
 
         with destination.open(mode, encoding="utf-8") as handle:
             for case_number, (case_id, case_items) in enumerate(grouped.items(), 1):
-                print(f"[{case_number}/{len(grouped)}] plan {case_id} ({len(case_items)} questions)", flush=True)
-                planned = [
-                    (item, self.planner.plan(self._planner_item(item)))
-                    for item in case_items
-                ]
-                print(f"infer {case_id} ({len(planned)} questions)", flush=True)
+                print(f"[{case_number}/{len(grouped)}] gate {case_id} ({len(case_items)} questions)", flush=True)
+                answerable = []
+                for item in case_items:
+                    assessment = self._predict_answerability(item)
+                    if not assessment["can_answer"]:
+                        handle.write(json.dumps(
+                            self._abstained_result(item, assessment), ensure_ascii=False
+                        ) + "\n")
+                        handle.flush()
+                        continue
+                    answerable.append((item, assessment, self.planner.plan(item)))
+                if not answerable:
+                    print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
+                    continue
+                print(f"infer {case_id} ({len(answerable)} answerable questions)", flush=True)
                 try:
                     scale_results = self.g2p.infer_case(case_id)
                     evidence_cache = {}
-                    for item, plan in planned:
-                        result = self._run_question(
-                            item, plan, scale_results, evidence_cache, crop_patches
+                    for item, assessment, plan in answerable:
+                        result = self._attach_answerability(
+                            self._run_question(
+                                item, plan, scale_results, evidence_cache, crop_patches
+                            ),
+                            assessment,
                         )
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
                         handle.flush()
                 except Exception as error:
-                    for item, plan in planned:
-                        result = {
-                            "case_id": case_id,
-                            "question": plan.question,
-                            "input": item,
-                            "plan": plan.to_dict(),
-                            "error": f"{type(error).__name__}: {error}",
-                        }
+                    for item, assessment, plan in answerable:
+                        result = self._attach_answerability(
+                            {
+                                "case_id": case_id,
+                                "question": plan.question,
+                                "input": item,
+                                "plan": plan.to_dict(),
+                                "error": f"{type(error).__name__}: {error}",
+                            },
+                            assessment,
+                        )
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
                     handle.flush()
                 gc.collect()
@@ -263,15 +268,6 @@ class MultiScaleVQAPipeline:
             str(item.get("Id", item.get("case_id", "")))[:12],
             str(item.get("Question", item.get("question", ""))),
         )
-
-    @staticmethod
-    def _planner_item(item: Dict[str, Any]) -> Dict[str, Any]:
-        """Expose only inference inputs to the Planner."""
-        blocked = {
-            "Answer", "answer", "reference_answer", "gold_can_answer",
-            "exclude_from_evaluation",
-        }
-        return {key: value for key, value in item.items() if key not in blocked}
 
     def _predict_answerability(self, item: Dict[str, Any]) -> Dict[str, Any]:
         case_id, question = self._item_key(item)
@@ -717,22 +713,20 @@ class MultiScaleVQAPipeline:
         verifier_decisions = []
         pathology_rounds = []
         overview_paths: List[str] = []
+        post_search_abstained = False
         verifier_failure_count = 0
         evidence_sufficiency_unverified = False
+        allow_early_abstain = self._early_abstain_allowed(plan_dict, knowledge)
         spatial_parent_child_trace: List[Dict[str, Any]] = []
-        visual_retrieval_rounds: List[Dict[str, Any]] = []
         visual_parent_groups: List[Any] = []
         visual_parent_scale: Optional[int] = None
-        visual_policy = self._visual_search_policy(plan, knowledge)
 
-        if visual_policy["eligible"]:
-            round0_actions = self.verifier.available_actions(
-                "round0",
-                has_program_candidates=bool(program_candidates),
-                has_gene_candidates=False,
-            )
-        else:
-            round0_actions = ["answer", "finalize"]
+        round0_actions = self.verifier.available_actions(
+            "round0",
+            has_program_candidates=bool(program_candidates),
+            has_gene_candidates=False,
+            allow_early_abstain=allow_early_abstain,
+        )
         round0_decision = self.verifier.decide(
             question=plan.question,
             choices=choices,
@@ -750,14 +744,15 @@ class MultiScaleVQAPipeline:
         action = round0_decision["next_action"]
         target = round0_decision.get("target")
         action_fallback = bool(round0_decision.get("verifier_fallback_used"))
-        evidence_sufficiency_unverified = action_fallback
         if action == "answer":
             evidence_sufficiency_unverified = bool(
                 round0_decision.get("evidence_sufficiency_unverified")
             )
+        elif action == "abstain":
+            post_search_abstained = True
 
         for round_index in range(1, 6):
-            if action in {"answer", "finalize"}:
+            if action in {"answer", "abstain"}:
                 break
             if action.startswith("inspect_") and action.split("_")[-1].isdigit():
                 scale = int(action.split("_")[-1])
@@ -777,24 +772,6 @@ class MultiScaleVQAPipeline:
                     for group in groups:
                         group.anchor_group_id = group.group_id
                         group.spatial_relation = "anchor"
-                sources = sorted({
-                    str(group.evidence_source)
-                    for group in groups if group.evidence_source
-                })
-                visual_retrieval_rounds.append({
-                    "scale": scale,
-                    "question_conditioned_groups": sum(
-                        "question_similarity" in str(group.evidence_source or "")
-                        for group in groups
-                    ),
-                    "support_groups": sum(
-                        "selected_phenotype" in str(group.evidence_source or "")
-                        or "broad_phenotype" in str(group.evidence_source or "")
-                        for group in groups
-                    ),
-                    "final_group_count": len(groups),
-                    "sources": sources,
-                })
                 spatial_parent_child_trace.extend(
                     {
                         "round": round_index,
@@ -971,6 +948,7 @@ class MultiScaleVQAPipeline:
                 action,
                 has_program_candidates=bool(program_candidates),
                 has_gene_candidates=bool(gene_candidates),
+                allow_early_abstain=allow_early_abstain,
             )
             decision = self.verifier.decide(
                 question=plan.question,
@@ -991,7 +969,8 @@ class MultiScaleVQAPipeline:
             if next_action == "answer":
                 evidence_sufficiency_unverified = verifier_fallback_used
                 break
-            if next_action == "finalize":
+            if next_action == "abstain":
+                post_search_abstained = True
                 break
             action = next_action
             target = decision.get("target")
@@ -1010,46 +989,32 @@ class MultiScaleVQAPipeline:
             ),
             "rounds": pathology_rounds,
         }
-        answer, structured = self.fusion.answer_with_summary(
-            plan,
-            choices,
-            predictions,
-            relations_by_field,
-            combined_pathology,
-            broad_g2p_predictions=broad_g2p_predictions,
-            agent_context=agent_context,
-            prepared_structured=structured_round0,
-        )
+        if post_search_abstained:
+            structured = structured_round0
+            answer = None
+        else:
+            answer, structured = self.fusion.answer_with_summary(
+                plan,
+                choices,
+                predictions,
+                relations_by_field,
+                combined_pathology,
+                broad_g2p_predictions=broad_g2p_predictions,
+                agent_context=agent_context,
+                prepared_structured=structured_round0,
+            )
 
         first_prediction = predictions[0] if predictions else {}
         first_relation = (
             relations_by_field.get(plan.target_phenotypes[0], {})
             if plan.target_phenotypes else {}
         )
-        if memory.final_verifier:
-            final_evidence_state = memory.final_verifier.get("evidence_state")
-        elif evidence_sufficiency_unverified:
+        if evidence_sufficiency_unverified:
             final_evidence_state = "unverified"
+        elif memory.final_verifier:
+            final_evidence_state = memory.final_verifier.get("evidence_state")
         else:
             final_evidence_state = "unavailable"
-        final_evidence_sufficient = bool(
-            memory.final_verifier
-            and memory.final_verifier.get("evidence_sufficient") is True
-        )
-        search_exhausted = bool(
-            memory.final_verifier
-            and (
-                memory.final_verifier.get("search_exhausted") is True
-                or memory.final_verifier.get("next_action") == "finalize"
-            )
-        )
-        missing_evidence_type = (
-            memory.final_verifier.get("missing_evidence_type")
-            if memory.final_verifier else "unavailable"
-        )
-        final_verifier_reason = (
-            memory.final_verifier.get("reason") if memory.final_verifier else ""
-        )
         agent_trace = {
             "round0_structured_evidence": structured_round0,
             "round0_decision": round0_decision,
@@ -1063,20 +1028,12 @@ class MultiScaleVQAPipeline:
             "selected_gene": selected_gene,
             "verifier_decisions": verifier_decisions,
             "final_evidence_state": final_evidence_state,
-            "final_evidence_sufficient": final_evidence_sufficient,
-            "search_exhausted": search_exhausted,
-            "missing_evidence_type": missing_evidence_type,
-            "final_verifier_reason": final_verifier_reason,
+            "post_search_abstained": post_search_abstained,
             "verifier_failure_count": verifier_failure_count,
             "verifier_fallback_count": verifier_failure_count,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
+            "early_abstain_allowed": allow_early_abstain,
             "spatial_parent_child_trace": spatial_parent_child_trace,
-            "visual_search_eligible": visual_policy["eligible"],
-            "visual_search_reason": visual_policy["reason"],
-            "visual_retrieval_mode": (
-                "question_hybrid" if visual_policy["eligible"] else "skipped"
-            ),
-            "visual_retrieval_rounds": visual_retrieval_rounds,
             "visual_observations": [
                 row.to_dict() for row in memory.observations
                 if row.evidence_type in {"phenotype", "morphology"}
@@ -1118,41 +1075,22 @@ class MultiScaleVQAPipeline:
             "broad_g2p_predictions": broad_g2p_predictions or [],
             "thumbnail_paths": list(overview_paths),
             "pathology_evidence": combined_pathology,
-            "visual_search_eligible": visual_policy["eligible"],
-            "visual_search_reason": visual_policy["reason"],
-            "visual_retrieval_mode": (
-                "question_hybrid" if visual_policy["eligible"] else "skipped"
-            ),
-            "visual_retrieval_rounds": visual_retrieval_rounds,
             "knowledge_rag": knowledge,
             "working_memory": memory.to_dict(),
             "agent_trace": agent_trace,
-            "final_evidence_state": final_evidence_state,
-            "final_evidence_sufficient": final_evidence_sufficient,
-            "search_exhausted": search_exhausted,
-            "missing_evidence_type": missing_evidence_type,
-            "final_verifier_reason": final_verifier_reason,
-            "knowledge_base_version": knowledge.get("retrieval_trace", {}).get(
-                "knowledge_base_version"
-            ),
-            "retrieved_limitation_ids": knowledge.get("retrieval_trace", {}).get(
-                "v2_limitation_ids", []
-            ),
-            "retrieved_proxy_rule_ids": knowledge.get("retrieval_trace", {}).get(
-                "v2_proxy_rule_ids", []
-            ),
-            "retrieved_reasoning_example_ids": knowledge.get(
-                "retrieval_trace", {}
-            ).get("v2_example_ids", []),
+            "post_search_abstained": post_search_abstained,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
             "verifier_failure_count": verifier_failure_count,
-            "abstained": False,
+            "abstain_stage": (
+                "evidence_sufficiency" if post_search_abstained else None
+            ),
+            "abstained": post_search_abstained,
             "agent_answer": answer,
             "answer_in_choices": bool(
                 answer and answer.get("answer") in choices
             ),
             "raw_response": answer.get("raw_response") if answer else None,
-            "parse_status": answer.get("parse_status"),
+            "parse_status": answer.get("parse_status") if answer else "post_search_abstain",
             "json_parse_success": answer.get(
                 "json_parse_success", False
             ) if answer else False,
@@ -1161,9 +1099,6 @@ class MultiScaleVQAPipeline:
             "override_occurred": answer.get(
                 "override_occurred", False
             ) if answer else False,
-            "override_accepted": answer.get(
-                "override_accepted", False
-            ) if answer else False,
             "override_proposed": answer.get(
                 "override_proposed", False
             ) if answer else False,
@@ -1171,38 +1106,6 @@ class MultiScaleVQAPipeline:
                 "override_rejected", False
             ) if answer else False,
             "override_reason": answer.get("override_reason") if answer else None,
-            "structured_candidate_preserved": answer.get(
-                "structured_candidate_preserved", False
-            ) if answer else False,
-            "structured_candidate_overridden": answer.get(
-                "structured_candidate_overridden", False
-            ) if answer else False,
-            "structured_override_reason": answer.get(
-                "structured_override_reason"
-            ) if answer else None,
-            "direct_counterevidence_valid": answer.get(
-                "direct_counterevidence_valid", False
-            ) if answer else False,
-            "override_guard_reason": answer.get(
-                "override_guard_reason"
-            ) if answer else None,
-            "override_evidence_type": answer.get(
-                "override_evidence_type"
-            ) if answer else None,
-            "kb_reasoning_mode": answer.get("kb_reasoning_mode") if answer else None,
-            "full_forced_choice_context_used": answer.get(
-                "full_forced_choice_context_used", False
-            ) if answer else False,
-            "generic_reasoning_examples_used": answer.get(
-                "generic_reasoning_examples_used", []
-            ) if answer else [],
-            "proxy_rules_used": answer.get("proxy_rules_used", []) if answer else [],
-            "supplied_to_final_fusion_reasoning_example_ids": answer.get(
-                "supplied_to_final_fusion_reasoning_example_ids", []
-            ) if answer else [],
-            "supplied_to_final_fusion_proxy_rule_ids": answer.get(
-                "supplied_to_final_fusion_proxy_rule_ids", []
-            ) if answer else [],
             "structured_visual_conflict": answer.get(
                 "structured_visual_conflict", False
             ) if answer else False,
@@ -1263,16 +1166,10 @@ class MultiScaleVQAPipeline:
             else:
                 raise ValueError(f"Unsupported retrieval mode: {retrieval_mode}")
         elif retrieval_mode == "question_similarity":
-            question_groups = self.retrieval.retrieve_question_scale(
+            groups = self.retrieval.retrieve_question_scale(
                 self.question_features.lookup(plan.question),
                 scale_results,
                 scale,
-            )
-            broad_groups = self.retrieval.retrieve_all_phenotypes_scale(
-                scale_results, scale
-            )
-            groups = self.retrieval.merge_hybrid_scale_groups(
-                question_groups, broad_groups
             )
         else:
             groups = self.retrieval.retrieve_all_phenotypes_scale(
@@ -1285,39 +1182,6 @@ class MultiScaleVQAPipeline:
         )
         evidence_cache[key] = groups
         return groups
-
-    @staticmethod
-    def _visual_search_policy(plan: Any, knowledge: Dict[str, Any]) -> Dict[str, Any]:
-        """Decide only whether H&E acquisition can add useful evidence."""
-        if not getattr(plan, "use_pathology_agent", True):
-            return {"eligible": False, "reason": "pathology_agent_not_requested"}
-
-        fields = set(getattr(plan, "target_phenotypes", []) or [])
-        if fields:
-            if fields & VISUAL_PHENOTYPE_FIELDS:
-                return {
-                    "eligible": True,
-                    "reason": "selected_target_has_directly_visible_morphology",
-                }
-            return {
-                "eligible": False,
-                "reason": "selected_target_is_not_directly_resolved_by_h_e_morphology",
-            }
-
-        if getattr(plan, "local_morphology_useful", False):
-            return {
-                "eligible": True,
-                "reason": "planner_identified_patch_assessable_morphology",
-            }
-        if getattr(plan, "requires_unavailable_context", False):
-            return {
-                "eligible": False,
-                "reason": "requested_fact_requires_nonvisual_context",
-            }
-        return {
-            "eligible": False,
-            "reason": "no_directly_useful_h_e_target_identified",
-        }
 
     def _crop_hierarchical_groups(
         self,
@@ -1346,6 +1210,38 @@ class MultiScaleVQAPipeline:
             raise RuntimeError(
                 "Hierarchical spatial retrieval leaked program/gene attention"
             )
+
+    @staticmethod
+    def _early_abstain_allowed(
+        plan: Dict[str, Any], knowledge: Dict[str, Any]
+    ) -> bool:
+        """Use explicit Planner/RAG evidence semantics, never question keywords."""
+        if plan.get("target_phenotypes"):
+            return False
+        if plan.get("local_morphology_useful") is True:
+            return False
+        if plan.get("requires_unavailable_context") is True:
+            return True
+        unavailable_roles = {
+            "limited_context",
+            "unavailable",
+            "invalid_evidence",
+            "unavailable_from_local_visual_evidence",
+        }
+        if any(
+            str(row.get("evidence_role", "")).lower() in unavailable_roles
+            for row in knowledge.get("matched_concepts", [])
+        ):
+            return True
+        unavailable_rule_ids = {
+            "rule_assay_specific_target",
+            "rule_exact_quantity",
+            "rule_stage_and_outcome",
+        }
+        return any(
+            row.get("id") in unavailable_rule_ids
+            for row in knowledge.get("evidence_rules", [])
+        )
 
     def _program_candidates(
         self,
@@ -1521,18 +1417,6 @@ class MultiScaleVQAPipeline:
                 "matched_concepts": memory.knowledge.get("matched_concepts", []),
                 "limitations": memory.knowledge.get("limitations", []),
                 "evidence_rules": memory.knowledge.get("evidence_rules", []),
-                "evidence_limitations": memory.knowledge.get(
-                    "evidence_limitations", []
-                )[:5],
-                "proxy_evidence_rules": memory.knowledge.get(
-                    "proxy_evidence_rules", []
-                )[:5],
-                "forced_choice_rules": memory.knowledge.get(
-                    "forced_choice_rules", []
-                )[:12],
-                "reasoning_examples": memory.knowledge.get(
-                    "reasoning_examples", []
-                )[:3],
             },
             "visual_observations": [
                 {
@@ -1552,18 +1436,6 @@ class MultiScaleVQAPipeline:
                     selected_gene, selected_program
                 ) if selected_gene and selected_program else None
             ),
-            "final_verifier": dict(memory.final_verifier or {}),
-            "final_evidence_state": (
-                (memory.final_verifier or {}).get("evidence_state", "unavailable")
-            ),
-            "final_evidence_sufficient": bool(
-                (memory.final_verifier or {}).get("evidence_sufficient") is True
-            ),
-            "search_exhausted": bool(
-                (memory.final_verifier or {}).get("search_exhausted") is True
-                or (memory.final_verifier or {}).get("next_action") == "finalize"
-            ),
-            "current_missing_evidence": list(memory.current_missing_evidence),
             "limitations": list(dict.fromkeys([
                 *memory.knowledge.get("limitations", []),
                 "Program and gene evidence is WSI-derived supportive evidence, not a measured assay.",

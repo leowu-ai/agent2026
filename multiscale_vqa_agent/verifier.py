@@ -12,18 +12,16 @@ MISSING_TYPES = {
     "coarse_visual", "intermediate_visual", "fine_visual",
     "program_support", "gene_support", "unavailable", "none",
 }
-VERIFIER_SYSTEM_PROMPT = """You are the evidence acquisition controller for breast pathology WSI multiple-choice VQA.
-Every question ultimately receives one supplied option from a separate Final Fusion model. You do not decide whether to answer, do not abstain, and never output an answer_id. Judge the current evidence and choose whether another acquisition action is useful.
-
-Evidence hierarchy: direct patient-specific measurement/observation; validated structured phenotype evidence for its intended categorical target; target-specific visible morphology; explicitly permitted visual proxy evidence; supportive Program evidence; supportive Gene evidence; general knowledge and generic examples. Never promote weaker evidence into stronger evidence.
-
-Generic KB limitations and examples may justify stopping an acquisition that cannot recover the missing fact, but they never downgrade existing patient-specific structured evidence. If one component is unavailable, preserve any other component already supported by its intended phenotype Tool.
-
-A WSI-derived categorical ER/PR/HER2 prediction may support that categorical target, but is not a measured assay: it cannot establish an exact percentage, measured IHC intensity, FISH/ISH ratio, amplification, copy number, or protein result. Patho-R1 is fallible visible-pixel evidence: an unlabeled edge is not a surgical margin, a local crop does not establish whole-specimen size, and breast-primary morphology does not establish nodal or distant status without represented tissue/context. Program and Gene signals are supportive WSI-derived predictions, never measured assays, treatment, procedure, history, gross measurement, or report metadata. Knowledge limitations, proxy rules, forced-choice rules, and generic examples are reasoning constraints, not patient facts.
-
-Inspect another source only when it can plausibly resolve a concrete option-level distinction. If current evidence resolves it, choose answer with evidence_sufficient=true. If useful evidence remains, inspect it. If no remaining WSI/Program/Gene action can validly recover the missing fact, choose finalize with evidence_sufficient=false and search_exhausted=true. Finalize stops search and sends current evidence to Final Fusion; it never means abstain. Do not manufacture evidence to avoid finalize.
-
-Return JSON only with evidence_sufficient, evidence_state, missing_evidence_type, conflict_detected, next_action, target, search_exhausted, and reason."""
+VERIFIER_SYSTEM_PROMPT = """You are an evidence sufficiency controller for breast pathology WSI multiple-choice VQA.
+You do not choose an option and must never output an answer_id. Judge whether accumulated evidence resolves the option-level distinction and choose exactly one supplied available action.
+Evidence priority is direct structured phenotype prediction, then target-specific visible morphology, then supportive program evidence, then supportive gene evidence. A reliable direct prediction with complete option alignment may be answered at Round 0 without visual inspection. Program, gene, and weak visual evidence must not casually overwrite a direct candidate.
+A strong structured prediction requires both strong patient-level evidence and sufficiently reliable Tool validation. High softmax or cross-scale agreement alone must not make a weakly validated Tool conclusive. Use reliability-adjusted confidence as evidence context, not as a hard escalation threshold.
+A WSI-derived categorical ER/PR/HER2 prediction is valid evidence for a categorical benchmark target such as positive versus negative. It is not a measured assay and cannot answer an exact percentage, intensity, FISH/ISH ratio, amplification, or other assay-specific quantity.
+Visual observations describe pixels only. Treat a visual conflict as real only when spatially linked observations address the same target with clearly mutually exclusive morphology. Limited, indeterminate, different-region, or different-slide observations are not conflicts. Program and gene evidence is supportive WSI-derived evidence, never measured RNA, protein, mutation, IHC, FISH, amplification, or copy number. Learned relations are predictive associations, not causality.
+Each visual scale is complementary: 4096 supports global architecture, 2048 intermediate tissue organization, and 1024 fine morphology/cytology. Absence of a fine feature at 4096 is not strong negative evidence, and global architecture must not be inferred from one 1024 patch. RAG visual guidance says what is useful to inspect at a scale; it is not patient evidence.
+After appropriate morphology inspection, unresolved weak structured evidence may be corroborated by constrained Program and then Gene candidates. Their relation relevance, patient score, graph score, and cross-scale support are supportive context only, especially for morphology-dominant targets.
+Use unused evidence only when it can resolve a stated missing distinction. Exact assay values, exact size/distance/count, clinical history, treatment, procedure, report wording, and other unavailable facts cannot be recovered by escalating program or gene evidence.
+Return JSON only with evidence_sufficient, evidence_state, missing_evidence_type, conflict_detected, next_action, target, and a concise reason."""
 
 
 class EvidenceVerifierAgent:
@@ -35,27 +33,37 @@ class EvidenceVerifierAgent:
         last_action: str,
         has_program_candidates: bool,
         has_gene_candidates: bool,
+        allow_early_abstain: bool = False,
     ) -> List[str]:
         if last_action == "round0":
-            return ["answer", "inspect_4096", "inspect_2048", "inspect_1024", "finalize"]
+            actions = ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
         if last_action == "inspect_4096":
-            return ["answer", "inspect_2048", "inspect_1024", "finalize"]
+            actions = ["answer", "inspect_2048", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
         if last_action == "inspect_2048":
-            return ["answer", "inspect_1024", "finalize"]
+            actions = ["answer", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
         if last_action == "inspect_1024":
             actions = ["answer"]
             if has_program_candidates:
                 actions.append("inspect_program")
-            actions.append("finalize")
+            actions.append("abstain")
             return actions
         if last_action == "inspect_program":
             actions = ["answer"]
             if has_gene_candidates:
                 actions.append("inspect_gene")
-            actions.append("finalize")
+            actions.append("abstain")
             return actions
         if last_action == "inspect_gene":
-            return ["answer", "finalize"]
+            return ["answer", "abstain"]
         raise ValueError(f"Unsupported verifier state after {last_action!r}")
 
     def decide(
@@ -85,10 +93,6 @@ class EvidenceVerifierAgent:
                 "matched_concepts": knowledge.get("matched_concepts", []),
                 "limitations": knowledge.get("limitations", []),
                 "evidence_rules": knowledge.get("evidence_rules", []),
-                "evidence_limitations": knowledge.get("evidence_limitations", [])[:5],
-                "proxy_evidence_rules": knowledge.get("proxy_evidence_rules", [])[:5],
-                "forced_choice_rules": knowledge.get("forced_choice_rules", [])[:12],
-                "reasoning_examples": knowledge.get("reasoning_examples", [])[:3],
                 "scale_specific_visual_guidance": knowledge.get(
                     "scale_specific_visual_guidance", {}
                 ),
@@ -104,7 +108,6 @@ class EvidenceVerifierAgent:
                 "conflict_detected": False,
                 "next_action": "one supplied available action",
                 "target": None,
-                "search_exhausted": False,
                 "reason": "one concise sentence",
             },
         }
@@ -244,8 +247,6 @@ class EvidenceVerifierAgent:
         if action == "answer" and sufficient:
             state = "sufficient"
             missing = "none"
-        if action == "finalize":
-            sufficient = False
         if action not in available_actions:
             return self._fallback(
                 available_actions,
@@ -283,7 +284,6 @@ class EvidenceVerifierAgent:
             "conflict_detected": parsed.get("conflict_detected") is True,
             "next_action": action,
             "target": target,
-            "search_exhausted": action == "finalize",
             "reason": " ".join(str(parsed.get("reason") or "").split())[:500],
             "verifier_fallback_used": False,
             "evidence_sufficiency_unverified": False,
@@ -317,22 +317,34 @@ class EvidenceVerifierAgent:
         memory: Optional[WorkingMemory] = None,
         requested_action: Optional[str] = None,
     ) -> Dict[str, Any]:
-        # Invalid model output must not certify evidence or force molecular
-        # escalation. Stop acquisition and let deterministic Fusion recover.
+        # Invalid model output must not silently turn the agent into a fixed
+        # Program/Gene escalation chain. Prefer the already mapped direct
+        # candidate; otherwise honor only an explicitly unresolved legal gap.
+        has_direct_candidate = bool(
+            memory
+            and memory.structured_candidate
+            and memory.option_alignment.get("mapping_complete") is True
+        )
         missing_to_action = {
             "coarse_visual": "inspect_4096",
             "intermediate_visual": "inspect_2048",
             "fine_visual": "inspect_1024",
+            "program_support": "inspect_program",
+            "gene_support": "inspect_gene",
         }
         unresolved = (
             memory.current_missing_evidence[-1]
             if memory and memory.current_missing_evidence else None
         )
         required_action = missing_to_action.get(unresolved)
-        if required_action in available_actions:
+        if has_direct_candidate and "answer" in available_actions:
+            action = "answer"
+        elif required_action in available_actions:
             action = required_action
-        elif "finalize" in available_actions:
-            action = "finalize"
+        elif "answer" in available_actions:
+            action = "answer"
+        elif "abstain" in available_actions:
+            action = "abstain"
         else:
             action = available_actions[0]
         missing_map = {
@@ -340,19 +352,18 @@ class EvidenceVerifierAgent:
             "inspect_1024": "fine_visual",
             "inspect_program": "program_support",
             "inspect_gene": "gene_support",
-            "finalize": "unavailable",
+            "abstain": "unavailable",
         }
         return {
             "evidence_sufficient": False,
-            "evidence_state": "unavailable" if action == "finalize" else "insufficient",
+            "evidence_state": "unavailable" if action == "abstain" else "insufficient",
             "missing_evidence_type": missing_map.get(action, "none"),
             "conflict_detected": False,
             "next_action": action,
             "target": None,
-            "search_exhausted": action == "finalize",
             "reason": reason,
             "verifier_fallback_used": True,
-            "evidence_sufficiency_unverified": True,
+            "evidence_sufficiency_unverified": action == "answer",
             "requested_action": requested_action,
             "normalized_action": action,
             "executed_action": action,
