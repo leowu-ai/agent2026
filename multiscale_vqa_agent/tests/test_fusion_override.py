@@ -14,6 +14,12 @@ def parsed_counterevidence(**overrides):
         "evidence_direction": "supports_proposed",
         "supports_proposed": True,
         "contradicts_structured": True,
+        "patient_specific": True,
+        "target_relevant": True,
+        "directly_observed": True,
+        "same_target": True,
+        "target_field": "histological_type_label",
+        "image_quality": "adequate",
         "confidence": 0.9,
         "visible_feature": "A morphology observation evaluated by the arbiter.",
         "decisive_reason": "The arbiter judged it to support the proposed answer.",
@@ -163,19 +169,19 @@ class DirectOverridePolicyTest(unittest.TestCase):
         self.assertTrue(result["override_rejected"])
         self.assertFalse(result["override_occurred"])
 
-    def test_partial_mapped_candidate_rejects_unvalidated_override(self):
+    def test_partial_mapped_candidate_is_freely_fused(self):
         result = self.validate(
             proposed_answer(),
             candidate("histological_type_label", task_match="partial"),
         )
 
-        self.assertEqual(result["answer_id"], "A")
+        self.assertEqual(result["answer_id"], "B")
         self.assertTrue(result["override_proposed"])
-        self.assertTrue(result["override_rejected"])
-        self.assertFalse(result["override_occurred"])
+        self.assertFalse(result["override_rejected"])
+        self.assertTrue(result["override_occurred"])
         self.assertEqual(
             result["override_guard_reason"],
-            "partial_requires_decisive_counterevidence",
+            "partial_free_fusion",
         )
 
     def test_partial_decisive_visual_counterevidence_allows_override(self):
@@ -187,24 +193,24 @@ class DirectOverridePolicyTest(unittest.TestCase):
         self.assertEqual(result["answer_id"], "B")
         self.assertTrue(result["override_accepted"])
         self.assertEqual(
-            result["override_evidence_type"], "patient_specific_visual"
+            result["override_evidence_type"], "combined_fusion"
         )
 
-    def test_partial_generic_example_cannot_override(self):
+    def test_partial_generic_context_remains_available_to_fusion(self):
         result = self.validate(
             proposed_answer(),
             candidate("histological_type_label", task_match="partial"),
         )
-        self.assertEqual(result["answer_id"], "A")
-        self.assertTrue(result["override_rejected"])
+        self.assertEqual(result["answer_id"], "B")
+        self.assertFalse(result["override_rejected"])
 
-    def test_partial_proxy_rule_alone_cannot_override(self):
+    def test_partial_proxy_context_is_not_python_guarded(self):
         result = self.validate(
             proposed_answer(),
             candidate("histological_type_label", task_match="partial"),
         )
-        self.assertEqual(result["answer_id"], "A")
-        self.assertFalse(result["override_accepted"])
+        self.assertEqual(result["answer_id"], "B")
+        self.assertTrue(result["override_accepted"])
 
     def test_unknown_partial_component_is_not_a_contradiction(self):
         summary = candidate("histological_type_label", task_match="partial")
@@ -217,8 +223,8 @@ class DirectOverridePolicyTest(unittest.TestCase):
             "contradicted_supporting_fields": [],
         }]
         result = self.validate(proposed_answer(), summary)
-        self.assertEqual(result["answer_id"], "A")
-        self.assertTrue(result["override_rejected"])
+        self.assertEqual(result["answer_id"], "B")
+        self.assertFalse(result["override_rejected"])
 
     def test_explicit_structured_contradiction_allows_partial_override(self):
         summary = candidate("histological_type_label", task_match="partial")
@@ -238,19 +244,45 @@ class DirectOverridePolicyTest(unittest.TestCase):
         self.assertEqual(result["answer_id"], "B")
         self.assertTrue(result["override_accepted"])
         self.assertEqual(
-            result["override_guard_reason"],
-            "partial_candidate_has_explicit_structured_contradiction",
+            result["override_guard_reason"], "partial_free_fusion"
         )
 
-    def test_program_or_gene_context_alone_cannot_override_partial_candidate(self):
+    def test_program_or_gene_context_is_freely_arbitrated_for_partial(self):
         result = self.validate(
             proposed_answer(),
             candidate("histological_type_label", task_match="partial"),
         )
-        self.assertEqual(result["answer_id"], "A")
+        self.assertEqual(result["answer_id"], "B")
         self.assertEqual(
-            result["override_evidence_type"], "insufficient_counterevidence"
+            result["override_evidence_type"], "combined_fusion"
         )
+
+    def test_incomplete_joint_direct_mapping_is_not_anchored(self):
+        summary = candidate("ER_status_label")
+        summary.update({
+            "requested_fields": ["ER_status_label", "PR_status_label"],
+            "missing_fields": ["PR_status_label"],
+            "joint_mapping_complete": False,
+            "joint_choice_id": None,
+        })
+        result = self.validate(proposed_answer(), summary)
+        self.assertEqual(result["answer_id"], "B")
+        self.assertEqual(result["override_guard_reason"], "mapping_incomplete")
+
+    def test_complete_joint_direct_mapping_is_anchored(self):
+        summary = candidate("ER_status_label")
+        summary.update({
+            "requested_fields": ["ER_status_label", "PR_status_label"],
+            "missing_fields": [],
+            "joint_mapping_complete": True,
+            "joint_choice_id": "A",
+            "option_compatibility": [{
+                "choice_id": "A", "missing_primary_fields": []
+            }],
+        })
+        result = self.validate(proposed_answer(), summary)
+        self.assertEqual(result["answer_id"], "A")
+        self.assertTrue(result["structured_candidate_preserved"])
 
     def test_incomplete_partial_mapping_remains_free_to_choose(self):
         summary = candidate("histological_type_label", task_match="partial")
@@ -283,8 +315,8 @@ class FusionReasoningModeTest(unittest.TestCase):
             "final_evidence_state": "insufficient" if finalize else "sufficient",
         }
 
-    def test_supported_candidate_suppresses_generic_forced_choice_context(self):
-        summary = candidate("histological_type_label", task_match="partial")
+    def test_supported_direct_candidate_suppresses_generic_context(self):
+        summary = candidate("histological_type_label", task_match="direct")
         context = FusionVerificationAgent._fusion_agent_context(
             summary, ["structured", "proposed"], self.context()
         )
@@ -322,17 +354,17 @@ class FusionReasoningModeTest(unittest.TestCase):
             context["kb_usage_metadata"]["full_forced_choice_context_used"]
         )
 
-    def test_finalize_preserves_partial_anchor_and_only_gap_guidance(self):
+    def test_finalize_partial_keeps_full_fusion_context(self):
         summary = candidate("histological_type_label", task_match="partial")
         context = FusionVerificationAgent._fusion_agent_context(
             summary, ["structured", "proposed"], self.context(finalize=True)
         )
         metadata = context["kb_usage_metadata"]
-        self.assertEqual(metadata["kb_reasoning_mode"], "structured_supported")
-        self.assertTrue(metadata["structured_components_remain_anchored"])
-        self.assertFalse(metadata["full_forced_choice_context_used"])
-        self.assertEqual(context["knowledge"]["reasoning_examples"], [])
-        self.assertEqual(context["knowledge"]["forced_choice_rules"], [])
+        self.assertEqual(metadata["kb_reasoning_mode"], "partial_fusion")
+        self.assertFalse(metadata["structured_components_remain_anchored"])
+        self.assertTrue(metadata["full_forced_choice_context_used"])
+        self.assertEqual(len(context["knowledge"]["reasoning_examples"]), 1)
+        self.assertEqual(len(context["knowledge"]["forced_choice_rules"]), 1)
         self.assertEqual(
             metadata["supplied_to_final_fusion_proxy_rule_ids"], ["proxy"]
         )

@@ -24,6 +24,21 @@ from .router_audit import write_router_audit
 from .verifier import EvidenceVerifierAgent
 
 
+VISUAL_PHENOTYPE_FIELDS = {
+    "histological_type_label",
+    "ductal_binary",
+    "lobular_binary",
+    "dcis_binary",
+    "lcis_binary",
+    "histologic_grade_label",
+    "lymphovascular_invasion_label",
+    "necrosis_binary",
+    "comedonecrosis_binary",
+    "microcalcification_binary",
+    "mitotic_score",
+}
+
+
 class MultiScaleVQAPipeline:
     def __init__(
         self,
@@ -705,14 +720,19 @@ class MultiScaleVQAPipeline:
         verifier_failure_count = 0
         evidence_sufficiency_unverified = False
         spatial_parent_child_trace: List[Dict[str, Any]] = []
+        visual_retrieval_rounds: List[Dict[str, Any]] = []
         visual_parent_groups: List[Any] = []
         visual_parent_scale: Optional[int] = None
+        visual_policy = self._visual_search_policy(plan, knowledge)
 
-        round0_actions = self.verifier.available_actions(
-            "round0",
-            has_program_candidates=bool(program_candidates),
-            has_gene_candidates=False,
-        )
+        if visual_policy["eligible"]:
+            round0_actions = self.verifier.available_actions(
+                "round0",
+                has_program_candidates=bool(program_candidates),
+                has_gene_candidates=False,
+            )
+        else:
+            round0_actions = ["answer", "finalize"]
         round0_decision = self.verifier.decide(
             question=plan.question,
             choices=choices,
@@ -757,6 +777,24 @@ class MultiScaleVQAPipeline:
                     for group in groups:
                         group.anchor_group_id = group.group_id
                         group.spatial_relation = "anchor"
+                sources = sorted({
+                    str(group.evidence_source)
+                    for group in groups if group.evidence_source
+                })
+                visual_retrieval_rounds.append({
+                    "scale": scale,
+                    "question_conditioned_groups": sum(
+                        "question_similarity" in str(group.evidence_source or "")
+                        for group in groups
+                    ),
+                    "support_groups": sum(
+                        "selected_phenotype" in str(group.evidence_source or "")
+                        or "broad_phenotype" in str(group.evidence_source or "")
+                        for group in groups
+                    ),
+                    "final_group_count": len(groups),
+                    "sources": sources,
+                })
                 spatial_parent_child_trace.extend(
                     {
                         "round": round_index,
@@ -1033,6 +1071,12 @@ class MultiScaleVQAPipeline:
             "verifier_fallback_count": verifier_failure_count,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
             "spatial_parent_child_trace": spatial_parent_child_trace,
+            "visual_search_eligible": visual_policy["eligible"],
+            "visual_search_reason": visual_policy["reason"],
+            "visual_retrieval_mode": (
+                "question_hybrid" if visual_policy["eligible"] else "skipped"
+            ),
+            "visual_retrieval_rounds": visual_retrieval_rounds,
             "visual_observations": [
                 row.to_dict() for row in memory.observations
                 if row.evidence_type in {"phenotype", "morphology"}
@@ -1074,6 +1118,12 @@ class MultiScaleVQAPipeline:
             "broad_g2p_predictions": broad_g2p_predictions or [],
             "thumbnail_paths": list(overview_paths),
             "pathology_evidence": combined_pathology,
+            "visual_search_eligible": visual_policy["eligible"],
+            "visual_search_reason": visual_policy["reason"],
+            "visual_retrieval_mode": (
+                "question_hybrid" if visual_policy["eligible"] else "skipped"
+            ),
+            "visual_retrieval_rounds": visual_retrieval_rounds,
             "knowledge_rag": knowledge,
             "working_memory": memory.to_dict(),
             "agent_trace": agent_trace,
@@ -1121,6 +1171,18 @@ class MultiScaleVQAPipeline:
                 "override_rejected", False
             ) if answer else False,
             "override_reason": answer.get("override_reason") if answer else None,
+            "structured_candidate_preserved": answer.get(
+                "structured_candidate_preserved", False
+            ) if answer else False,
+            "structured_candidate_overridden": answer.get(
+                "structured_candidate_overridden", False
+            ) if answer else False,
+            "structured_override_reason": answer.get(
+                "structured_override_reason"
+            ) if answer else None,
+            "direct_counterevidence_valid": answer.get(
+                "direct_counterevidence_valid", False
+            ) if answer else False,
             "override_guard_reason": answer.get(
                 "override_guard_reason"
             ) if answer else None,
@@ -1201,10 +1263,16 @@ class MultiScaleVQAPipeline:
             else:
                 raise ValueError(f"Unsupported retrieval mode: {retrieval_mode}")
         elif retrieval_mode == "question_similarity":
-            groups = self.retrieval.retrieve_question_scale(
+            question_groups = self.retrieval.retrieve_question_scale(
                 self.question_features.lookup(plan.question),
                 scale_results,
                 scale,
+            )
+            broad_groups = self.retrieval.retrieve_all_phenotypes_scale(
+                scale_results, scale
+            )
+            groups = self.retrieval.merge_hybrid_scale_groups(
+                question_groups, broad_groups
             )
         else:
             groups = self.retrieval.retrieve_all_phenotypes_scale(
@@ -1217,6 +1285,39 @@ class MultiScaleVQAPipeline:
         )
         evidence_cache[key] = groups
         return groups
+
+    @staticmethod
+    def _visual_search_policy(plan: Any, knowledge: Dict[str, Any]) -> Dict[str, Any]:
+        """Decide only whether H&E acquisition can add useful evidence."""
+        if not getattr(plan, "use_pathology_agent", True):
+            return {"eligible": False, "reason": "pathology_agent_not_requested"}
+
+        fields = set(getattr(plan, "target_phenotypes", []) or [])
+        if fields:
+            if fields & VISUAL_PHENOTYPE_FIELDS:
+                return {
+                    "eligible": True,
+                    "reason": "selected_target_has_directly_visible_morphology",
+                }
+            return {
+                "eligible": False,
+                "reason": "selected_target_is_not_directly_resolved_by_h_e_morphology",
+            }
+
+        if getattr(plan, "local_morphology_useful", False):
+            return {
+                "eligible": True,
+                "reason": "planner_identified_patch_assessable_morphology",
+            }
+        if getattr(plan, "requires_unavailable_context", False):
+            return {
+                "eligible": False,
+                "reason": "requested_fact_requires_nonvisual_context",
+            }
+        return {
+            "eligible": False,
+            "reason": "no_directly_useful_h_e_target_identified",
+        }
 
     def _crop_hierarchical_groups(
         self,

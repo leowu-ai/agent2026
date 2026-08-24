@@ -8,7 +8,9 @@ When a valid structured candidate is mapped from a phenotype Tool that predicts 
 
 For a direct target, change the mapped candidate only for direct, decisive, question-specific patient visual counterevidence that explicitly supports the proposed option and contradicts the structured prediction.
 
-For a partial or composite target, preserve every supported structured component and reason separately about unresolved components. Unknown, missing, or uncertain components are not contradictions. A mapped partial candidate may change only for decisive validated visual counterevidence or an explicit contradiction from another patient-specific structured field.
+Set counterevidence.is_decisive=true only when the observation is patient-specific, target-relevant, directly observed at adequate image quality, addresses the same target_field, supports the proposed option, and clearly contradicts the structured candidate. Set it false for limited or indeterminate images, a different target, generic knowledge, proxy evidence, or Program/Gene evidence. Populate all counterevidence fields explicitly.
+
+For a partial target, freely fuse its incomplete structured evidence with visual evidence, Knowledge RAG, permitted proxies, and option logic. Do not treat a partial candidate as an anchored final answer. Unknown, missing, or uncertain components are not contradictions.
 
 Knowledge RAG primarily constrains unsupported or missing information. It must fill gaps, not overwrite stronger patient-specific structured evidence.
 
@@ -57,6 +59,12 @@ Output only valid JSON:
     "evidence_direction": "supports_structured|supports_proposed|mixed|neutral|insufficient",
     "supports_proposed": false,
     "contradicts_structured": false,
+    "patient_specific": false,
+    "target_relevant": false,
+    "directly_observed": false,
+    "same_target": false,
+    "target_field": "",
+    "image_quality": "adequate|limited|indeterminate",
     "confidence": 0.0,
     "visible_feature": "",
     "decisive_reason": "",

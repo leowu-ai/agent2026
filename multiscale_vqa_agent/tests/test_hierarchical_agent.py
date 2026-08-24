@@ -156,6 +156,53 @@ class RetrievalSeparationTest(unittest.TestCase):
         self.assertNotIn("program", self.source_types(broad))
         self.assertNotIn("gene", self.source_types(broad))
 
+    def test_morphology_hybrid_contains_question_and_broad_sources(self):
+        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
+        pipeline.retrieval = self.agent
+        pipeline.question_features = SimpleNamespace(
+            lookup=lambda question: np.asarray([1.0, 0.0, 0.0])
+        )
+        pipeline.morphology_retrieval_mode = "question_similarity"
+        pipeline.partial_retrieval_mode = "hybrid_question_prototype"
+        pipeline.direct_retrieval_mode = "hybrid_question_prototype"
+        plan = ExecutionPlan(
+            case_id="case", question="What change is visible?",
+            target_phenotypes=[], task_type="morphology", metrics=[],
+            answer_mode="multiple_choice", supported=False, support_reason="",
+            task_match="none", evidence_route="morphology_only",
+            local_morphology_useful=True,
+        )
+        groups = pipeline._hierarchical_spatial_groups(
+            plan, "morphology_only", self.results, {}, 4096, False
+        )
+        sources = {group.evidence_source for group in groups}
+        self.assertTrue(any("question_similarity" in source for source in sources))
+        self.assertTrue(any("broad_phenotype" in source for source in sources))
+
+    def test_visual_phenotype_hybrid_contains_question_and_selected_sources(self):
+        pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
+        pipeline.retrieval = self.agent
+        pipeline.question_features = SimpleNamespace(
+            lookup=lambda question: np.asarray([1.0, 0.0, 0.0])
+        )
+        pipeline.morphology_retrieval_mode = "question_similarity"
+        pipeline.partial_retrieval_mode = "hybrid_question_prototype"
+        pipeline.direct_retrieval_mode = "hybrid_question_prototype"
+        plan = ExecutionPlan(
+            case_id="case", question="What is the histological type?",
+            target_phenotypes=["histological_type_label"],
+            task_type="multiclass", metrics=[], answer_mode="multiple_choice",
+            supported=True, support_reason="", task_match="direct",
+            evidence_route="phenotype_direct",
+        )
+        groups = pipeline._hierarchical_spatial_groups(
+            plan, "phenotype_direct", self.results, {}, 4096, False
+        )
+        sources = {group.evidence_source for group in groups}
+        self.assertTrue(any("question_similarity" in source for source in sources))
+        self.assertTrue(any("selected_phenotype" in source for source in sources))
+
+
     def test_program_and_gene_tools_are_1024_only(self):
         program = self.agent.retrieve_program_1024(0, self.results)
         gene = self.agent.retrieve_gene_1024(0, self.results)
@@ -207,6 +254,43 @@ class RetrievalSeparationTest(unittest.TestCase):
             "histological_type_label", "morphology", self.results, relations
         )
         self.assertTrue({"phenotype", "program", "gene"} <= self.source_types(groups))
+
+
+class VisualSearchPolicyTest(unittest.TestCase):
+    @staticmethod
+    def plan(**overrides):
+        values = {
+            "case_id": "case", "question": "question",
+            "target_phenotypes": [], "task_type": "morphology", "metrics": [],
+            "answer_mode": "multiple_choice", "supported": False,
+            "support_reason": "", "task_match": "none",
+            "evidence_route": "morphology_only",
+        }
+        values.update(overrides)
+        return ExecutionPlan(**values)
+
+    def test_patch_assessable_morphology_is_eligible(self):
+        policy = MultiScaleVQAPipeline._visual_search_policy(
+            self.plan(local_morphology_useful=True), {}
+        )
+        self.assertTrue(policy["eligible"])
+
+    def test_exact_nonvisual_context_skips_morphology(self):
+        policy = MultiScaleVQAPipeline._visual_search_policy(
+            self.plan(requires_unavailable_context=True), {}
+        )
+        self.assertFalse(policy["eligible"])
+
+    def test_receptor_status_uses_structured_evidence_without_visual_search(self):
+        policy = MultiScaleVQAPipeline._visual_search_policy(
+            self.plan(
+                target_phenotypes=["HER2_status_label"],
+                supported=True, task_match="direct",
+                evidence_route="phenotype_direct",
+            ),
+            {},
+        )
+        self.assertFalse(policy["eligible"])
 
 
 class StateMachineTest(unittest.TestCase):
@@ -905,6 +989,52 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         self.assertFalse(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 0)
         self.assertFalse(result["abstained"])
+        self.assertIsNotNone(result["agent_answer"])
+        self.assertTrue(result["answer_in_choices"])
+
+    def test_nonvisual_target_skips_pathology_and_still_invokes_fusion(self):
+        class PreferInspectionVerifier(EvidenceVerifierAgent):
+            def __init__(self):
+                pass
+
+            def decide(self, available_actions, **kwargs):
+                visual = next((
+                    action for action in available_actions
+                    if action.startswith("inspect_")
+                ), None)
+                action = visual or "finalize"
+                return {
+                    "evidence_sufficient": False,
+                    "evidence_state": "unavailable",
+                    "missing_evidence_type": "unavailable",
+                    "conflict_detected": False,
+                    "next_action": action,
+                    "target": None,
+                    "reason": "synthetic decision",
+                    "search_exhausted": action == "finalize",
+                    "verifier_fallback_used": False,
+                    "evidence_sufficiency_unverified": False,
+                }
+
+        class PathologyMustNotRun:
+            @staticmethod
+            def describe(*args, **kwargs):
+                raise AssertionError("Patho-R1 must not run for a nonvisual target")
+
+        plan = ExecutionPlan(
+            case_id="TCGA-AA-0001", question="What is the HER2 status?",
+            target_phenotypes=["HER2_status_label"], task_type="binary",
+            metrics=[], answer_mode="multiple_choice", supported=True,
+            support_reason="synthetic", task_match="direct",
+            evidence_route="phenotype_direct", selected_prototype_ids=["P013"],
+            prototype_support_type="target_evidence", prototype_coverage="complete",
+        )
+        pipeline = self.configured_pipeline(PreferInspectionVerifier())
+        pipeline.pathology = PathologyMustNotRun()
+        result = self.run_question(pipeline, plan)
+        self.assertFalse(result["visual_search_eligible"])
+        self.assertEqual(result["visual_retrieval_rounds"], [])
+        self.assertEqual(result["agent_trace"]["inspected_scales"], [])
         self.assertIsNotNone(result["agent_answer"])
         self.assertTrue(result["answer_in_choices"])
 

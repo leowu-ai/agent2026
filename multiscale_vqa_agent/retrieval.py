@@ -317,7 +317,7 @@ class MultiScaleRetrievalAgent:
         question_limit: int = 3,
         prototype_limit: int = 2,
     ) -> List[EvidenceGroup]:
-        """Combine question-first evidence while deduplicating prototype overlap."""
+        """Combine question-first evidence with selected or broad support."""
         selected = deepcopy(question_groups[: max(0, int(question_limit))])
         for group in selected:
             group.evidence_source = "question_similarity"
@@ -326,7 +326,10 @@ class MultiScaleRetrievalAgent:
         for prototype in deepcopy(
             prototype_groups[: max(0, int(prototype_limit))]
         ):
-            prototype.evidence_source = "selected_phenotype"
+            support_source = prototype.evidence_source
+            if support_source not in {"selected_phenotype", "broad_phenotype"}:
+                support_source = "selected_phenotype"
+            prototype.evidence_source = support_source
             duplicate = next((
                 question_group for question_group in question_selected
                 if self._groups_duplicate(question_group, prototype)
@@ -335,9 +338,7 @@ class MultiScaleRetrievalAgent:
                 selected.append(prototype)
                 continue
             self._merge_group_sources(duplicate, prototype)
-            duplicate.evidence_source = (
-                "question_similarity+selected_phenotype"
-            )
+            duplicate.evidence_source = f"question_similarity+{support_source}"
 
         for index, group in enumerate(selected, 1):
             group.group_id = index

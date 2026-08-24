@@ -317,10 +317,12 @@ class FusionVerificationAgent:
         context = dict(agent_context)
         knowledge = dict(context.get("knowledge") or {})
         valid_candidate = cls._has_valid_mapped_candidate(structured, choices)
+        task_match = structured.get("task_match")
         mode = (
             "structured_supported"
-            if structured.get("task_match") in {"direct", "partial"}
-            and valid_candidate
+            if task_match == "direct" and valid_candidate
+            else "partial_fusion"
+            if task_match == "partial" and valid_candidate
             else "evidence_exhausted"
         )
         final_verifier = context.get("final_verifier") or {}
@@ -337,7 +339,7 @@ class FusionVerificationAgent:
         context["knowledge"] = knowledge
         metadata = {
             "kb_reasoning_mode": mode,
-            "full_forced_choice_context_used": mode == "evidence_exhausted",
+            "full_forced_choice_context_used": mode != "structured_supported",
             "generic_reasoning_examples_used": [],
             "proxy_rules_used": [],
             "supplied_to_final_fusion_reasoning_example_ids": [
@@ -352,7 +354,9 @@ class FusionVerificationAgent:
                 row.get("id") for row in knowledge.get("forced_choice_rules", [])
                 if row.get("id")
             ],
-            "structured_components_remain_anchored": bool(valid_candidate),
+            "structured_components_remain_anchored": bool(
+                task_match == "direct" and valid_candidate
+            ),
         }
         context["kb_usage_metadata"] = metadata
         structured["fusion_kb_usage"] = metadata
@@ -492,6 +496,15 @@ class FusionVerificationAgent:
             "structured_visual_conflict": bool(
                 override and policy["evidence_type"] == "patient_specific_visual"
             ),
+            "structured_candidate_preserved": bool(
+                candidate_id and answer_id == candidate_id
+            ),
+            "structured_candidate_overridden": bool(override),
+            "structured_override_reason": policy["reason"],
+            "direct_counterevidence_valid": bool(
+                structured.get("task_match") == "direct"
+                and self._valid_counterevidence(parsed, structured)
+            ),
             **usage,
         }
         if initial_raw is not None:
@@ -526,11 +539,15 @@ class FusionVerificationAgent:
                 "evidence_type": "invalid_mapping",
             }
         task_match = str(structured.get("task_match") or "none")
-        if task_match == "none":
+        if task_match != "direct":
             return {
                 "accept": True,
-                "reason": "no_structured_candidate",
-                "evidence_type": "none",
+                "reason": (
+                    "partial_free_fusion"
+                    if task_match == "partial"
+                    else "no_direct_structured_anchor"
+                ),
+                "evidence_type": "combined_fusion",
             }
         if cls._valid_counterevidence(parsed, structured):
             return {
@@ -538,27 +555,9 @@ class FusionVerificationAgent:
                 "reason": "decisive_visual_counterevidence",
                 "evidence_type": "patient_specific_visual",
             }
-        if task_match == "partial" and cls._candidate_explicitly_contradicted(
-            structured, str(candidate_id), proposed_choice_id
-        ):
-            return {
-                "accept": True,
-                "reason": "partial_candidate_has_explicit_structured_contradiction",
-                "evidence_type": "patient_specific_structured_contradiction",
-            }
-        if task_match == "direct":
-            reason = "direct_requires_decisive_counterevidence"
-        elif task_match == "partial":
-            reason = "partial_requires_decisive_counterevidence"
-        else:
-            return {
-                "accept": True,
-                "reason": "no_structured_candidate",
-                "evidence_type": "none",
-            }
         return {
             "accept": False,
-            "reason": reason,
+            "reason": "direct_requires_decisive_counterevidence",
             "evidence_type": "insufficient_counterevidence",
         }
 
@@ -573,28 +572,22 @@ class FusionVerificationAgent:
             structured.get("mapping_complete") is True
             or alignment.get("mapping_complete") is True
         )
-        return bool(candidate_id in valid_ids and mapping_complete)
-
-    @staticmethod
-    def _candidate_explicitly_contradicted(
-        structured: Dict[str, Any],
-        candidate_id: str,
-        proposed_choice_id: str,
-    ) -> bool:
-        rows = {
-            str(row.get("choice_id")): row
-            for row in structured.get("option_compatibility", [])
-            if row.get("choice_id")
-        }
-
-        def contradictions(row: Dict[str, Any]) -> set:
-            return set(row.get("contradicted_primary_fields", []) or []) | set(
-                row.get("contradicted_supporting_fields", []) or []
+        requested = list(structured.get("requested_fields") or [])
+        missing = list(structured.get("missing_fields") or [])
+        if len(requested) > 1:
+            candidate_row = next((
+                row for row in structured.get("option_compatibility", [])
+                if row.get("choice_id") == candidate_id
+            ), {})
+            joint_complete = bool(
+                structured.get("joint_mapping_complete") is True
+                and structured.get("joint_choice_id") == candidate_id
             )
-
-        candidate_conflicts = contradictions(rows.get(candidate_id, {}))
-        proposed_conflicts = contradictions(rows.get(proposed_choice_id, {}))
-        return bool(candidate_conflicts and len(proposed_conflicts) < len(candidate_conflicts))
+            primary_complete = not missing and not candidate_row.get(
+                "missing_primary_fields", []
+            )
+            mapping_complete = mapping_complete and joint_complete and primary_complete
+        return bool(candidate_id in valid_ids and mapping_complete)
 
     def _fallback(
         self,
@@ -629,6 +622,14 @@ class FusionVerificationAgent:
             "override_evidence_type": "none",
             "override_reason": None,
             "structured_visual_conflict": False,
+            "structured_candidate_preserved": bool(
+                structured.get("structured_candidate_id")
+                and choice_id_for_answer(choices, answer)
+                == structured.get("structured_candidate_id")
+            ),
+            "structured_candidate_overridden": False,
+            "structured_override_reason": "deterministic_fallback",
+            "direct_counterevidence_valid": False,
             **usage,
         }
 
@@ -824,6 +825,16 @@ class FusionVerificationAgent:
             return False
         if evidence.get("contradicts_structured") is not True:
             return False
+        if evidence.get("patient_specific") is not True:
+            return False
+        if evidence.get("target_relevant") is not True:
+            return False
+        if evidence.get("directly_observed") is not True:
+            return False
+        if evidence.get("same_target") is not True:
+            return False
+        if evidence.get("image_quality") != "adequate":
+            return False
 
         try:
             confidence = float(evidence.get("confidence"))
@@ -836,6 +847,14 @@ class FusionVerificationAgent:
         if any(not str(evidence.get(key) or "").strip() for key in required):
             return False
 
-        predictions = structured.get("predictions", [])
-        field = str(predictions[0].get("field") if predictions else "")
-        return field in MORPHOLOGY_OVERRIDE_FIELDS
+        primary_fields = set(structured.get("primary_fields") or [])
+        if not primary_fields:
+            predictions = structured.get("predictions", [])
+            primary_fields = {
+                str(predictions[0].get("field")) if predictions else ""
+            }
+        target_field = str(evidence.get("target_field") or "")
+        return bool(
+            target_field in primary_fields
+            and target_field in MORPHOLOGY_OVERRIDE_FIELDS
+        )
