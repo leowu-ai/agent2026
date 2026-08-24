@@ -38,15 +38,6 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         with source.open(encoding="utf-8") as handle:
             all_items = json.load(handle)
         items = [item for item in all_items if item.get("Choice", item.get("choices"))]
-        if getattr(self, "precomputed_answerability", None) is not None:
-            self.precomputed_answerability.validate_items(items)
-            print(
-                "precomputed_answerability "
-                + json.dumps(
-                    self.precomputed_answerability.summary(), ensure_ascii=False
-                ),
-                flush=True,
-            )
         if limit is not None:
             items = items[:limit]
 
@@ -82,53 +73,33 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         with destination.open(mode, encoding="utf-8") as handle:
             for case_number, (case_id, case_items) in enumerate(grouped.items(), 1):
                 print(
-                    f"[{case_number}/{len(grouped)}] gate {case_id} "
+                    f"[{case_number}/{len(grouped)}] plan {case_id} "
                     f"({len(case_items)} MC questions)",
                     flush=True,
                 )
-                answerable = []
-                for item in case_items:
-                    assessment = self._predict_answerability(item)
-                    if not assessment["can_answer"]:
-                        self._save_mc_result(
-                            handle, self._abstained_result(item, assessment), tracker
-                        )
-                        continue
-                    answerable.append((item, assessment, self.planner.plan(item)))
-                if not answerable:
-                    print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
-                    continue
+                planned = [(item, self.planner.plan(item)) for item in case_items]
 
                 print(
-                    f"infer {case_id} ({len(answerable)} answerable MC questions)",
+                    f"infer {case_id} ({len(planned)} MC questions)",
                     flush=True,
                 )
                 try:
                     scale_results = self.g2p.infer_case(case_id)
                 except Exception as error:
-                    for item, assessment, plan in answerable:
+                    for item, plan in planned:
                         self._save_mc_result(
-                            handle,
-                            self._attach_answerability(
-                                self._error_result(item, plan, error), assessment
-                            ),
-                            tracker,
+                            handle, self._error_result(item, plan, error), tracker
                         )
                     continue
 
                 evidence_cache = {}
-                for item, assessment, plan in answerable:
+                for item, plan in planned:
                     try:
-                        result = self._attach_answerability(
-                            self._run_question(
-                                item, plan, scale_results, evidence_cache, crop_patches
-                            ),
-                            assessment,
+                        result = self._run_question(
+                            item, plan, scale_results, evidence_cache, crop_patches
                         )
                     except Exception as error:
-                        result = self._attach_answerability(
-                            self._error_result(item, plan, error), assessment
-                        )
+                        result = self._error_result(item, plan, error)
                     self._save_mc_result(handle, result, tracker)
 
                 del scale_results, evidence_cache

@@ -154,7 +154,10 @@ class MultiScaleVQAPipeline:
                 item for item in items
                 if item.get("Choice", item.get("choices"))
             ]
-        if getattr(self, "precomputed_answerability", None) is not None:
+        if (
+            self.answerability_only
+            and getattr(self, "precomputed_answerability", None) is not None
+        ):
             self.precomputed_answerability.validate_items(items)
             print(
                 "precomputed_answerability "
@@ -192,21 +195,14 @@ class MultiScaleVQAPipeline:
             with destination.open(mode, encoding="utf-8") as handle:
                 for case_items in grouped.values():
                     for item in case_items:
-                        assessment = self._predict_answerability(item)
-                        if not assessment["can_answer"]:
-                            result = self._abstained_result(item, assessment)
-                        else:
-                            plan = self.planner.plan(item)
-                            plans.append((item, plan))
-                            result = self._attach_answerability(
-                                {
-                                    "case_id": plan.case_id,
-                                    "question": plan.question,
-                                    "input": item,
-                                    "plan": plan.to_dict(),
-                                },
-                                assessment,
-                            )
+                        plan = self.planner.plan(item)
+                        plans.append((item, plan))
+                        result = {
+                            "case_id": plan.case_id,
+                            "question": plan.question,
+                            "input": item,
+                            "plan": plan.to_dict(),
+                        }
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
             summary = write_router_audit(plans, destination)
             print(f"Router audit: {json.dumps(summary, ensure_ascii=False)}", flush=True)
@@ -215,45 +211,30 @@ class MultiScaleVQAPipeline:
 
         with destination.open(mode, encoding="utf-8") as handle:
             for case_number, (case_id, case_items) in enumerate(grouped.items(), 1):
-                print(f"[{case_number}/{len(grouped)}] gate {case_id} ({len(case_items)} questions)", flush=True)
-                answerable = []
-                for item in case_items:
-                    assessment = self._predict_answerability(item)
-                    if not assessment["can_answer"]:
-                        handle.write(json.dumps(
-                            self._abstained_result(item, assessment), ensure_ascii=False
-                        ) + "\n")
-                        handle.flush()
-                        continue
-                    answerable.append((item, assessment, self.planner.plan(item)))
-                if not answerable:
-                    print(f"skip G2P {case_id}: all questions unanswerable", flush=True)
-                    continue
-                print(f"infer {case_id} ({len(answerable)} answerable questions)", flush=True)
+                print(
+                    f"[{case_number}/{len(grouped)}] plan {case_id} "
+                    f"({len(case_items)} questions)", flush=True
+                )
+                planned = [(item, self.planner.plan(item)) for item in case_items]
+                print(f"infer {case_id} ({len(planned)} questions)", flush=True)
                 try:
                     scale_results = self.g2p.infer_case(case_id)
                     evidence_cache = {}
-                    for item, assessment, plan in answerable:
-                        result = self._attach_answerability(
-                            self._run_question(
-                                item, plan, scale_results, evidence_cache, crop_patches
-                            ),
-                            assessment,
+                    for item, plan in planned:
+                        result = self._run_question(
+                            item, plan, scale_results, evidence_cache, crop_patches
                         )
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
                         handle.flush()
                 except Exception as error:
-                    for item, assessment, plan in answerable:
-                        result = self._attach_answerability(
-                            {
-                                "case_id": case_id,
-                                "question": plan.question,
-                                "input": item,
-                                "plan": plan.to_dict(),
-                                "error": f"{type(error).__name__}: {error}",
-                            },
-                            assessment,
-                        )
+                    for item, plan in planned:
+                        result = {
+                            "case_id": case_id,
+                            "question": plan.question,
+                            "input": item,
+                            "plan": plan.to_dict(),
+                            "error": f"{type(error).__name__}: {error}",
+                        }
                         handle.write(json.dumps(result, ensure_ascii=False) + "\n")
                     handle.flush()
                 gc.collect()
@@ -989,20 +970,16 @@ class MultiScaleVQAPipeline:
             ),
             "rounds": pathology_rounds,
         }
-        if post_search_abstained:
-            structured = structured_round0
-            answer = None
-        else:
-            answer, structured = self.fusion.answer_with_summary(
-                plan,
-                choices,
-                predictions,
-                relations_by_field,
-                combined_pathology,
-                broad_g2p_predictions=broad_g2p_predictions,
-                agent_context=agent_context,
-                prepared_structured=structured_round0,
-            )
+        answer, structured = self.fusion.answer_with_summary(
+            plan,
+            choices,
+            predictions,
+            relations_by_field,
+            combined_pathology,
+            broad_g2p_predictions=broad_g2p_predictions,
+            agent_context=agent_context,
+            prepared_structured=structured_round0,
+        )
 
         first_prediction = predictions[0] if predictions else {}
         first_relation = (
@@ -1081,16 +1058,14 @@ class MultiScaleVQAPipeline:
             "post_search_abstained": post_search_abstained,
             "evidence_sufficiency_unverified": evidence_sufficiency_unverified,
             "verifier_failure_count": verifier_failure_count,
-            "abstain_stage": (
-                "evidence_sufficiency" if post_search_abstained else None
-            ),
-            "abstained": post_search_abstained,
+            "abstain_stage": None,
+            "abstained": False,
             "agent_answer": answer,
             "answer_in_choices": bool(
                 answer and answer.get("answer") in choices
             ),
             "raw_response": answer.get("raw_response") if answer else None,
-            "parse_status": answer.get("parse_status") if answer else "post_search_abstain",
+            "parse_status": answer.get("parse_status"),
             "json_parse_success": answer.get(
                 "json_parse_success", False
             ) if answer else False,

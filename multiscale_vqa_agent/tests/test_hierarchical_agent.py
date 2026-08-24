@@ -923,7 +923,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             if row["evidence_type"] in {"program", "gene"}
         ))
 
-    def test_authoritative_verifier_abstain_remains_post_search_abstain(self):
+    def test_authoritative_verifier_abstain_still_reaches_fusion(self):
         class AuthoritativeVerifier(EvidenceVerifierAgent):
             def __init__(self):
                 pass
@@ -956,10 +956,12 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         pipeline = self.configured_pipeline(AuthoritativeVerifier())
         result = self.run_question(pipeline, self.plan())
         self.assertTrue(result["post_search_abstained"])
-        self.assertEqual(result["abstain_stage"], "evidence_sufficiency")
+        self.assertIsNone(result["abstain_stage"])
+        self.assertFalse(result["abstained"])
         self.assertFalse(result["evidence_sufficiency_unverified"])
         self.assertEqual(result["verifier_failure_count"], 0)
-        self.assertIsNone(result["agent_answer"])
+        self.assertIsNotNone(result["agent_answer"])
+        self.assertTrue(result["answer_in_choices"])
 
     def test_same_case_multiple_questions_call_g2p_once(self):
         class CountingG2P:

@@ -114,7 +114,7 @@ class AnswerabilityPipelineTest(unittest.TestCase):
             "pathology": 0,
             "fusion": 0,
         }
-        pipeline.answerability = CountingGate(labels)
+        pipeline.answerability = FailingGate()
         pipeline.planner = CountingPlanner(pipeline.calls)
         pipeline.g2p = CountingG2P(pipeline.calls)
         return pipeline
@@ -138,52 +138,52 @@ class AnswerabilityPipelineTest(unittest.TestCase):
             rows = [json.loads(line) for line in output.read_text().splitlines()]
         return pipeline, rows
 
-    def test_false_skips_planner(self):
+    def test_false_label_does_not_skip_planner(self):
         pipeline, _ = self.run_items({"q": False}, [self.item("q")])
-        self.assertEqual(pipeline.calls["planner"], 0)
+        self.assertEqual(pipeline.calls["planner"], 1)
 
-    def test_false_skips_g2p(self):
+    def test_false_label_does_not_skip_g2p(self):
         pipeline, _ = self.run_items({"q": False}, [self.item("q")])
-        self.assertEqual(pipeline.calls["g2p"], 0)
+        self.assertEqual(pipeline.calls["g2p"], 1)
 
-    def test_false_skips_retrieval(self):
+    def test_false_label_does_not_skip_retrieval(self):
         pipeline, _ = self.run_items({"q": False}, [self.item("q")])
-        self.assertEqual(pipeline.calls["retrieval"], 0)
+        self.assertEqual(pipeline.calls["retrieval"], 1)
 
-    def test_false_skips_pathology(self):
+    def test_false_label_does_not_skip_pathology(self):
         pipeline, _ = self.run_items({"q": False}, [self.item("q")])
-        self.assertEqual(pipeline.calls["pathology"], 0)
+        self.assertEqual(pipeline.calls["pathology"], 1)
 
-    def test_false_skips_fusion_and_abstains(self):
+    def test_false_label_does_not_skip_fusion_or_abstain(self):
         pipeline, rows = self.run_items({"q": False}, [self.item("q")])
-        self.assertEqual(pipeline.calls["fusion"], 0)
-        self.assertTrue(rows[0]["abstained"])
-        self.assertFalse(rows[0]["predicted_can_answer"])
-        self.assertIsNone(rows[0]["agent_answer"])
+        self.assertEqual(pipeline.calls["fusion"], 1)
+        self.assertFalse(rows[0].get("abstained", False))
+        self.assertNotIn("predicted_can_answer", rows[0])
+        self.assertIsNotNone(rows[0]["agent_answer"])
 
     def test_true_enters_old_pipeline(self):
         pipeline, rows = self.run_items({"q": True}, [self.item("q")])
         self.assertEqual(pipeline.calls, {
             "planner": 1, "g2p": 1, "retrieval": 1, "pathology": 1, "fusion": 1,
         })
-        self.assertTrue(rows[0]["predicted_can_answer"])
-        self.assertFalse(rows[0]["abstained"])
+        self.assertNotIn("predicted_can_answer", rows[0])
+        self.assertFalse(rows[0].get("abstained", False))
 
-    def test_all_false_case_never_runs_infer_case(self):
+    def test_all_false_case_still_runs_infer_case(self):
         pipeline, _ = self.run_items(
             {"q1": False, "q2": False}, [self.item("q1"), self.item("q2")]
         )
-        self.assertEqual(pipeline.calls["g2p"], 0)
+        self.assertEqual(pipeline.calls["g2p"], 1)
 
-    def test_mixed_case_runs_only_true_questions(self):
+    def test_mixed_case_runs_all_questions(self):
         labels = {"q1": True, "q2": True, "q3": False, "q4": False}
         pipeline, rows = self.run_items(labels, [self.item(q) for q in labels])
         self.assertEqual(pipeline.calls["g2p"], 1)
-        self.assertEqual(pipeline.calls["planner"], 2)
-        self.assertEqual(pipeline.calls["fusion"], 2)
-        self.assertEqual(sum(row["abstained"] for row in rows), 2)
+        self.assertEqual(pipeline.calls["planner"], 4)
+        self.assertEqual(pipeline.calls["fusion"], 4)
+        self.assertEqual(sum(row.get("abstained", False) for row in rows), 0)
 
-    def test_precomputed_gate_skips_online_agent_and_routes_only_true(self):
+    def test_precomputed_gate_does_not_control_normal_inference(self):
         items = [self.item("q true"), self.item("q false")]
         with tempfile.TemporaryDirectory() as directory:
             directory = Path(directory)
@@ -211,10 +211,10 @@ class AnswerabilityPipelineTest(unittest.TestCase):
                 str(source), str(output), resume=False, crop_patches=False
             )
             rows = [json.loads(line) for line in output.read_text().splitlines()]
-        self.assertEqual(pipeline.calls["planner"], 1)
+        self.assertEqual(pipeline.calls["planner"], 2)
         self.assertEqual(pipeline.calls["g2p"], 1)
-        self.assertEqual(pipeline.calls["fusion"], 1)
-        self.assertEqual(sum(row["abstained"] for row in rows), 1)
+        self.assertEqual(pipeline.calls["fusion"], 2)
+        self.assertEqual(sum(row.get("abstained", False) for row in rows), 0)
 
     def test_missing_precomputed_key_is_fatal_without_online_fallback(self):
         item = self.item("missing question")
