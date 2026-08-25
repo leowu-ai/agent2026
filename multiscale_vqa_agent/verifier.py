@@ -85,9 +85,6 @@ class EvidenceVerifierAgent:
                 "evidence_route": plan.get("evidence_route"),
                 "target_phenotypes": plan.get("target_phenotypes", []),
                 "prototype_coverage": plan.get("prototype_coverage"),
-                "requires_unavailable_context": plan.get(
-                    "requires_unavailable_context", False
-                ),
             },
             "knowledge": {
                 "matched_concepts": knowledge.get("matched_concepts", []),

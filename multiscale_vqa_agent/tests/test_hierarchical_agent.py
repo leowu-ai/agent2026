@@ -266,11 +266,33 @@ class StateMachineTest(unittest.TestCase):
         self.assertNotEqual(decision["next_action"], "inspect_program")
 
     def test_round0_allows_adaptive_visual_scale_or_answer(self):
+        plan = ExecutionPlan(
+            case_id="case", question="morphology", target_phenotypes=[],
+            task_type="morphology", metrics=[], answer_mode="multiple_choice",
+            supported=False, support_reason="", task_match="none",
+            evidence_route="morphology_only",
+        )
+        self.assertEqual(plan.task_match, "none")
+        self.assertEqual(plan.evidence_route, "morphology_only")
         actions = EvidenceVerifierAgent.available_actions(
             "round0", True, False, allow_early_abstain=False
         )
         self.assertEqual(
             actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
+        )
+
+    def test_terminal_visual_and_biological_states_keep_abstain(self):
+        self.assertIn(
+            "abstain",
+            EvidenceVerifierAgent.available_actions("inspect_1024", True, True),
+        )
+        self.assertIn(
+            "abstain",
+            EvidenceVerifierAgent.available_actions("inspect_program", True, True),
+        )
+        self.assertIn(
+            "abstain",
+            EvidenceVerifierAgent.available_actions("inspect_gene", True, True),
         )
 
     def test_fallback_prefers_mapped_direct_candidate(self):
@@ -365,13 +387,12 @@ class GraphAndMemoryTest(unittest.TestCase):
 
 
 class EarlyAbstainAndProgramRankingTest(unittest.TestCase):
-    def test_early_abstain_uses_explicit_plan_or_rag_semantics(self):
+    def test_post_visual_early_abstain_uses_rag_semantics(self):
         helper = MultiScaleVQAPipeline._early_abstain_allowed
         self.assertFalse(helper({}, {
             "matched_concepts": [{"evidence_role": "supportive_domain_knowledge"}],
             "evidence_rules": [{"id": "rule_morphology_coarse_to_fine"}],
         }))
-        self.assertTrue(helper({"requires_unavailable_context": True}, {}))
         self.assertTrue(helper({}, {
             "matched_concepts": [{
                 "evidence_role": "unavailable_from_local_visual_evidence"
@@ -384,48 +405,6 @@ class EarlyAbstainAndProgramRankingTest(unittest.TestCase):
             {"target_phenotypes": ["histological_type_label"]},
             {"evidence_rules": [{"id": "rule_stage_and_outcome"}]},
         ))
-
-    def test_target_or_useful_morphology_prevents_early_abstain(self):
-        helper = MultiScaleVQAPipeline._early_abstain_allowed
-        self.assertFalse(helper({
-            "target_phenotypes": ["lymphovascular_invasion_label"],
-            "prototype_coverage": "partial",
-            "requires_unavailable_context": True,
-            "local_morphology_useful": True,
-        }, {}))
-        self.assertFalse(helper({
-            "target_phenotypes": ["ER_status_label"],
-            "prototype_coverage": "partial",
-            "requires_unavailable_context": True,
-            "local_morphology_useful": False,
-        }, {}))
-        self.assertFalse(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": True,
-            "local_morphology_useful": True,
-        }, {}))
-        self.assertFalse(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": False,
-            "local_morphology_useful": True,
-        }, {
-            "evidence_rules": [{"id": "rule_assay_specific_target"}],
-        }))
-
-    def test_only_genuinely_unavailable_without_useful_evidence_allows_early_abstain(self):
-        helper = MultiScaleVQAPipeline._early_abstain_allowed
-        self.assertTrue(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": True,
-            "local_morphology_useful": False,
-        }, {}))
-        self.assertTrue(helper({
-            "target_phenotypes": [],
-            "requires_unavailable_context": False,
-            "local_morphology_useful": False,
-        }, {
-            "evidence_rules": [{"id": "rule_assay_specific_target"}],
-        }))
 
     def test_morphology_program_ranking_uses_all_scales_and_consensus(self):
         pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)

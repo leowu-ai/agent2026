@@ -20,8 +20,6 @@ class ExecutionPlan:
     selected_prototype_ids: List[str] = field(default_factory=list)
     prototype_support_type: str = "none"
     prototype_coverage: str = "none"
-    local_morphology_useful: bool = False
-    requires_unavailable_context: bool = False
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)

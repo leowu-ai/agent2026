@@ -129,8 +129,6 @@ Use only question, choices, and the prototype catalog:
 1. Infer the true target semantics from question and choices; choices clarify the task but never reveal the answer.
 2. Select the smallest set of at most four exact prototype IDs whose predictions directly measure the requested variable or a true component of it.
 3. Classify prototype support as target_evidence, correlated_context, or none, then set coverage.
-4. Independently judge whether retrieved local H&E patches can provide useful morphology.
-5. Independently judge whether unavailable records, measurements, assays, history, or exhaustive specimen context are required.
 
 TARGET_EVIDENCE means knowing the prototype prediction gives the requested variable itself, measures a real component of that same variable, or eliminates choices for that target-level reason. Histologic grade for a grade question, LVI for invasion presence or extent, and receptor status for a receptor-status question are target evidence.
 
@@ -148,9 +146,7 @@ prototype_coverage is meaningful only for target_evidence. For correlated_contex
 
 Assay granularity matters. General ER/PR/HER2 status is target_evidence/complete. ER status for choices negative, positive <10%, or positive >10% is target_evidence/partial because it separates negative from positive but not percentage ranges. HER2 status for explicit FISH/gene amplification is correlated_context or none, never partial. Receptor predictions for which stain was performed or pending are correlated_context.
 
-local_morphology_useful=true for patch-assessable architecture, atypia, inflammation, fibrosis, adenosis, hyperplasia, fibroadenoma, fibrocystic change, benign tissue, local necrosis, or stroma when no target-level prototype exists. Set false for exact size, focus count, exhaustive multifocality, total-tumor percentage, margin distance, specimen extent/distribution, treatment/history/age, report wording, and exact TNM or gross facts. Do not force broad prototypes into partial merely to avoid local morphology.
-
-requires_unavailable_context=true does not erase genuine target_evidence/partial, but correlated_context plus unavailable context is not partial. Return JSON only with prototype_ids, prototype_support_type, prototype_coverage, local_morphology_useful, requires_unavailable_context, phenotype_relevance_score, reason, and use_pathology_agent. Do not invent IDs."""
+Return JSON only with prototype_ids, prototype_support_type, prototype_coverage, phenotype_relevance_score, reason, and use_pathology_agent. Do not invent IDs."""
         user = json.dumps({
             "question": question,
             "choices": list(choices),
@@ -159,8 +155,6 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
                 "prototype_ids": ["P001"],
                 "prototype_support_type": "target_evidence|correlated_context|none",
                 "prototype_coverage": "complete|partial|none",
-                "local_morphology_useful": True,
-                "requires_unavailable_context": False,
                 "phenotype_relevance_score": 0.0,
                 "reason": "one sentence",
                 "use_pathology_agent": True,
@@ -210,12 +204,6 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
         coverage = str(parsed.get("prototype_coverage", "none")).strip().lower()
         if coverage not in {"complete", "partial", "none"}:
             coverage = "none"
-        local_morphology_useful = self._as_bool(
-            parsed.get("local_morphology_useful", False)
-        )
-        requires_unavailable_context = self._as_bool(
-            parsed.get("requires_unavailable_context", False)
-        )
 
         if support_type != "target_evidence":
             prototype_ids = []
@@ -287,8 +275,6 @@ requires_unavailable_context=true does not erase genuine target_evidence/partial
             selected_prototype_ids=prototype_ids,
             prototype_support_type=support_type,
             prototype_coverage=coverage,
-            local_morphology_useful=local_morphology_useful,
-            requires_unavailable_context=requires_unavailable_context,
         )
 
     def _label_space_covers_choices(
