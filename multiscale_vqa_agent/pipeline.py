@@ -706,7 +706,8 @@ class MultiScaleVQAPipeline:
             "round0",
             has_program_candidates=bool(program_candidates),
             has_gene_candidates=False,
-            allow_early_abstain=False,
+            allow_early_abstain=allow_early_abstain,
+            memory=memory,
         )
         round0_decision = self.verifier.decide(
             question=plan.question,
@@ -930,6 +931,7 @@ class MultiScaleVQAPipeline:
                 has_program_candidates=bool(program_candidates),
                 has_gene_candidates=bool(gene_candidates),
                 allow_early_abstain=allow_early_abstain,
+                memory=memory,
             )
             decision = self.verifier.decide(
                 question=plan.question,
@@ -1190,9 +1192,13 @@ class MultiScaleVQAPipeline:
     def _early_abstain_allowed(
         plan: Dict[str, Any], knowledge: Dict[str, Any]
     ) -> bool:
-        """Use explicit RAG evidence semantics after visual acquisition."""
+        """Use explicit Planner/RAG evidence semantics, never question keywords."""
         if plan.get("target_phenotypes"):
             return False
+        if plan.get("local_morphology_useful") is True:
+            return False
+        if plan.get("requires_unavailable_context") is True:
+            return True
         unavailable_roles = {
             "limited_context",
             "unavailable",

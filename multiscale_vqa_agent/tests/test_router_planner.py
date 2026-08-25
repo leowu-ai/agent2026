@@ -49,14 +49,13 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P006"],
             "prototype_support_type": "target_evidence",
             "prototype_coverage": "complete",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.target_phenotypes, ["histologic_grade_label"])
         self.assertEqual(plan.selected_prototype_ids, ["P006"])
         self.assertEqual(plan.task_match, "direct")
 
         self.assertEqual(plan.prototype_coverage, "complete")
-        self.assertNotIn("local_morphology_useful", plan.to_dict())
-        self.assertNotIn("requires_unavailable_context", plan.to_dict())
 
     def test_partial_keeps_single_prototype(self):
         plan = self.normalize({
@@ -91,6 +90,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P001"],
             "prototype_support_type": "none",
             "prototype_coverage": "none",
+            "local_morphology_useful": True,
             "use_pathology_agent": False,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
@@ -103,6 +103,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": [],
             "prototype_support_type": "none",
             "prototype_coverage": "none",
+            "local_morphology_useful": False,
             "use_pathology_agent": True,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
@@ -115,6 +116,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P999"],
             "prototype_support_type": "target_evidence",
             "prototype_coverage": "partial",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.evidence_route, "morphology_only")
         self.assertEqual(plan.selected_prototype_ids, [])
@@ -125,18 +127,22 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": [],
             "prototype_support_type": "none",
             "prototype_coverage": "none",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.evidence_route, "morphology_only")
         self.assertTrue(plan.use_pathology_agent)
 
-    def test_partial_keeps_target_evidence_route(self):
+    def test_partial_survives_unavailable_context(self):
         plan = self.normalize({
             "prototype_ids": ["P007"],
             "prototype_support_type": "target_evidence",
             "prototype_coverage": "partial",
+            "local_morphology_useful": False,
+            "requires_unavailable_context": True,
         })
         self.assertEqual(plan.evidence_route, "phenotype_direct")
         self.assertEqual(plan.task_match, "partial")
+        self.assertTrue(plan.requires_unavailable_context)
 
     def test_complete_relevance_is_clamped_up(self):
         plan = self.normalize({
@@ -161,6 +167,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P013"],
             "prototype_support_type": "correlated_context",
             "prototype_coverage": "partial",
+            "local_morphology_useful": False,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
         self.assertEqual(plan.prototype_coverage, "none")
@@ -171,6 +178,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P001"],
             "prototype_support_type": "correlated_context",
             "prototype_coverage": "complete",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.evidence_route, "morphology_only")
         self.assertEqual(plan.prototype_coverage, "none")
@@ -181,6 +189,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P001"],
             "prototype_support_type": "none",
             "prototype_coverage": "complete",
+            "local_morphology_useful": False,
         })
         self.assertEqual(plan.selected_prototype_ids, [])
         self.assertEqual(plan.evidence_route, "morphology_only")
@@ -190,6 +199,7 @@ class RouterPlannerTest(unittest.TestCase):
             "prototype_ids": ["P006"],
             "prototype_support_type": "possibly_related",
             "prototype_coverage": "complete",
+            "local_morphology_useful": True,
         })
         self.assertEqual(plan.prototype_support_type, "none")
         self.assertEqual(plan.prototype_coverage, "none")
