@@ -56,6 +56,13 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
             history_path,
             selected_total=len(items),
             existing_answers=destination if resume else None,
+            task_by_key={
+                (
+                    str(item.get("Id", item.get("case_id", "")))[:12],
+                    str(item.get("Question", item.get("question", ""))),
+                ): str(item.get("Task", ""))
+                for item in items
+            },
         )
 
         grouped: Dict[str, List[Any]] = defaultdict(list)
@@ -100,6 +107,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
                         )
                     except Exception as error:
                         result = self._error_result(item, plan, error)
+                    result["dataset_task"] = item.get("Task")
                     self._save_mc_result(handle, result, tracker)
 
                 del scale_results, evidence_cache
@@ -160,10 +168,21 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         supported_accuracy = snapshot["supported_accuracy"]
         accuracy_text = "nan" if result_accuracy is None else f"{result_accuracy:.4f}"
         supported_text = "nan" if supported_accuracy is None else f"{supported_accuracy:.4f}"
+        category_metrics = snapshot.get("slidebench_categories", {})
+
+        def category_text(name: str) -> str:
+            value = category_metrics.get(name, {}).get("accuracy")
+            return "nan" if value is None else f"{value:.4f}"
+
         print(
             f"live_mc processed={snapshot['processed']}/{snapshot['selected_total']} "
             f"correct={snapshot['correct']} errors={snapshot['errors']} "
             f"acc={accuracy_text} supported_acc={supported_text} "
+            f"tumor={category_text('tumor_type')} "
+            f"receptor={category_text('receptor_status')} "
+            f"her2_expression={category_text('her2_expression')} "
+            f"grading={category_text('histological_grading')} "
+            f"molecular_subtype={category_text('molecular_subtype')} "
             f"last_correct={evaluation['correct']}",
             flush=True,
         )

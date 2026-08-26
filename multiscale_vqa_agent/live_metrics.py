@@ -5,12 +5,26 @@ import re
 from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 
 def normalize_answer(value: Any) -> str:
     text = str(value or "").lower().replace("infiltrating", "invasive")
     return " ".join(re.findall(r"[a-z0-9]+", text))
+
+
+def slidebench_category(task: Any) -> Optional[str]:
+    normalized = " ".join(str(task or "").strip().lower().split())
+    mapping = {
+        "tumor": "tumor_type",
+        "er": "receptor_status",
+        "pr": "receptor_status",
+        "her2": "receptor_status",
+        "her2 expression": "her2_expression",
+        "histological grading": "histological_grading",
+        "molecular subtype": "molecular_subtype",
+    }
+    return mapping.get(normalized)
 
 
 class LiveAccuracyTracker:
@@ -20,10 +34,12 @@ class LiveAccuracyTracker:
         history_path: Path,
         selected_total: int,
         existing_answers: Optional[Path] = None,
+        task_by_key: Optional[Dict[Tuple[str, str], str]] = None,
     ):
         self.snapshot_path = Path(snapshot_path)
         self.history_path = Path(history_path)
         self.selected_total = int(selected_total)
+        self.task_by_key = task_by_key or {}
         self.processed = self.scorable = self.correct = self.errors = 0
         self.answered = self.abstained = self.answered_correct = 0
         self.supported_processed = self.supported_correct = 0
@@ -33,6 +49,7 @@ class LiveAccuracyTracker:
         self.override_structured_correct = self.override_agent_correct = 0
         self.per_task = defaultdict(self._empty_stats)
         self.per_task_match = defaultdict(self._empty_stats)
+        self.slidebench_categories = defaultdict(self._empty_stats)
         self.last = None
         self.snapshot_path.parent.mkdir(parents=True, exist_ok=True)
         self.history_path.parent.mkdir(parents=True, exist_ok=True)
@@ -80,6 +97,14 @@ class LiveAccuracyTracker:
             structured is not None and reference is not None and
             normalize_answer(structured) == normalize_answer(reference)
         )
+        dataset_task = row.get("dataset_task")
+        if dataset_task is None:
+            dataset_task = row.get("input", {}).get("Task", row.get("Task"))
+        if dataset_task is None:
+            dataset_task = self.task_by_key.get(
+                (str(row.get("case_id", ""))[:12], str(row.get("question", "")))
+            )
+        benchmark_category = slidebench_category(dataset_task)
 
         self.processed += 1
         self.answered += int(answered)
@@ -100,6 +125,13 @@ class LiveAccuracyTracker:
         self.override_structured_correct += int(override and structured_correct)
         self.override_agent_correct += int(override and is_correct)
 
+        if benchmark_category:
+            stats = self.slidebench_categories[benchmark_category]
+            stats["processed"] += 1
+            stats["errors"] += int(error)
+            stats["scorable"] += int(scorable)
+            stats["correct"] += int(is_correct)
+
         if routed:
             for stats in (self.per_task[task], self.per_task_match[task_match]):
                 stats["processed"] += 1
@@ -111,6 +143,8 @@ class LiveAccuracyTracker:
             "case_id": row.get("case_id"),
             "question": row.get("question"),
             "task": task,
+            "dataset_task": dataset_task,
+            "slidebench_category": benchmark_category,
             "task_match": task_match,
             "supported": supported,
             "correct": is_correct,
@@ -178,6 +212,9 @@ class LiveAccuracyTracker:
             "override_agent_accuracy": self._ratio(self.override_agent_correct, self.overrides),
             "per_task_match": self._summarize_groups(self.per_task_match),
             "per_task": self._summarize_groups(self.per_task),
+            "slidebench_categories": self._summarize_groups(
+                self.slidebench_categories
+            ),
             "last": self.last,
         }
 
@@ -209,9 +246,22 @@ class LiveAccuracyTracker:
             "answers_outside_choices": self.answers_outside_choices,
             "multifield_incomplete": self.multifield_incomplete,
             "structured_overrides": self.overrides,
+            "tumor_type_accuracy": self._category_accuracy("tumor_type"),
+            "receptor_status_accuracy": self._category_accuracy("receptor_status"),
+            "her2_expression_accuracy": self._category_accuracy("her2_expression"),
+            "histological_grading_accuracy": self._category_accuracy(
+                "histological_grading"
+            ),
+            "molecular_subtype_accuracy": self._category_accuracy(
+                "molecular_subtype"
+            ),
             "case_id": self.last.get("case_id") if self.last else None,
             "task": self.last.get("task") if self.last else None,
             "task_match": self.last.get("task_match") if self.last else None,
+            "dataset_task": self.last.get("dataset_task") if self.last else None,
+            "slidebench_category": (
+                self.last.get("slidebench_category") if self.last else None
+            ),
             "last_correct": self.last.get("correct") if self.last else None,
             "last_error": self.last.get("error") if self.last else None,
         }
@@ -225,3 +275,9 @@ class LiveAccuracyTracker:
             writer.writerow(row)
             handle.flush()
             os.fsync(handle.fileno())
+
+    def _category_accuracy(self, category: str):
+        stats = self.slidebench_categories.get(category)
+        if not stats:
+            return None
+        return self._ratio(stats["correct"], stats["processed"])

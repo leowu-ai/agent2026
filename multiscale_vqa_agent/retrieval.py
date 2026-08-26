@@ -1,5 +1,8 @@
 import hashlib
 import re
+import shutil
+import subprocess
+import tempfile
 from copy import deepcopy
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
@@ -827,10 +830,6 @@ class WSICropper:
         self._index: Optional[Dict[str, List[Path]]] = None
 
     def crop_groups(self, case_id: str, question: str, groups: List[EvidenceGroup]) -> List[EvidenceGroup]:
-        try:
-            import openslide
-        except ImportError as error:
-            raise RuntimeError("openslide-python is required to crop WSI evidence") from error
         question_id = hashlib.sha1(question.encode("utf-8")).hexdigest()[:10]
         directory = self.output_root / case_id / question_id
         directory.mkdir(parents=True, exist_ok=True)
@@ -842,8 +841,21 @@ class WSICropper:
                 if wsi_path is None:
                     continue
                 target = directory / f"group{group.group_id}_{scale}_{patch.x}_{patch.y}.jpg"
-                with openslide.OpenSlide(str(wsi_path)) as slide:
-                    image = slide.read_region((patch.x, patch.y), 0, (patch.size, patch.size)).convert("RGB")
+                if wsi_path.suffix.lower() in {".jpg", ".jpeg"}:
+                    image = self._crop_jpeg(
+                        wsi_path, patch.x, patch.y, patch.size
+                    )
+                else:
+                    try:
+                        import openslide
+                    except ImportError as error:
+                        raise RuntimeError(
+                            "openslide-python is required to crop WSI evidence"
+                        ) from error
+                    with openslide.OpenSlide(str(wsi_path)) as slide:
+                        image = slide.read_region(
+                            (patch.x, patch.y), 0, (patch.size, patch.size)
+                        ).convert("RGB")
                 image.thumbnail((1024, 1024))
                 image.save(target, quality=90)
                 patch.image_path = str(target)
@@ -855,10 +867,6 @@ class WSICropper:
         size: int = 1536,
         max_slides: int = 2,
     ) -> List[str]:
-        try:
-            import openslide
-        except ImportError:
-            return []
         candidates = sorted(
             self._case_slides(case_id), key=self._slide_priority
         )[: max(0, int(max_slides))]
@@ -869,8 +877,17 @@ class WSICropper:
             try:
                 if not target.exists() or target.stat().st_size <= 0:
                     directory.mkdir(parents=True, exist_ok=True)
-                    with openslide.OpenSlide(str(slide_path)) as slide:
-                        image = slide.get_thumbnail((int(size), int(size))).convert("RGB")
+                    if slide_path.suffix.lower() in {".jpg", ".jpeg"}:
+                        image = self._jpeg_thumbnail(slide_path, int(size))
+                    else:
+                        try:
+                            import openslide
+                        except ImportError:
+                            continue
+                        with openslide.OpenSlide(str(slide_path)) as slide:
+                            image = slide.get_thumbnail(
+                                (int(size), int(size))
+                            ).convert("RGB")
                     image.save(target, "JPEG", quality=90)
                 paths.append(str(target))
             except Exception:
@@ -886,8 +903,12 @@ class WSICropper:
     def _case_slides(self, case_id: str) -> List[Path]:
         if self._index is None:
             self._index = {}
-            for path in self.wsi_root.rglob("*.svs"):
-                self._index.setdefault(path.name[:12], []).append(path)
+            paths = []
+            for pattern in ("*.svs", "*.jpg", "*.jpeg"):
+                paths.extend(self.wsi_root.rglob(pattern))
+            for path in sorted(paths):
+                key = path.name[:12] if path.suffix.lower() == ".svs" else path.stem
+                self._index.setdefault(key, []).append(path)
         return self._index.get(case_id, [])
 
     def _resolve_wsi(self, case_id: str, slide_id: str) -> Optional[Path]:
@@ -897,3 +918,60 @@ class WSICropper:
         feature_stem = slide_id.rsplit("_", 2)[0]
         exact = next((path for path in candidates if path.stem == feature_stem), None)
         return exact or candidates[0]
+
+    @staticmethod
+    def _jpegtran_path() -> str:
+        executable = shutil.which("jpegtran")
+        if not executable:
+            raise RuntimeError(
+                "jpegtran is required for memory-efficient cropping of large JPEG WSIs"
+            )
+        return executable
+
+    @classmethod
+    def _crop_jpeg(cls, path: Path, x: int, y: int, size: int):
+        from PIL import Image
+
+        # jpegtran rounds the upper-left corner down to an MCU boundary. Trim
+        # that expanded lossless crop back to the exact feature coordinates.
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as temporary:
+            result = subprocess.run(
+                [
+                    cls._jpegtran_path(),
+                    "-copy", "none",
+                    "-crop", f"{int(size)}x{int(size)}+{int(x)}+{int(y)}",
+                    str(path),
+                ],
+                stdout=temporary,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+            if result.returncode != 0:
+                message = result.stderr.decode("utf-8", errors="replace").strip()
+                raise RuntimeError(f"jpegtran crop failed for {path}: {message}")
+            temporary.flush()
+            with Image.open(temporary.name) as cropped:
+                expanded = cropped.convert("RGB")
+                extra_x = max(0, expanded.width - int(size))
+                extra_y = max(0, expanded.height - int(size))
+                exact = expanded.crop(
+                    (extra_x, extra_y, extra_x + int(size), extra_y + int(size))
+                )
+                exact.load()
+                return exact
+
+    @staticmethod
+    def _jpeg_thumbnail(path: Path, size: int):
+        from PIL import Image
+
+        pixel_limit = Image.MAX_IMAGE_PIXELS
+        Image.MAX_IMAGE_PIXELS = None
+        try:
+            with Image.open(path) as source:
+                source.draft("RGB", (int(size), int(size)))
+                image = source.convert("RGB")
+                image.thumbnail((int(size), int(size)))
+                image.load()
+                return image
+        finally:
+            Image.MAX_IMAGE_PIXELS = pixel_limit

@@ -210,95 +210,36 @@ class RetrievalSeparationTest(unittest.TestCase):
 
 
 class StateMachineTest(unittest.TestCase):
-    @staticmethod
-    def memory():
-        return WorkingMemory("case", "question", ["a", "b"], {}, {})
-
-    @staticmethod
-    def observe(memory, action, scale=None, target_type=None, target_name=None):
-        memory.add_observation(EvidenceObservation(
-            1, action, target_type or "morphology", "supportive", scale,
-            target_type or "morphology", target_name, "synthetic", {}, [1],
-        ))
-
-    def test_round0_exposes_program_but_never_gene(self):
-        actions = EvidenceVerifierAgent.available_actions(
-            "round0", True, True, memory=self.memory()
+    def test_spatial_and_biological_order(self):
+        self.assertEqual(
+            EvidenceVerifierAgent.available_actions("inspect_4096", True, True),
+            ["answer", "inspect_2048", "inspect_1024"],
         )
-        self.assertIn("inspect_program", actions)
-        self.assertNotIn("inspect_gene", actions)
-
-    def test_program_then_gene_keeps_unused_visual_branch(self):
-        memory = self.memory()
-        self.observe(
-            memory, "inspect_program", 1024, "program", "Program A"
+        self.assertEqual(
+            EvidenceVerifierAgent.available_actions("inspect_2048", True, True),
+            ["answer", "inspect_1024"],
         )
-        actions = EvidenceVerifierAgent.available_actions(
-            "inspect_program", True, True, memory=memory
-        )
-        self.assertIn("inspect_gene", actions)
-        self.assertIn("inspect_4096", actions)
-        self.assertIn("inspect_2048", actions)
-        self.assertIn("inspect_1024", actions)
-        self.assertNotIn("inspect_program", actions)
-
-    def test_visual_then_program_keeps_coarse_to_fine_without_repeats(self):
-        memory = self.memory()
-        self.observe(memory, "inspect_4096", 4096)
-        actions = EvidenceVerifierAgent.available_actions(
-            "inspect_4096", True, False, memory=memory
-        )
-        self.assertNotIn("inspect_4096", actions)
-        self.assertIn("inspect_2048", actions)
-        self.assertIn("inspect_1024", actions)
-        self.assertIn("inspect_program", actions)
-
-    def test_gene_requires_an_inspected_program(self):
-        memory = self.memory()
         self.assertNotIn(
             "inspect_gene",
-            EvidenceVerifierAgent.available_actions(
-                "inspect_4096", True, True, memory=memory
-            ),
-        )
-        self.observe(
-            memory, "inspect_program", 1024, "program", "Program A"
+            EvidenceVerifierAgent.available_actions("inspect_1024", True, True),
         )
         self.assertIn(
             "inspect_gene",
-            EvidenceVerifierAgent.available_actions(
-                "inspect_program", True, True, memory=memory
-            ),
+            EvidenceVerifierAgent.available_actions("inspect_program", True, True),
         )
 
     def test_explicit_unavailable_semantics_allow_early_abstain(self):
         for action in ("inspect_4096", "inspect_2048"):
             available = EvidenceVerifierAgent.available_actions(
-                action, False, False, allow_early_abstain=True
+                action, True, True, allow_early_abstain=True
             )
             self.assertIn("abstain", available)
 
-    def test_unused_program_branch_blocks_early_abstain_without_forcing_it(self):
-        actions = EvidenceVerifierAgent.available_actions(
-            "round0", True, False, allow_early_abstain=True,
-            memory=self.memory(),
-        )
-        self.assertIn("answer", actions)
-        self.assertIn("inspect_program", actions)
-        self.assertNotIn("abstain", actions)
-        without_program = EvidenceVerifierAgent.available_actions(
-            "round0", False, False, allow_early_abstain=True,
-            memory=self.memory(),
-        )
-        self.assertNotIn("inspect_program", without_program)
-        self.assertIn("abstain", without_program)
-
     def test_1024_retains_program_or_terminal_abstain(self):
-        actions = EvidenceVerifierAgent.available_actions(
-            "inspect_1024", True, False
+        self.assertEqual(
+            EvidenceVerifierAgent.available_actions("inspect_1024", True, False),
+            ["answer", "inspect_program", "abstain"],
         )
-        self.assertIn("inspect_program", actions)
-        self.assertNotIn("abstain", actions)
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_1024", False, False),
             ["answer", "abstain"],
@@ -326,7 +267,7 @@ class StateMachineTest(unittest.TestCase):
 
     def test_round0_allows_adaptive_visual_scale_or_answer(self):
         actions = EvidenceVerifierAgent.available_actions(
-            "round0", False, False, allow_early_abstain=False
+            "round0", True, False, allow_early_abstain=False
         )
         self.assertEqual(
             actions, ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]

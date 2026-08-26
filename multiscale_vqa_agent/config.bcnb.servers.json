@@ -1,0 +1,69 @@
+{
+  "project_root": "/home/wl/agent_2026/g2p_toolbank_brca",
+  "vqa_json": "/home/wl/agent_2026/dataset/SlideBench-VQA-BCNB-adapted/SlideBench-VQA-BCNB.json",
+  "wsi_root": "/data_local/public_files/public_datasets/zd/BCNB/WSIs",
+  "output_dir": "/data_nas3/wl/BCNB_VQA_outputs/bcnb_live_metrics_v1",
+  "device": "auto",
+  "scales": {
+    "1024": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_gene34_freeR05_earlyfreeze_pathway_1024/G2P_ToolBank_Minimal",
+    "2048": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_freeR05_earlyfreeze_sharedgate_2048/G2P_ToolBank_Minimal",
+    "4096": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_freeR05_earlyfreeze_sharedgate_4096/G2P_ToolBank_Minimal"
+  },
+  "fusion_weights": {
+    "morphology": {
+      "1024": 0.55,
+      "2048": 0.3,
+      "4096": 0.15
+    },
+    "molecular": {
+      "1024": 0.5,
+      "2048": 0.35,
+      "4096": 0.15
+    },
+    "clinical": {
+      "1024": 0.4,
+      "2048": 0.3,
+      "4096": 0.3
+    },
+    "survival": {
+      "1024": 0.4,
+      "2048": 0.3,
+      "4096": 0.3
+    }
+  },
+  "retrieval": {
+    "top_programs": 3,
+    "genes_per_program": 2,
+    "top_patches_per_source": 4,
+    "all_phenotype_top_patches_per_prototype": 2,
+    "morphology_context_patches_per_slide": 2,
+    "morphology_diverse_patches_per_slide": 2,
+    "morphology_retrieval_mode": "question_similarity",
+    "partial_retrieval_mode": "hybrid_question_prototype",
+    "direct_retrieval_mode": "hybrid_question_prototype",
+    "question_feature_path": "/home/wl/agent_2026/dataset/SlideBench-VQA-BCNB-adapted/SlideBench-VQA-BCNB_conch_v1_question_features.npz",
+    "question_top_patches_per_slide": 4,
+    "max_evidence_groups": 4,
+    "same_scale_iou": 0.5,
+    "feature_cosine": 0.95,
+    "global_bypass_per_scale": 2
+  },
+  "qwen": {
+    "backend": "openai_compatible",
+    "base_url": "http://127.0.0.1:8000/v1",
+    "model": "Qwen3.5",
+    "api_key": "EMPTY",
+    "enable_thinking": false
+  },
+  "pathor1": {
+    "backend": "openai_compatible",
+    "base_url": "http://127.0.0.1:8001/v1",
+    "model": "Patho-R1-7B",
+    "api_key": "EMPTY"
+  },
+  "scale_manifests": {
+    "1024": "/home/wl/agent_2026/dataset/SlideBench-VQA-BCNB-adapted/aligned_manifest_1024.csv",
+    "2048": "/home/wl/agent_2026/dataset/SlideBench-VQA-BCNB-adapted/aligned_manifest_2048.csv",
+    "4096": "/home/wl/agent_2026/dataset/SlideBench-VQA-BCNB-adapted/aligned_manifest_4096.csv"
+  }
+}

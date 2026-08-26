@@ -38,14 +38,31 @@ def rmst_risk(hazards: np.ndarray, time_bins: List[float]) -> float:
 
 
 class ScaleRuntime:
-    def __init__(self, scale: int, tool_dir: Path, registry: ToolBankRegistry, device: torch.device):
+    def __init__(
+        self,
+        scale: int,
+        tool_dir: Path,
+        registry: ToolBankRegistry,
+        device: torch.device,
+        manifest_path: Optional[Path] = None,
+    ):
         self.scale = int(scale)
         self.tool_dir = Path(tool_dir)
         self.registry = registry
         self.device = device
         self.ckpt = torch.load(self.tool_dir / "model.pt", map_location="cpu")
         self.relations = {k: v for k, v in np.load(self.tool_dir / "relations.npz").items()}
-        self.manifest = pd.read_csv(self.tool_dir.parent / "aligned_manifest.csv")
+        self.manifest_path = Path(
+            manifest_path or (self.tool_dir.parent / "aligned_manifest.csv")
+        )
+        self.manifest = pd.read_csv(self.manifest_path)
+        required = {"case_id", "slide_id", "feature_path"}
+        missing = required.difference(self.manifest.columns)
+        if missing:
+            raise ValueError(
+                f"Scale-{self.scale} manifest {self.manifest_path} is missing "
+                f"columns: {sorted(missing)}"
+            )
         self.manifest["case_id"] = self.manifest["case_id"].astype(str).str[:12]
         self.model = self._load_model()
 
@@ -188,10 +205,17 @@ class MultiScaleG2PAgent:
             requested = "cuda:0" if torch.cuda.is_available() else "cpu"
         self.device = torch.device(requested)
         self.registry = registry
-        self.runtimes = {
-            int(scale): ScaleRuntime(int(scale), Path(directory), registry, self.device)
-            for scale, directory in config["scales"].items()
-        }
+        manifest_paths = config.get("scale_manifests", {})
+        self.runtimes = {}
+        for scale, directory in config["scales"].items():
+            manifest_path = manifest_paths.get(str(scale))
+            self.runtimes[int(scale)] = ScaleRuntime(
+                int(scale),
+                Path(directory),
+                registry,
+                self.device,
+                Path(manifest_path) if manifest_path else None,
+            )
         self.fusion_weights = config["fusion_weights"]
 
     def infer_case(self, case_id: str) -> Dict[int, Dict[str, Any]]:

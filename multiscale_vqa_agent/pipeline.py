@@ -707,7 +707,6 @@ class MultiScaleVQAPipeline:
             has_program_candidates=bool(program_candidates),
             has_gene_candidates=False,
             allow_early_abstain=allow_early_abstain,
-            memory=memory,
         )
         round0_decision = self.verifier.decide(
             question=plan.question,
@@ -931,7 +930,6 @@ class MultiScaleVQAPipeline:
                 has_program_candidates=bool(program_candidates),
                 has_gene_candidates=bool(gene_candidates),
                 allow_early_abstain=allow_early_abstain,
-                memory=memory,
             )
             decision = self.verifier.decide(
                 question=plan.question,

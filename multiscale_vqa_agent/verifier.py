@@ -19,7 +19,7 @@ A strong structured prediction requires both strong patient-level evidence and s
 A WSI-derived categorical ER/PR/HER2 prediction is valid evidence for a categorical benchmark target such as positive versus negative. It is not a measured assay and cannot answer an exact percentage, intensity, FISH/ISH ratio, amplification, or other assay-specific quantity.
 Visual observations describe pixels only. Treat a visual conflict as real only when spatially linked observations address the same target with clearly mutually exclusive morphology. Limited, indeterminate, different-region, or different-slide observations are not conflicts. Program and gene evidence is supportive WSI-derived evidence, never measured RNA, protein, mutation, IHC, FISH, amplification, or copy number. Learned relations are predictive associations, not causality.
 Each visual scale is complementary: 4096 supports global architecture, 2048 intermediate tissue organization, and 1024 fine morphology/cytology. Absence of a fine feature at 4096 is not strong negative evidence, and global architecture must not be inferred from one 1024 patch. RAG visual guidance says what is useful to inspect at a scale; it is not patient evidence.
-When unresolved evidence calls for biological support, constrained Program and then Gene candidates may be inspected independently of the visual branch. Their relation relevance, patient score, graph score, and cross-scale support are supportive context only, especially for morphology-dominant targets.
+After appropriate morphology inspection, unresolved weak structured evidence may be corroborated by constrained Program and then Gene candidates. Their relation relevance, patient score, graph score, and cross-scale support are supportive context only, especially for morphology-dominant targets.
 Use unused evidence only when it can resolve a stated missing distinction. Exact assay values, exact size/distance/count, clinical history, treatment, procedure, report wording, and other unavailable facts cannot be recovered by escalating program or gene evidence.
 Return JSON only with evidence_sufficient, evidence_state, missing_evidence_type, conflict_detected, next_action, target, and a concise reason."""
 
@@ -34,45 +34,37 @@ class EvidenceVerifierAgent:
         has_program_candidates: bool,
         has_gene_candidates: bool,
         allow_early_abstain: bool = False,
-        memory: Optional[WorkingMemory] = None,
     ) -> List[str]:
-        valid_actions = {
-            "round0", "inspect_4096", "inspect_2048", "inspect_1024",
-            "inspect_program", "inspect_gene",
-        }
-        if last_action not in valid_actions:
-            raise ValueError(f"Unsupported verifier state after {last_action!r}")
-
-        inspected_scales = set(memory.inspected_scales if memory else [])
-        program_inspected = bool(memory and memory.inspected_programs)
-        gene_inspected = bool(memory and memory.inspected_genes)
-        if memory is None:
-            if last_action.startswith("inspect_") and last_action[8:].isdigit():
-                inspected_scales.add(int(last_action[8:]))
-            program_inspected = last_action in {"inspect_program", "inspect_gene"}
-            gene_inspected = last_action == "inspect_gene"
-
-        actions = ["answer"]
-        finest_inspected = min(inspected_scales) if inspected_scales else None
-        actions.extend(
-            f"inspect_{scale}"
-            for scale in (4096, 2048, 1024)
-            if scale not in inspected_scales
-            and (finest_inspected is None or scale < finest_inspected)
-        )
-
-        program_available = has_program_candidates and not program_inspected
-        if program_available:
-            actions.append("inspect_program")
-        if has_gene_candidates and program_inspected and not gene_inspected:
-            actions.append("inspect_gene")
-
-        terminal_evidence = last_action in {
-            "inspect_1024", "inspect_program", "inspect_gene"
-        }
-        if not program_available and (allow_early_abstain or terminal_evidence):
+        if last_action == "round0":
+            actions = ["answer", "inspect_4096", "inspect_2048", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
+        if last_action == "inspect_4096":
+            actions = ["answer", "inspect_2048", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
+        if last_action == "inspect_2048":
+            actions = ["answer", "inspect_1024"]
+            if allow_early_abstain:
+                actions.append("abstain")
+            return actions
+        if last_action == "inspect_1024":
+            actions = ["answer"]
+            if has_program_candidates:
+                actions.append("inspect_program")
             actions.append("abstain")
-        return actions
+            return actions
+        if last_action == "inspect_program":
+            actions = ["answer"]
+            if has_gene_candidates:
+                actions.append("inspect_gene")
+            actions.append("abstain")
+            return actions
+        if last_action == "inspect_gene":
+            return ["answer", "abstain"]
+        raise ValueError(f"Unsupported verifier state after {last_action!r}")
 
     def decide(
         self,
