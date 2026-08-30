@@ -1,0 +1,155 @@
+{
+  "updated_at": "2026-08-30T03:12:28+08:00",
+  "selected_total": 7274,
+  "processed": 7274,
+  "answered": 7274,
+  "abstained": 0,
+  "coverage": 1.0,
+  "answered_correct": 3976,
+  "selective_accuracy": 0.546604344239758,
+  "remaining": 0,
+  "completion": 1.0,
+  "scorable": 7274,
+  "correct": 3976,
+  "errors": 0,
+  "accuracy": 0.546604344239758,
+  "accuracy_scorable": 0.546604344239758,
+  "supported_processed": 7274,
+  "supported_correct": 3976,
+  "supported_accuracy": 0.546604344239758,
+  "unsupported_processed": 0,
+  "unsupported_correct": 0,
+  "unsupported_accuracy": null,
+  "json_parse_failures": 0,
+  "answers_outside_choices": 0,
+  "multifield_incomplete": 0,
+  "structured_overrides": 13,
+  "override_structured_accuracy": 0.5384615384615384,
+  "override_agent_accuracy": 0.15384615384615385,
+  "per_task_match": {
+    "direct": {
+      "processed": 5158,
+      "scorable": 5158,
+      "correct": 3459,
+      "errors": 0,
+      "accuracy": 0.6706087630864677,
+      "accuracy_scorable": 0.6706087630864677
+    },
+    "partial": {
+      "processed": 2116,
+      "scorable": 2116,
+      "correct": 517,
+      "errors": 0,
+      "accuracy": 0.2443289224952741,
+      "accuracy_scorable": 0.2443289224952741
+    }
+  },
+  "per_task": {
+    "ER_status_label": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 870,
+      "errors": 0,
+      "accuracy": 0.8223062381852552,
+      "accuracy_scorable": 0.8223062381852552
+    },
+    "ER_status_label+PR_status_label+HER2_status_label": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 384,
+      "errors": 0,
+      "accuracy": 0.3629489603024575,
+      "accuracy_scorable": 0.3629489603024575
+    },
+    "HER2_status_label": {
+      "processed": 2116,
+      "scorable": 2116,
+      "correct": 909,
+      "errors": 0,
+      "accuracy": 0.42958412098298676,
+      "accuracy_scorable": 0.42958412098298676
+    },
+    "PR_status_label": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 825,
+      "errors": 0,
+      "accuracy": 0.779773156899811,
+      "accuracy_scorable": 0.779773156899811
+    },
+    "histologic_grade_label": {
+      "processed": 926,
+      "scorable": 926,
+      "correct": 607,
+      "errors": 0,
+      "accuracy": 0.6555075593952484,
+      "accuracy_scorable": 0.6555075593952484
+    },
+    "histological_type_label": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 381,
+      "errors": 0,
+      "accuracy": 0.3601134215500945,
+      "accuracy_scorable": 0.3601134215500945
+    }
+  },
+  "slidebench_categories": {
+    "her2_expression": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 133,
+      "errors": 0,
+      "accuracy": 0.12570888468809074,
+      "accuracy_scorable": 0.12570888468809074
+    },
+    "histological_grading": {
+      "processed": 926,
+      "scorable": 926,
+      "correct": 607,
+      "errors": 0,
+      "accuracy": 0.6555075593952484,
+      "accuracy_scorable": 0.6555075593952484
+    },
+    "molecular_subtype": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 384,
+      "errors": 0,
+      "accuracy": 0.3629489603024575,
+      "accuracy_scorable": 0.3629489603024575
+    },
+    "receptor_status": {
+      "processed": 3174,
+      "scorable": 3174,
+      "correct": 2471,
+      "errors": 0,
+      "accuracy": 0.7785129174543163,
+      "accuracy_scorable": 0.7785129174543163
+    },
+    "tumor_type": {
+      "processed": 1058,
+      "scorable": 1058,
+      "correct": 381,
+      "errors": 0,
+      "accuracy": 0.3601134215500945,
+      "accuracy_scorable": 0.3601134215500945
+    }
+  },
+  "last": {
+    "case_id": "11",
+    "question": "As an exceptionally skilled pathologist with vast experience in evaluating histopathological slides, please identify the molecular subtype of the breast tumor depicted in the image, based on the molecular characteristics observed.",
+    "task": "ER_status_label+PR_status_label+HER2_status_label",
+    "dataset_task": "Molecular subtype",
+    "slidebench_category": "molecular_subtype",
+    "task_match": "partial",
+    "supported": true,
+    "correct": false,
+    "error": null,
+    "predicted": "Luminal B",
+    "reference": "Luminal A",
+    "answer_in_choices": true,
+    "json_parse_success": true,
+    "override_occurred": false
+  }
+}
