@@ -1,0 +1,58 @@
+{
+  "task": "Tumor",
+  "source": "/data_nas3/wl/BCNB_VQA_outputs/bcnb_live_metrics_v1/mc_answers.jsonl",
+  "processed": 1058,
+  "correct": 381,
+  "accuracy": 0.3601134215500945,
+  "errors": 0,
+  "gold_distribution": {
+    "Other": 76,
+    "Invasive ductal carcinoma": 957,
+    "Invasive lobular carcinoma": 25
+  },
+  "prediction_distribution": {
+    "Invasive lobular carcinoma": 676,
+    "Invasive ductal carcinoma": 379,
+    "Other": 3
+  },
+  "per_class": {
+    "Invasive ductal carcinoma": {
+      "support": 957,
+      "predicted": 379,
+      "precision": 0.9366754617414248,
+      "recall": 0.3709508881922675,
+      "f1": 0.5314371257485031
+    },
+    "Invasive lobular carcinoma": {
+      "support": 25,
+      "predicted": 676,
+      "precision": 0.03698224852071006,
+      "recall": 1,
+      "f1": 0.07132667617689016
+    },
+    "Other": {
+      "support": 76,
+      "predicted": 3,
+      "precision": 0.3333333333333333,
+      "recall": 0.013157894736842105,
+      "f1": 0.02531645569620253
+    }
+  },
+  "confusion_matrix": {
+    "Invasive ductal carcinoma": {
+      "Invasive ductal carcinoma": 355,
+      "Invasive lobular carcinoma": 600,
+      "Other": 2
+    },
+    "Invasive lobular carcinoma": {
+      "Invasive ductal carcinoma": 0,
+      "Invasive lobular carcinoma": 25,
+      "Other": 0
+    },
+    "Other": {
+      "Invasive ductal carcinoma": 24,
+      "Invasive lobular carcinoma": 51,
+      "Other": 1
+    }
+  }
+}
