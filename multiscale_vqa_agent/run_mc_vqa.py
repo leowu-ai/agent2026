@@ -27,6 +27,14 @@ def main():
         ),
     )
     parser.add_argument("--limit", type=int, default=None)
+    parser.add_argument(
+        "--dataset_task",
+        default=None,
+        help=(
+            "Optional exact dataset Task filter, applied before --limit "
+            "(for example: Tumor)."
+        ),
+    )
     parser.add_argument("--answerability_only", action="store_true")
     parser.add_argument(
         "--precomputed_answerability",
@@ -95,6 +103,7 @@ def main():
         output_path=args.output,
         metrics_path=args.metrics,
         limit=args.limit,
+        dataset_task=args.dataset_task,
         crop_patches=not args.no_crop,
         resume=not args.no_resume,
         answerability_labels=args.answerability_labels,

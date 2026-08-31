@@ -11,6 +11,25 @@ from .live_metrics import LiveAccuracyTracker
 from .pipeline import MultiScaleVQAPipeline
 
 
+def filter_multiple_choice_items(
+    items: List[Dict[str, Any]], dataset_task: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    selected = [item for item in items if item.get("Choice", item.get("choices"))]
+    if dataset_task is None:
+        return selected
+
+    normalized_task = " ".join(str(dataset_task).strip().lower().split())
+    selected = [
+        item
+        for item in selected
+        if " ".join(str(item.get("Task", "")).strip().lower().split())
+        == normalized_task
+    ]
+    if not selected:
+        raise ValueError(f"No multiple-choice items matched dataset Task {dataset_task!r}")
+    return selected
+
+
 class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
     """Multiple-choice runner with resumable, per-question live accuracy."""
 
@@ -20,6 +39,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         output_path: Optional[str] = None,
         metrics_path: Optional[str] = None,
         limit: Optional[int] = None,
+        dataset_task: Optional[str] = None,
         crop_patches: bool = True,
         resume: bool = True,
         answerability_labels: Optional[str] = None,
@@ -37,7 +57,7 @@ class MultipleChoiceVQAPipeline(MultiScaleVQAPipeline):
         source = Path(vqa_path or self.config["vqa_json"])
         with source.open(encoding="utf-8") as handle:
             all_items = json.load(handle)
-        items = [item for item in all_items if item.get("Choice", item.get("choices"))]
+        items = filter_multiple_choice_items(all_items, dataset_task)
         if limit is not None:
             items = items[:limit]
 

@@ -2,6 +2,7 @@ import inspect
 import json
 import tempfile
 import unittest
+from copy import deepcopy
 from dataclasses import fields
 from pathlib import Path
 from types import MethodType, SimpleNamespace
@@ -19,6 +20,7 @@ from multiscale_vqa_agent.fusion_evidence import (
     primary_semantic_choice_alignment,
 )
 from multiscale_vqa_agent.knowledge_rag import KnowledgeRAG
+from multiscale_vqa_agent.g2p_runtime import MultiScaleG2PAgent
 from multiscale_vqa_agent.pathology import PATHOLOGY_SYSTEM_PROMPT, PathologyAgent
 from multiscale_vqa_agent.pipeline import MultiScaleVQAPipeline
 from multiscale_vqa_agent.registry import ToolBankRegistry
@@ -27,6 +29,9 @@ from multiscale_vqa_agent.schemas import EvidenceGroup, ExecutionPlan, PatchCand
 from multiscale_vqa_agent.verifier import (
     VERIFIER_SYSTEM_PROMPT,
     EvidenceVerifierAgent,
+    ROUND0_DIRECT_MIN_ADJUSTED_CONFIDENCE,
+    ROUND0_DIRECT_MIN_PROBABILITY,
+    ROUND0_DIRECT_MIN_VALIDATION,
 )
 
 
@@ -42,11 +47,42 @@ class FakeRegistry:
     field_to_prototype_id = {"histological_type_label": "P001"}
     programs = ["Program A", "Program B"]
     genes = ["GENE1", "GENE2"]
+    vocabs = {
+        1024: {"phenotype_groups": {"Histologic type": "morphology"}}
+    }
+
+    @staticmethod
+    def label_semantics(field):
+        return {
+            "field": field,
+            "predicted_class_is_zero_based": True,
+            "class_to_label": {
+                "0": "ductal", "1": "lobular", "2": "other",
+            },
+            "clinical_meaning": {
+                "0": "ductal", "1": "lobular", "2": "other",
+            },
+            "positive_class": None,
+            "negative_class": None,
+        }
+
+    @staticmethod
+    def task_metrics(field):
+        return {
+            "1024": {"metric_name": "ACC", "metric_value": 0.81},
+            "2048": {"metric_name": "ACC", "metric_value": 0.82},
+            "4096": {"metric_name": "ACC", "metric_value": 0.83},
+        }
 
 
-def synthetic_scale_results():
+def synthetic_scale_results(labels=None):
+    labels = labels or {1024: "ductal", 2048: "ductal", 4096: "ductal"}
+    label_to_class = {"ductal": 0, "lobular": 1, "other": 2}
     results = {}
     for scale in (1024, 2048, 4096):
+        predicted_class = label_to_class[labels[scale]]
+        probabilities = [0.05, 0.05, 0.05]
+        probabilities[predicted_class] = 0.9
         results[scale] = {
             "slides": [{
                 "slide_id": "TCGA-AA-0001-DX1_feature",
@@ -62,6 +98,13 @@ def synthetic_scale_results():
             }],
             "program_pred": np.asarray([0.8, -0.2]),
             "gene_pred": np.asarray([0.6, -0.1]),
+            "patient_predictions": {
+                "histological_type_label": {
+                    "probabilities": probabilities,
+                    "predicted_class": predicted_class,
+                    "predicted_label": labels[scale],
+                },
+            },
         }
     return results
 
@@ -210,6 +253,61 @@ class RetrievalSeparationTest(unittest.TestCase):
 
 
 class StateMachineTest(unittest.TestCase):
+    @staticmethod
+    def strong_direct_memory(
+        probability=ROUND0_DIRECT_MIN_PROBABILITY,
+        validation=ROUND0_DIRECT_MIN_VALIDATION,
+        adjusted=ROUND0_DIRECT_MIN_ADJUSTED_CONFIDENCE,
+    ):
+        memory = WorkingMemory("case", "q", ["A", "B"], {}, {})
+        memory.structured_candidate = {"choice_id": "A", "answer": "A"}
+        memory.option_alignment = {"mapping_complete": True}
+        memory.structured_evidence = {
+            "task_match": "direct",
+            "prototype_coverage": "complete",
+            "target_coverage": 1.0,
+            "reliability_adjusted_confidence": adjusted,
+            "predictions": [{
+                "fused_probability_for_predicted_class": probability,
+                "validation_quality": validation,
+            }],
+        }
+        return memory
+
+    def test_strong_round0_direct_evidence_stops_without_llm(self):
+        verifier = EvidenceVerifierAgent(client=None)
+        decision = verifier.decide(
+            question="q",
+            choices=["A", "B"],
+            plan={},
+            knowledge={},
+            memory=self.strong_direct_memory(),
+            available_actions=["answer", "inspect_4096"],
+        )
+        self.assertEqual(decision["next_action"], "answer")
+        self.assertTrue(decision["evidence_sufficient"])
+        self.assertEqual(
+            decision["decision_source"], "deterministic_strong_direct_guard"
+        )
+
+    def test_round0_guard_requires_all_three_thresholds(self):
+        verifier = EvidenceVerifierAgent(client=None)
+        for key, value in (
+            ("probability", ROUND0_DIRECT_MIN_PROBABILITY - 0.01),
+            ("validation", ROUND0_DIRECT_MIN_VALIDATION - 0.01),
+            ("adjusted", ROUND0_DIRECT_MIN_ADJUSTED_CONFIDENCE - 0.01),
+        ):
+            decision = verifier.decide(
+                question="q",
+                choices=["A", "B"],
+                plan={},
+                knowledge={},
+                memory=self.strong_direct_memory(**{key: value}),
+                available_actions=["answer", "inspect_4096"],
+            )
+            self.assertNotIn("decision_source", decision)
+            self.assertTrue(decision["verifier_fallback_used"])
+
     def test_spatial_and_biological_order(self):
         self.assertEqual(
             EvidenceVerifierAgent.available_actions("inspect_4096", True, True),
@@ -550,6 +648,59 @@ class PathologyIsolationTest(unittest.TestCase):
         self.assertEqual(parsed["cytology"], "indeterminate")
         self.assertEqual(parsed["visible_findings"], ["cohesive nests"])
 
+    def test_diagnostic_answer_is_rejected_instead_of_silently_indeterminate(self):
+        parsed = PathologyAgent._normalize_morphology(json.dumps({
+            "answer": "Invasive ductal carcinoma because nests are visible."
+        }))
+        self.assertIsNone(parsed)
+
+    def test_visible_findings_alias_preserves_only_morphology_sentences(self):
+        parsed = PathologyAgent._normalize_morphology(json.dumps({
+            "visible Findings": (
+                "Small discohesive cells infiltrate in linear cords. "
+                "This supports invasive lobular carcinoma."
+            )
+        }))
+        self.assertEqual(
+            parsed["visible_findings"],
+            ["Small discohesive cells infiltrate in linear cords."],
+        )
+
+    def test_schema_failure_uses_existing_adaptive_retry(self):
+        valid = json.dumps({
+            "architecture": "cohesive nests",
+            "cytology": "moderate atypia",
+            "stroma": "desmoplastic",
+            "necrosis": "absent",
+            "invasion_pattern": "irregular infiltrative nests",
+            "visible_findings": ["cohesive epithelial nests"],
+            "target_visual_support": "supportive",
+            "image_quality": "adequate",
+        })
+
+        class RetryClient:
+            enabled = True
+
+            def __init__(self):
+                self.calls = []
+
+            def chat(self, system, user, **kwargs):
+                self.calls.append(json.loads(user))
+                if len(self.calls) == 1:
+                    return json.dumps({"answer": "ductal carcinoma"})
+                return valid
+
+        client = RetryClient()
+        result = PathologyAgent(client).describe(
+            "question", "field", [self.group()], choices=["A", "B"]
+        )
+        self.assertEqual(result["request_attempts"], 2)
+        self.assertIsNotNone(client.calls[1]["format_retry"])
+        self.assertNotIn("choices", client.calls[1])
+        self.assertEqual(
+            result["morphology_observation"]["architecture"], "cohesive nests"
+        )
+
 
 class FusionContextTest(unittest.TestCase):
     @staticmethod
@@ -744,10 +895,16 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
     class FakeG2P:
         def __init__(self):
             h = np.asarray([[1.0, 0.0], [0.0, 1.0]])
+            self.registry = FakeRegistry()
             self.runtimes = {
                 scale: SimpleNamespace(relations={"H_gene_to_program": h})
                 for scale in (1024, 2048, 4096)
             }
+
+        def task_at_scale(self, results, field, scale):
+            return MultiScaleG2PAgent.task_at_scale(
+                self, results, field, scale
+            )
 
         @staticmethod
         def fuse_task(results, field):
@@ -842,6 +999,60 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         def overview_thumbnails(case_id):
             return []
 
+    class ScriptedVerifier:
+        def __init__(self, actions):
+            self.actions = list(actions)
+            self.memories = []
+
+        @staticmethod
+        def available_actions(*args, **kwargs):
+            return EvidenceVerifierAgent.available_actions(*args, **kwargs)
+
+        def decide(self, available_actions, memory, **kwargs):
+            self.memories.append(deepcopy(memory.to_dict()))
+            action = self.actions.pop(0)
+            if action not in available_actions:
+                raise AssertionError(
+                    f"Scripted action {action} not in {available_actions}"
+                )
+            return {
+                "evidence_sufficient": action == "answer",
+                "evidence_state": "sufficient" if action == "answer" else "insufficient",
+                "missing_evidence_type": "none" if action == "answer" else "visual",
+                "conflict_detected": False,
+                "next_action": action,
+                "target": None,
+                "reason": "scripted verifier decision",
+                "verifier_fallback_used": False,
+                "evidence_sufficiency_unverified": False,
+            }
+
+    class RecordingFusion(FusionVerificationAgent):
+        def __init__(self):
+            super().__init__(client=SimpleNamespace(enabled=False))
+            self.final_predictions = None
+            self.final_structured = None
+            self.final_broad_predictions = None
+
+        def answer_with_summary(
+            self, plan, choices, phenotype_results, relations, pathology,
+            broad_g2p_predictions=None, agent_context=None,
+            prepared_structured=None,
+        ):
+            self.final_predictions = deepcopy(phenotype_results)
+            self.final_structured = deepcopy(prepared_structured)
+            self.final_broad_predictions = deepcopy(broad_g2p_predictions)
+            return super().answer_with_summary(
+                plan,
+                choices,
+                phenotype_results,
+                relations,
+                pathology,
+                broad_g2p_predictions=broad_g2p_predictions,
+                agent_context=agent_context,
+                prepared_structured=prepared_structured,
+            )
+
     @staticmethod
     def plan():
         return ExecutionPlan(
@@ -860,7 +1071,7 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
             prototype_coverage="complete",
         )
 
-    def configured_pipeline(self, verifier):
+    def configured_pipeline(self, verifier, fusion=None):
         pipeline = MultiScaleVQAPipeline.__new__(MultiScaleVQAPipeline)
         pipeline.agent_mode = "hierarchical_rag"
         pipeline.registry = FakeRegistry()
@@ -877,25 +1088,203 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         pipeline.verifier = verifier
         pipeline.pathology = self.FakePathology()
         pipeline.cropper = self.FakeCropper()
-        pipeline.fusion = FusionVerificationAgent(
+        pipeline.fusion = fusion or FusionVerificationAgent(
             client=SimpleNamespace(enabled=False)
         )
         return pipeline
 
     @staticmethod
-    def run_question(pipeline, plan):
+    def run_question(pipeline, plan, scale_results=None):
         return pipeline._run_question(
             {
                 "Id": "TCGA-AA-0001",
                 "Question": plan.question,
-                "Choice": ["ductal", "lobular"],
+                "Choice": ["ductal", "lobular", "other"],
                 "Answer": "ductal",
             },
             plan,
-            synthetic_scale_results(),
+            scale_results or synthetic_scale_results(),
             {},
             False,
         )
+
+    @staticmethod
+    def distinct_scale_results():
+        return synthetic_scale_results({
+            4096: "ductal",
+            2048: "lobular",
+            1024: "other",
+        })
+
+    def test_single_scale_accessor_uses_only_requested_scale_and_metric(self):
+        g2p = self.FakeG2P()
+        prediction = g2p.task_at_scale(
+            self.distinct_scale_results(), "histological_type_label", 2048
+        )
+        self.assertEqual(prediction["evidence_scale"], 2048)
+        self.assertEqual(prediction["scale_mode"], "single_scale")
+        self.assertEqual(set(prediction["per_scale"]), {"2048"})
+        self.assertEqual(set(prediction["validation_metrics"]), {"2048"})
+        self.assertEqual(prediction["fused"]["predicted_label"], "lobular")
+        self.assertEqual(prediction["weights"], {"2048": 1.0})
+
+    def test_round0_uses_4096_without_calling_fuse_task(self):
+        verifier = self.ScriptedVerifier(["answer"])
+        fusion = self.RecordingFusion()
+        pipeline = self.configured_pipeline(verifier, fusion)
+
+        def forbidden_fusion(*args, **kwargs):
+            raise AssertionError("hierarchical_rag must not call fuse_task")
+
+        pipeline.g2p.fuse_task = forbidden_fusion
+        result = self.run_question(
+            pipeline, self.plan(), self.distinct_scale_results()
+        )
+        structured = verifier.memories[0]["structured_evidence"]
+        self.assertEqual(structured["evidence_scale"], 4096)
+        self.assertEqual(
+            structured["predictions"][0]["predicted_label"], "ductal"
+        )
+        self.assertIsNone(
+            structured["predictions"][0]["cross_scale_agreement"]
+        )
+        self.assertEqual(
+            structured["predictions"][0]["validation_quality"], 0.83
+        )
+        self.assertEqual(fusion.final_structured["evidence_scale"], 4096)
+        self.assertEqual(
+            fusion.final_predictions[0]["fused"]["predicted_label"],
+            "ductal",
+        )
+        self.assertEqual(result["agent_trace"]["inspected_scales"], [])
+
+    def test_morphology_round0_broad_context_is_4096_without_fusion(self):
+        verifier = self.ScriptedVerifier(["answer"])
+        fusion = self.RecordingFusion()
+        pipeline = self.configured_pipeline(verifier, fusion)
+
+        def forbidden_fusion(*args, **kwargs):
+            raise AssertionError("hierarchical_rag must not call fuse_task")
+
+        pipeline.g2p.fuse_task = forbidden_fusion
+        plan = ExecutionPlan(
+            case_id="TCGA-AA-0001",
+            question="What morphology is present?",
+            target_phenotypes=[],
+            task_type="morphology",
+            metrics=[],
+            answer_mode="multiple_choice",
+            supported=True,
+            support_reason="synthetic",
+            task_match="none",
+            evidence_route="morphology_only",
+        )
+        result = self.run_question(
+            pipeline, plan, self.distinct_scale_results()
+        )
+        self.assertEqual(
+            fusion.final_broad_predictions[0]["evidence_scale"], 4096
+        )
+        self.assertEqual(
+            fusion.final_broad_predictions[0]["predicted_label"], "ductal"
+        )
+        self.assertEqual(result["agent_trace"]["active_structured_scale"], 4096)
+
+    def test_each_visual_action_switches_current_structured_scale(self):
+        expected_labels = {4096: "ductal", 2048: "lobular", 1024: "other"}
+        for scale in (4096, 2048, 1024):
+            with self.subTest(scale=scale):
+                verifier = self.ScriptedVerifier([f"inspect_{scale}", "answer"])
+                fusion = self.RecordingFusion()
+                pipeline = self.configured_pipeline(verifier, fusion)
+                result = self.run_question(
+                    pipeline, self.plan(), self.distinct_scale_results()
+                )
+                self.assertEqual(
+                    verifier.memories[0]["structured_evidence"]["evidence_scale"],
+                    4096,
+                )
+                current = verifier.memories[1]["structured_evidence"]
+                self.assertEqual(current["evidence_scale"], scale)
+                self.assertEqual(
+                    current["predictions"][0]["predicted_label"],
+                    expected_labels[scale],
+                )
+                self.assertIsNone(
+                    current["predictions"][0]["cross_scale_agreement"]
+                )
+                self.assertEqual(
+                    verifier.memories[1]["observations"][-1]["scale"], scale
+                )
+                self.assertEqual(fusion.final_structured["evidence_scale"], scale)
+                self.assertEqual(
+                    fusion.final_predictions[0]["fused"]["predicted_label"],
+                    expected_labels[scale],
+                )
+                self.assertEqual(
+                    result["agent_trace"]["active_structured_scale"], scale
+                )
+
+    def test_scale_skip_and_future_scale_isolation(self):
+        verifier = self.ScriptedVerifier([
+            "inspect_4096", "inspect_1024", "answer",
+        ])
+        fusion = self.RecordingFusion()
+        pipeline = self.configured_pipeline(verifier, fusion)
+        result = self.run_question(
+            pipeline, self.plan(), self.distinct_scale_results()
+        )
+        self.assertEqual(
+            [row["evidence_scale"] for row in result["agent_trace"]["structured_scale_history"]],
+            [4096, 4096, 1024],
+        )
+        self.assertEqual(
+            [
+                memory["structured_evidence"]["evidence_scale"]
+                for memory in verifier.memories
+            ],
+            [4096, 4096, 1024],
+        )
+        self.assertEqual(fusion.final_structured["evidence_scale"], 1024)
+        self.assertEqual(
+            fusion.final_predictions[0]["fused"]["predicted_label"], "other"
+        )
+
+    def test_program_and_gene_keep_last_visual_structured_scale(self):
+        verifier = self.ScriptedVerifier([
+            "inspect_1024", "inspect_program", "inspect_gene", "answer",
+        ])
+        fusion = self.RecordingFusion()
+        pipeline = self.configured_pipeline(verifier, fusion)
+        result = self.run_question(
+            pipeline, self.plan(), self.distinct_scale_results()
+        )
+        self.assertEqual(
+            [
+                memory["structured_evidence"]["evidence_scale"]
+                for memory in verifier.memories
+            ],
+            [4096, 1024, 1024, 1024],
+        )
+        self.assertEqual(result["agent_trace"]["selected_program"]["name"], "Program A")
+        self.assertEqual(result["agent_trace"]["selected_gene"]["name"], "GENE1")
+        self.assertEqual(fusion.final_structured["evidence_scale"], 1024)
+
+    def test_legacy_still_calls_fuse_task(self):
+        pipeline = self.configured_pipeline(EvidenceVerifierAgent(client=None))
+        pipeline.agent_mode = "legacy"
+        calls = []
+        original = pipeline.g2p.fuse_task
+
+        def tracked_fusion(results, field):
+            calls.append(field)
+            return original(results, field)
+
+        pipeline.g2p.fuse_task = tracked_fusion
+        plan = self.plan()
+        plan.use_pathology_agent = False
+        self.run_question(pipeline, plan)
+        self.assertEqual(calls, ["histological_type_label"])
 
     def test_strong_direct_candidate_answers_at_round0(self):
         pipeline = self.configured_pipeline(
@@ -914,8 +1303,12 @@ class HierarchicalPipelineSyntheticTest(unittest.TestCase):
         )
         self.assertFalse(result["post_search_abstained"])
         self.assertIsNone(result["abstain_stage"])
-        self.assertTrue(result["evidence_sufficiency_unverified"])
-        self.assertEqual(result["verifier_failure_count"], 1)
+        self.assertFalse(result["evidence_sufficiency_unverified"])
+        self.assertEqual(result["verifier_failure_count"], 0)
+        self.assertEqual(
+            result["agent_trace"]["round0_decision"]["decision_source"],
+            "deterministic_strong_direct_guard",
+        )
         self.assertIsNotNone(result["agent_answer"])
         self.assertTrue(all(
             row["scale"] == 1024

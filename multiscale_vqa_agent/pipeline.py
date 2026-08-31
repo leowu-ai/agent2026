@@ -617,16 +617,18 @@ class MultiScaleVQAPipeline:
     ) -> Dict[str, Any]:
         choices = list(item.get("Choice", item.get("choices", [])) or [])
         plan_dict = plan.to_dict()
-        predictions = []
+        active_structured_scale = 4096
+        predictions = self._hierarchical_predictions_at_scale(
+            scale_results, plan.target_phenotypes, active_structured_scale
+        )
         relations_by_field = {}
         for field in plan.target_phenotypes:
-            if field not in evidence_cache:
-                evidence_cache[field] = {
-                    "phenotype": self.g2p.fuse_task(scale_results, field),
-                    "relations": self.relation.reason(field, scale_results),
-                }
-            predictions.append(evidence_cache[field]["phenotype"])
-            relations_by_field[field] = evidence_cache[field]["relations"]
+            relation_key = f"__relations__:{field}"
+            if relation_key not in evidence_cache:
+                evidence_cache[relation_key] = self.relation.reason(
+                    field, scale_results
+                )
+            relations_by_field[field] = evidence_cache[relation_key]
 
         evidence_route = getattr(
             plan,
@@ -638,7 +640,7 @@ class MultiScaleVQAPipeline:
             predictions_key = "__all_g2p_predictions__"
             if predictions_key not in evidence_cache:
                 evidence_cache[predictions_key] = self._compact_broad_predictions(
-                    scale_results
+                    scale_results, scale=active_structured_scale
                 )
             broad_g2p_predictions = evidence_cache[predictions_key]
 
@@ -647,44 +649,25 @@ class MultiScaleVQAPipeline:
             choices=choices,
             target_phenotypes=plan.target_phenotypes,
         )
-        structured_round0 = self.fusion.prepare_structured_summary(
-            plan, choices, predictions
+        structured_round0 = self._prepare_hierarchical_structured(
+            plan, choices, predictions, active_structured_scale
         )
-        option_alignment = dict(
-            structured_round0.get("option_alignment") or {}
-        )
-        structured_candidate = None
-        if structured_round0.get("structured_candidate_id"):
-            structured_candidate = {
-                "choice_id": structured_round0.get("structured_candidate_id"),
-                "answer": structured_round0.get("structured_candidate_answer"),
-                "confidence": structured_round0.get(
-                    "structured_candidate_confidence", 0.0
-                ),
-            }
+        structured_current = structured_round0
         memory = WorkingMemory(
             case_id=plan.case_id,
             question=plan.question,
             choices=choices,
             plan=plan_dict,
             knowledge=knowledge,
-            structured_evidence=structured_round0,
-            structured_candidate=structured_candidate,
-            structured_confidence=float(
-                structured_round0.get("structured_candidate_confidence") or 0.0
-            ),
-            structured_reliability=float(
-                structured_round0.get("overall_structured_reliability") or 0.0
-            ),
-            option_alignment=option_alignment,
-            direct_evidence_state=(
-                "mapped"
-                if structured_candidate and option_alignment.get("mapping_complete")
-                else "available_unmapped"
-                if structured_round0.get("available")
-                else "unavailable"
-            ),
         )
+        structured_candidate = self._set_current_structured_evidence(
+            memory, structured_current
+        )
+        structured_scale_history = [{
+            "round": 0,
+            "action": "round0",
+            "evidence_scale": active_structured_scale,
+        }]
         program_candidates = self._program_candidates(
             plan, knowledge, relations_by_field, scale_results
         )
@@ -737,6 +720,26 @@ class MultiScaleVQAPipeline:
                 break
             if action.startswith("inspect_") and action.split("_")[-1].isdigit():
                 scale = int(action.split("_")[-1])
+                active_structured_scale = scale
+                predictions = self._hierarchical_predictions_at_scale(
+                    scale_results, plan.target_phenotypes,
+                    active_structured_scale,
+                )
+                structured_current = self._prepare_hierarchical_structured(
+                    plan, choices, predictions, active_structured_scale
+                )
+                self._set_current_structured_evidence(
+                    memory, structured_current
+                )
+                if evidence_route == "morphology_only":
+                    broad_g2p_predictions = self._compact_broad_predictions(
+                        scale_results, scale=active_structured_scale
+                    )
+                structured_scale_history.append({
+                    "round": round_index,
+                    "action": action,
+                    "evidence_scale": active_structured_scale,
+                })
                 groups = self._hierarchical_spatial_groups(
                     plan,
                     evidence_route,
@@ -978,7 +981,7 @@ class MultiScaleVQAPipeline:
             combined_pathology,
             broad_g2p_predictions=broad_g2p_predictions,
             agent_context=agent_context,
-            prepared_structured=structured_round0,
+            prepared_structured=structured_current,
         )
 
         first_prediction = predictions[0] if predictions else {}
@@ -994,6 +997,8 @@ class MultiScaleVQAPipeline:
             final_evidence_state = "unavailable"
         agent_trace = {
             "round0_structured_evidence": structured_round0,
+            "active_structured_scale": active_structured_scale,
+            "structured_scale_history": structured_scale_history,
             "round0_decision": round0_decision,
             "structured_candidate_before_visual": structured_candidate,
             "round_count": len(memory.observations),
@@ -1086,6 +1091,64 @@ class MultiScaleVQAPipeline:
             ) if answer else False,
         }
         return result
+
+    def _hierarchical_predictions_at_scale(
+        self,
+        scale_results: Dict[int, Dict[str, Any]],
+        fields: List[str],
+        scale: int,
+    ) -> List[Dict[str, Any]]:
+        return [
+            self.g2p.task_at_scale(scale_results, field, scale)
+            for field in fields
+        ]
+
+    def _prepare_hierarchical_structured(
+        self,
+        plan: Any,
+        choices: List[str],
+        predictions: List[Dict[str, Any]],
+        scale: int,
+    ) -> Dict[str, Any]:
+        structured = self.fusion.prepare_structured_summary(
+            plan, choices, predictions
+        )
+        structured["evidence_scale"] = int(scale)
+        structured["scale_mode"] = "single_scale"
+        return structured
+
+    @staticmethod
+    def _set_current_structured_evidence(
+        memory: WorkingMemory,
+        structured: Dict[str, Any],
+    ) -> Optional[Dict[str, Any]]:
+        option_alignment = dict(structured.get("option_alignment") or {})
+        candidate = None
+        if structured.get("structured_candidate_id"):
+            candidate = {
+                "choice_id": structured.get("structured_candidate_id"),
+                "answer": structured.get("structured_candidate_answer"),
+                "confidence": structured.get(
+                    "structured_candidate_confidence", 0.0
+                ),
+            }
+        memory.structured_evidence = structured
+        memory.structured_candidate = candidate
+        memory.structured_confidence = float(
+            structured.get("structured_candidate_confidence") or 0.0
+        )
+        memory.structured_reliability = float(
+            structured.get("overall_structured_reliability") or 0.0
+        )
+        memory.option_alignment = option_alignment
+        memory.direct_evidence_state = (
+            "mapped"
+            if candidate and option_alignment.get("mapping_complete")
+            else "available_unmapped"
+            if structured.get("available")
+            else "unavailable"
+        )
+        return candidate
 
     def _hierarchical_spatial_groups(
         self,
@@ -1419,11 +1482,17 @@ class MultiScaleVQAPipeline:
         }
 
     def _compact_broad_predictions(
-        self, scale_results: Dict[int, Dict[str, Any]]
+        self,
+        scale_results: Dict[int, Dict[str, Any]],
+        scale: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         rows = []
         for field in self.registry.phenotype_fields:
-            prediction = self.g2p.fuse_task(scale_results, field)
+            prediction = (
+                self.g2p.task_at_scale(scale_results, field, scale)
+                if scale is not None
+                else self.g2p.fuse_task(scale_results, field)
+            )
             fused = prediction.get("fused", {})
             row = {
                 "prototype_id": self.registry.field_to_prototype_id[field],
@@ -1431,6 +1500,11 @@ class MultiScaleVQAPipeline:
                 "name": self.registry.field_to_name[field],
                 "confidence": None,
             }
+            if scale is not None:
+                row.update({
+                    "evidence_scale": int(scale),
+                    "scale_mode": "single_scale",
+                })
             if "probability" in fused:
                 probability = float(fused["probability"])
                 predicted_class = int(fused["predicted_class"])

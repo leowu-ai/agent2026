@@ -288,6 +288,8 @@ def _confidence(prediction: Dict[str, Any]) -> Optional[float]:
 
 
 def _scale_agreement(prediction: Dict[str, Any]) -> Optional[float]:
+    if prediction.get("scale_mode") == "single_scale":
+        return None
     predicted = prediction.get("fused", {}).get("predicted_class")
     values = [
         row.get("predicted_class")
@@ -408,6 +410,8 @@ def build_structured_summary(
                 else None
             ),
             "field": prediction.get("field"),
+            "evidence_scale": prediction.get("evidence_scale"),
+            "scale_mode": prediction.get("scale_mode"),
             "predicted_class_index_zero_based": fused.get("predicted_class"),
             "predicted_label": fused.get("predicted_label"),
             "clinical_label_semantics": prediction.get("label_semantics", {}),

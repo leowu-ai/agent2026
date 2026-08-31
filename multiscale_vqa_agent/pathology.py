@@ -10,7 +10,8 @@ from .schemas import EvidenceGroup
 PATHOLOGY_SYSTEM_PROMPT = """You are a breast pathology morphology observer, not a diagnosis or molecular-status agent.
 Describe only structures directly visible in the supplied H&E pixels. Do not choose an MCQ option and do not diagnose a disease or molecular subtype. Never infer ER status, PR status, HER2 status, triple-negative status, gene expression, pathways, mutation, RNA, protein, IHC, FISH/ISH, amplification, treatment, clinical records, or report facts.
 Scale-specific knowledge guidance tells you what morphology may be useful to inspect; it is not patient evidence. Never claim a guided feature is present unless it is actually visible in the supplied pixels. Explicitly report absent, indeterminate, or limited findings when appropriate.
-For program/gene-selected images, you are not told why a patch was retrieved and must not guess its provenance. Indeterminate or limited-quality findings are not contradictions. Output JSON only with architecture, cytology, stroma, necrosis, invasion_pattern, visible_findings, target_visual_support, and image_quality."""
+For program/gene-selected images, you are not told why a patch was retrieved and must not guess its provenance. Indeterminate or limited-quality findings are not contradictions.
+Output exactly one JSON object with these keys: architecture, cytology, stroma, necrosis, invasion_pattern, visible_findings, target_visual_support, image_quality. visible_findings must be a list of short morphology observations. necrosis must be present, absent, or indeterminate; target_visual_support must be supportive, contradictory, or indeterminate; image_quality must be adequate or limited. Do not use answer, diagnosis, or explanations as substitute keys."""
 
 
 MOLECULAR_OR_DIAGNOSTIC_PATTERN = re.compile(
@@ -38,6 +39,7 @@ class PathologyAgent:
         visual_guidance: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         del field  # Retrieval provenance must not bias the visual expert.
+        del choices  # Option text encourages diagnosis instead of morphology.
         entries = self._image_entries(groups, overview_paths or [])
         evidence = [group.to_dict() for group in groups]
         if not entries:
@@ -70,8 +72,7 @@ class PathologyAgent:
         for attempt_index, (image_limit, image_max_size) in enumerate(attempts, 1):
             selected = self._select_entries(entries, image_limit)
             user = json.dumps({
-                "question": question,
-                "choices": list(choices or []),
+                "inspection_question": question,
                 "current_scale": current_scale,
                 "evidence_role": evidence_role,
                 "scale_specific_visual_guidance": list(visual_guidance or []),
@@ -83,6 +84,23 @@ class PathologyAgent:
                     "Guidance defines what to look for, not what is present. Report only observed "
                     "image morphology. Retrieval provenance and molecular predictions are hidden "
                     "and must not be guessed."
+                ),
+                "output_schema": {
+                    "architecture": "short visible morphology or indeterminate",
+                    "cytology": "short visible morphology or indeterminate",
+                    "stroma": "short visible morphology or indeterminate",
+                    "necrosis": "present|absent|indeterminate",
+                    "invasion_pattern": "short visible morphology or indeterminate",
+                    "visible_findings": ["short directly visible morphology"],
+                    "target_visual_support": (
+                        "supportive|contradictory|indeterminate"
+                    ),
+                    "image_quality": "adequate|limited",
+                },
+                "format_retry": (
+                    "The previous response did not use the required morphology "
+                    "schema. Return only the exact schema now."
+                    if failures else None
                 ),
             }, ensure_ascii=False)
             try:
@@ -147,6 +165,19 @@ class PathologyAgent:
         if not isinstance(parsed, dict):
             return None
 
+        normalized_keys = {
+            re.sub(r"[^a-z0-9]+", "_", str(key).strip().lower()).strip("_"): value
+            for key, value in parsed.items()
+        }
+        expected = {
+            "architecture", "cytology", "stroma", "necrosis",
+            "invasion_pattern", "visible_findings", "target_visual_support",
+            "image_quality",
+        }
+        if not expected.intersection(normalized_keys):
+            return None
+        parsed = normalized_keys
+
         def clean(value: Any, limit: int = 320) -> str:
             text = " ".join(str(value or "").split())[:limit]
             if MOLECULAR_OR_DIAGNOSTIC_PATTERN.search(text):
@@ -155,9 +186,10 @@ class PathologyAgent:
 
         visible = parsed.get("visible_findings", [])
         if not isinstance(visible, list):
-            visible = [visible]
-        visible = [clean(value, 220) for value in visible[:6]]
+            visible = re.split(r"(?<=[.!?])\s+", str(visible))
+        visible = [clean(value, 220) for value in visible[:12]]
         visible = [value for value in visible if value != "indeterminate"]
+        visible = visible[:6]
         necrosis = str(parsed.get("necrosis", "indeterminate")).lower()
         if necrosis not in {"present", "absent", "indeterminate"}:
             necrosis = "indeterminate"

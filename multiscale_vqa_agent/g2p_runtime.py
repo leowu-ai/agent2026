@@ -221,6 +221,37 @@ class MultiScaleG2PAgent:
     def infer_case(self, case_id: str) -> Dict[int, Dict[str, Any]]:
         return {scale: runtime.infer_case(case_id) for scale, runtime in sorted(self.runtimes.items())}
 
+    def task_at_scale(
+        self,
+        results: Dict[int, Dict[str, Any]],
+        field: str,
+        scale: int,
+    ) -> Dict[str, Any]:
+        scale = int(scale)
+        if scale not in results:
+            raise KeyError(f"No precomputed G2P result for scale {scale}")
+        patient_predictions = results[scale].get("patient_predictions", {})
+        if field not in patient_predictions:
+            raise KeyError(f"No {field} prediction at scale {scale}")
+
+        semantics = self.registry.label_semantics(field)
+        prediction = dict(patient_predictions[field])
+        if "predicted_class" in prediction and not prediction.get("predicted_label"):
+            prediction["predicted_label"] = semantics["class_to_label"].get(
+                str(prediction["predicted_class"])
+            )
+        metric = self.registry.task_metrics(field).get(str(scale))
+        return {
+            "field": field,
+            "label_semantics": semantics,
+            "evidence_scale": scale,
+            "scale_mode": "single_scale",
+            "weights": {str(scale): 1.0},
+            "per_scale": {str(scale): dict(prediction)},
+            "fused": dict(prediction),
+            "validation_metrics": {str(scale): metric} if metric else {},
+        }
+
     def fuse_task(self, results: Dict[int, Dict[str, Any]], field: str) -> Dict[str, Any]:
         name = self.registry.field_to_name[field]
         vocab = self.registry.vocabs[min(self.registry.vocabs)]

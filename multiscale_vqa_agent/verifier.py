@@ -12,6 +12,9 @@ MISSING_TYPES = {
     "coarse_visual", "intermediate_visual", "fine_visual",
     "program_support", "gene_support", "unavailable", "none",
 }
+ROUND0_DIRECT_MIN_PROBABILITY = 0.80
+ROUND0_DIRECT_MIN_VALIDATION = 0.80
+ROUND0_DIRECT_MIN_ADJUSTED_CONFIDENCE = 0.55
 VERIFIER_SYSTEM_PROMPT = """You are an evidence sufficiency controller for breast pathology WSI multiple-choice VQA.
 You do not choose an option and must never output an answer_id. Judge whether accumulated evidence resolves the option-level distinction and choose exactly one supplied available action.
 Evidence priority is direct structured phenotype prediction, then target-specific visible morphology, then supportive program evidence, then supportive gene evidence. A reliable direct prediction with complete option alignment may be answered at Round 0 without visual inspection. Program, gene, and weak visual evidence must not casually overwrite a direct candidate.
@@ -111,6 +114,11 @@ class EvidenceVerifierAgent:
                 "reason": "one concise sentence",
             },
         }
+        strong_direct = self._strong_round0_direct_decision(
+            memory, available_actions
+        )
+        if strong_direct is not None:
+            return strong_direct
         if not self.client or not self.client.enabled:
             return self._fallback(
                 available_actions, "Verifier client is disabled.", memory
@@ -139,6 +147,71 @@ class EvidenceVerifierAgent:
             gene_candidates or [],
             memory,
         )
+
+    @staticmethod
+    def _strong_round0_direct_decision(
+        memory: WorkingMemory,
+        available_actions: List[str],
+    ) -> Optional[Dict[str, Any]]:
+        structured = memory.structured_evidence or {}
+        predictions = structured.get("predictions") or []
+        if (
+            "answer" not in available_actions
+            or memory.observations
+            or structured.get("task_match") != "direct"
+            or structured.get("prototype_coverage") != "complete"
+            or float(structured.get("target_coverage") or 0.0) < 1.0
+            or not memory.structured_candidate
+            or memory.option_alignment.get("mapping_complete") is not True
+            or not predictions
+        ):
+            return None
+
+        primary = predictions[0]
+        try:
+            probability = float(
+                primary.get("fused_probability_for_predicted_class")
+            )
+            validation = float(primary.get("validation_quality"))
+            adjusted = float(
+                structured.get("reliability_adjusted_confidence")
+            )
+        except (TypeError, ValueError):
+            return None
+        if (
+            probability < ROUND0_DIRECT_MIN_PROBABILITY
+            or validation < ROUND0_DIRECT_MIN_VALIDATION
+            or adjusted < ROUND0_DIRECT_MIN_ADJUSTED_CONFIDENCE
+        ):
+            return None
+
+        return {
+            "evidence_sufficient": True,
+            "evidence_state": "sufficient",
+            "missing_evidence_type": "none",
+            "conflict_detected": False,
+            "next_action": "answer",
+            "target": None,
+            "reason": (
+                "Complete direct structured evidence met the conservative "
+                "Round 0 probability, validation, and adjusted-confidence criteria."
+            ),
+            "verifier_fallback_used": False,
+            "evidence_sufficiency_unverified": False,
+            "requested_action": "answer",
+            "normalized_action": "answer",
+            "executed_action": "answer",
+            "fallback_reason": None,
+            "target_resolution_fallback": False,
+            "decision_source": "deterministic_strong_direct_guard",
+            "decision_thresholds": {
+                "min_probability": ROUND0_DIRECT_MIN_PROBABILITY,
+                "min_validation": ROUND0_DIRECT_MIN_VALIDATION,
+                "min_adjusted_confidence": (
+                    ROUND0_DIRECT_MIN_ADJUSTED_CONFIDENCE
+                ),
+            },
+        }
 
     @staticmethod
     def _compact_memory(memory: WorkingMemory) -> Dict[str, Any]:
