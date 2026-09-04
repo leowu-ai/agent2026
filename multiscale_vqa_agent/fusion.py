@@ -118,7 +118,7 @@ class FusionVerificationAgent:
             raw = self.client.chat(
                 system_prompt,
                 json.dumps(evidence, ensure_ascii=False),
-                temperature=0.6,
+                temperature=0.0,
                 max_tokens=4096,
                 response_format={"type": "json_object"},
                 retries=2,
@@ -145,7 +145,7 @@ class FusionVerificationAgent:
             retry_prompt = json.dumps({
                 "instruction": "Return only the required JSON object. Re-decide from this compact original context, not from the malformed answer.",
                 "question": plan.question,
-                "choices": indexed_choices(choices),
+                "choices": self._visible_choice_options(choices),
                 "task_match": structured.get("task_match"),
                 "evidence_route": evidence.get("evidence_route"),
                 "broad_g2p_predictions": evidence.get("broad_g2p_predictions", []),
@@ -210,10 +210,12 @@ class FusionVerificationAgent:
         agent_context: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         visual = self._visual_summary(pathology.get("description"))
+        visible_options = self._visible_choice_options(choices)
+        visible_ids = {option["id"] for option in visible_options}
         if structured.get("task_match") == "none":
             packet = {
                 "question": plan.question,
-                "choices": indexed_choices(choices),
+                "choices": visible_options,
                 "task_match": "none",
                 "evidence_route": getattr(plan, "evidence_route", "morphology_only"),
                 "selected_prototype_ids": list(getattr(plan, "selected_prototype_ids", [])),
@@ -231,6 +233,8 @@ class FusionVerificationAgent:
             primary_predictions = [self._compact_prediction(predictions[0])]
         option_rows = []
         for row in structured.get("option_compatibility", []):
+            if row.get("choice_id") not in visible_ids:
+                continue
             option_rows.append({
                 "choice_id": row.get("choice_id"),
                 "choice_text": row.get("choice"),
@@ -246,19 +250,48 @@ class FusionVerificationAgent:
                 "field_coverage": row.get("field_coverage", 0.0),
                 "evidence_coverage": row.get("evidence_coverage", 0.0),
             })
+        candidate_id = structured.get("structured_candidate_id")
+        if candidate_id not in visible_ids:
+            candidate_id = None
+        joint_choice_id = structured.get("joint_choice_id")
+        if joint_choice_id not in visible_ids:
+            joint_choice_id = None
+        literal_match_id = structured.get("literal_match_id")
+        if literal_match_id not in visible_ids:
+            literal_match_id = None
+        literal_matches = [
+            row for row in structured.get("literal_matches", [])
+            if row.get("choice_id") in visible_ids
+        ]
+        alignment = dict(structured.get("option_alignment") or {})
+        if (
+            alignment.get("choice_id") is not None
+            and alignment.get("choice_id") not in visible_ids
+        ):
+            alignment = {
+                "source": "filtered_option",
+                "choice_id": None,
+                "mapping_complete": False,
+                "confidence": 0.0,
+            }
         packet = {
             "question": plan.question,
-            "choices": indexed_choices(choices),
+            "choices": visible_options,
             "task_match": structured.get("task_match"),
             "evidence_route": structured.get("evidence_route"),
             "selected_prototype_ids": structured.get("selected_prototype_ids", []),
             "answer_unit": structured.get("answer_unit"),
             "structured_candidate": {
-                "choice_id": structured.get("structured_candidate_id"),
-                "choice_text": structured.get("structured_candidate_answer"),
+                "choice_id": candidate_id,
+                "choice_text": (
+                    structured.get("structured_candidate_answer")
+                    if candidate_id is not None else None
+                ),
                 "confidence": structured.get("structured_candidate_confidence"),
-                "mapping_complete": structured.get("mapping_complete"),
-                "alignment": structured.get("option_alignment", {}),
+                "mapping_complete": bool(
+                    structured.get("mapping_complete") and candidate_id is not None
+                ),
+                "alignment": alignment,
                 "patient_evidence_strength": structured.get(
                     "confidence_factors", {}
                 ).get("patient_evidence_strength"),
@@ -273,15 +306,18 @@ class FusionVerificationAgent:
                 "fields": structured.get("joint_fields", []),
                 "state": structured.get("joint_state", {}),
                 "alignment_source": structured.get("joint_alignment_source"),
-                "mapping_complete": structured.get("joint_mapping_complete", False),
-                "choice_id": structured.get("joint_choice_id"),
+                "mapping_complete": bool(
+                    structured.get("joint_mapping_complete", False)
+                    and joint_choice_id is not None
+                ),
+                "choice_id": joint_choice_id,
             },
             "primary_predictions": primary_predictions,
             "supporting_predictions": supporting_predictions,
             "option_compatibility": option_rows[:8],
             "literal_match": {
-                "choice_id": structured.get("literal_match_id"),
-                "matches": structured.get("literal_matches", []),
+                "choice_id": literal_match_id,
+                "matches": literal_matches,
                 "rule": structured.get("literal_match_rule"),
                 "advisory_only": True,
             },
@@ -293,7 +329,7 @@ class FusionVerificationAgent:
                 "A unique literal_match choice is a strong advisory hint, not an absolute answer.",
                 "Patho-R1 can overturn structured evidence only with direct visible counterevidence.",
                 "WSI-inferred gene/pathway scores are not measured RNA, IHC, FISH, mutation, or protein.",
-                "A WSI-derived categorical ER/PR/HER2 phenotype can directly support a categorical benchmark target, but never an assay percentage, intensity, FISH ratio, or amplification result.",
+                "A WSI-derived categorical ER/PR phenotype can support a categorical status target. The HER2 prototype is trained for scores 0/1+/2+/3+ and can directly support a matching score option; for general status use 0/1+=negative, 2+=equivocal, and 3+=positive. These predictions cannot establish an exact percentage, FISH/ISH ratio, amplification, copy number, test-performed, or report-specific result.",
             ],
             "code_generated_base_confidence": structured.get("structured_candidate_confidence"),
         }
@@ -365,7 +401,10 @@ class FusionVerificationAgent:
         if not isinstance(parsed, dict) or not isinstance(parsed.get("answer_id"), str):
             return None
         answer_id = parsed["answer_id"].strip().upper()
-        options = {option["id"]: option["text"] for option in indexed_choices(choices)}
+        options = {
+            option["id"]: option["text"]
+            for option in self._visible_choice_options(choices)
+        }
         if answer_id not in options:
             return None
         answer = options[answer_id]
@@ -380,6 +419,8 @@ class FusionVerificationAgent:
         elif base > 0:
             confidence = max(max(0.0, base - 0.2), min(confidence, min(1.0, base + 0.2)))
         candidate_id = structured.get("structured_candidate_id")
+        if candidate_id not in options:
+            candidate_id = None
         proposed_override = bool(candidate_id and answer_id != candidate_id)
         override_rejected = False
         if (
@@ -433,9 +474,19 @@ class FusionVerificationAgent:
         status: str,
         retry_count: int,
     ) -> Dict[str, Any]:
-        answer = structured.get("structured_candidate_answer")
-        if answer not in choices:
-            answer = self._unsupported_choice(plan.question, choices)
+        visible_options = self._visible_choice_options(choices)
+        visible_choices = [option["text"] for option in visible_options]
+        candidate_by_id = {
+            option["id"]: option["text"] for option in visible_options
+        }
+        answer = candidate_by_id.get(structured.get("structured_candidate_id"))
+        if answer is None:
+            candidate_answer = structured.get("structured_candidate_answer")
+            answer = (
+                candidate_answer
+                if candidate_answer in visible_choices
+                else self._unsupported_choice(plan.question, visible_choices)
+            )
         answer_id = choice_id_for_answer(choices, answer)
         return {
             "answer_id": answer_id,
@@ -460,10 +511,6 @@ class FusionVerificationAgent:
             normalized = choice.lower().strip()
             if any(pattern in normalized for pattern in UNAVAILABLE_PATTERNS):
                 return choice
-        if any(term in lowered for term in ("mentioned", "report", "record", "documented")):
-            for choice in choices:
-                if "not mentioned" in choice.lower():
-                    return choice
         normalized = {choice.lower().strip(): choice for choice in choices}
         if "no" in normalized and any(term in lowered for term in ("is there", "are there", "present", "positive", "identified")):
             return normalized["no"]
@@ -471,11 +518,11 @@ class FusionVerificationAgent:
             return choices[-1]
         return ""
 
-    @staticmethod
-    def _recover_answer_id(raw: Optional[str], choices: List[str]) -> Optional[str]:
+    @classmethod
+    def _recover_answer_id(cls, raw: Optional[str], choices: List[str]) -> Optional[str]:
         if not raw:
             return None
-        valid_ids = {option["id"] for option in indexed_choices(choices)}
+        valid_ids = {option["id"] for option in cls._visible_choice_options(choices)}
         match = re.search(r'["\\\']answer_id["\\\']\s*:\s*["\\\']([A-Z]+)', raw, re.I)
         if match and match.group(1).upper() in valid_ids:
             return match.group(1).upper()
@@ -487,12 +534,39 @@ class FusionVerificationAgent:
         text = " ".join(str(value or "").split())
         return text[:length]
 
+    @staticmethod
+    def _blocked_choice(choice: Any) -> bool:
+        return "not mentioned" in str(choice).casefold()
+
+    @classmethod
+    def _visible_choice_options(cls, choices: List[str]) -> List[Dict[str, str]]:
+        options = indexed_choices(choices)
+        visible = [
+            option for option in options
+            if not cls._blocked_choice(option["text"])
+        ]
+        return visible or options
+
     def _attach_option_alignment(
         self,
         plan: ExecutionPlan,
         choices: List[str],
         structured: Dict[str, Any],
     ) -> None:
+        visible_options = self._visible_choice_options(choices)
+        options = {row["id"]: row["text"] for row in visible_options}
+        visible_ids = set(options)
+        if structured.get("literal_match_id") not in visible_ids:
+            structured["literal_match_id"] = None
+        structured["literal_matches"] = [
+            row for row in structured.get("literal_matches", [])
+            if row.get("choice_id") in visible_ids
+        ]
+        if structured.get("structured_candidate_id") not in visible_ids:
+            structured["structured_candidate_id"] = None
+            structured["structured_candidate_answer"] = None
+            structured["mapping_complete"] = False
+
         if structured.get("task_match") == "none" or not structured.get("predictions"):
             structured["option_alignment"] = {
                 "source": "not_applicable",
@@ -505,6 +579,17 @@ class FusionVerificationAgent:
         joint_alignment = multi_field_semantic_choice_alignment(
             structured, choices
         )
+        if (
+            joint_alignment
+            and joint_alignment.get("choice_id") is not None
+            and joint_alignment.get("choice_id") not in visible_ids
+        ):
+            joint_alignment.update({
+                "choice_id": None,
+                "mapping_complete": False,
+                "confidence": 0.0,
+                "reason": "The mapped choice is not available to final fusion.",
+            })
         if joint_alignment is not None:
             structured["joint_fields"] = joint_alignment["joint_fields"]
             structured["joint_state"] = joint_alignment["joint_state"]
@@ -518,8 +603,9 @@ class FusionVerificationAgent:
             if joint_alignment is not None
             else primary_semantic_choice_alignment(structured, choices)
         )
+        if primary_alignment and primary_alignment.get("choice_id") not in visible_ids:
+            primary_alignment = None
         literal_id = structured.get("literal_match_id")
-        options = {row["id"]: row["text"] for row in indexed_choices(choices)}
         if joint_alignment and joint_alignment.get("mapping_complete"):
             alignment = joint_alignment
         elif primary_alignment:
@@ -547,7 +633,7 @@ class FusionVerificationAgent:
             ]
             payload = {
                 "question": plan.question,
-                "choices": indexed_choices(choices),
+                "choices": visible_options,
                 "primary_predictions": primary or [
                     self._compact_prediction(predictions[0])
                 ],

@@ -5,9 +5,9 @@
   "output_dir": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/multiscale_vqa_agent",
   "device": "auto",
   "scales": {
-    "1024": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_gene34_freeR05_earlyfreeze_pathway_1024/G2P_ToolBank_Minimal",
-    "2048": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_freeR05_earlyfreeze_sharedgate_2048/G2P_ToolBank_Minimal",
-    "4096": "/home/wl/agent_2026/g2p_toolbank_brca/outputs/full_run_h512_freeR05_earlyfreeze_sharedgate_4096/G2P_ToolBank_Minimal"
+    "1024": "/data_nas3/wl/G2P_toolbanks/her2_ihc4_v1/1024/G2P_ToolBank_Minimal",
+    "2048": "/data_nas3/wl/G2P_toolbanks/her2_ihc4_v1/2048/G2P_ToolBank_Minimal",
+    "4096": "/data_nas3/wl/G2P_toolbanks/her2_ihc4_v1/4096/G2P_ToolBank_Minimal"
   },
   "fusion_weights": {
     "morphology": {
