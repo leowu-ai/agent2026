@@ -661,7 +661,7 @@ class PathologyIsolationTest(unittest.TestCase):
         )
         self.assertNotIn("diagnosis", result["morphology_observation"])
 
-    def test_parser_sanitizes_molecular_claim(self):
+    def test_parser_does_not_filter_observation_keywords(self):
         parsed = PathologyAgent._normalize_morphology(json.dumps({
             "architecture": "single cell pattern",
             "cytology": "HER2 positive tumor cells",
@@ -672,8 +672,10 @@ class PathologyIsolationTest(unittest.TestCase):
             "target_visual_support": "supportive",
             "image_quality": "adequate",
         }))
-        self.assertEqual(parsed["cytology"], "indeterminate")
-        self.assertEqual(parsed["visible_findings"], ["cohesive nests"])
+        self.assertEqual(parsed["cytology"], "HER2 positive tumor cells")
+        self.assertEqual(
+            parsed["visible_findings"], ["ER negative", "cohesive nests"]
+        )
 
     def test_diagnostic_answer_is_rejected_instead_of_silently_indeterminate(self):
         parsed = PathologyAgent._normalize_morphology(json.dumps({
@@ -681,7 +683,7 @@ class PathologyIsolationTest(unittest.TestCase):
         }))
         self.assertIsNone(parsed)
 
-    def test_visible_findings_alias_preserves_only_morphology_sentences(self):
+    def test_visible_findings_alias_splits_sentences(self):
         parsed = PathologyAgent._normalize_morphology(json.dumps({
             "visible Findings": (
                 "Small discohesive cells infiltrate in linear cords. "
@@ -690,8 +692,28 @@ class PathologyIsolationTest(unittest.TestCase):
         }))
         self.assertEqual(
             parsed["visible_findings"],
-            ["Small discohesive cells infiltrate in linear cords."],
+            [
+                "Small discohesive cells infiltrate in linear cords.",
+                "This supports invasive lobular carcinoma.",
+            ],
         )
+
+    def test_mixed_list_item_preserves_all_sentences(self):
+        parsed = PathologyAgent._normalize_morphology(json.dumps({
+            "visiblefindings": [
+                "Discohesive cells infiltrate singly in fibrous stroma, "
+                "consistent with invasive lobular carcinoma. "
+                "HER2 status requires IHC testing."
+            ],
+            "imagequality": "adequate",
+        }))
+
+        self.assertEqual(parsed["visible_findings"], [
+            "Discohesive cells infiltrate singly in fibrous stroma, "
+            "consistent with invasive lobular carcinoma.",
+            "HER2 status requires IHC testing.",
+        ])
+        self.assertEqual(parsed["image_quality"], "adequate")
 
     def test_schema_failure_uses_existing_adaptive_retry(self):
         valid = json.dumps({
