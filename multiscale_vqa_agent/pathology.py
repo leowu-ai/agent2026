@@ -11,7 +11,7 @@ PATHOLOGY_SYSTEM_PROMPT = """You are a breast pathology morphology observer, not
 Describe only structures directly visible in the supplied H&E pixels. Do not choose an MCQ option and do not diagnose a disease or molecular subtype. Never infer ER status, PR status, HER2 status, triple-negative status, gene expression, pathways, mutation, RNA, protein, IHC, FISH/ISH, amplification, treatment, clinical records, or report facts.
 Scale-specific knowledge guidance tells you what morphology may be useful to inspect; it is not patient evidence. Never claim a guided feature is present unless it is actually visible in the supplied pixels. Explicitly report absent, indeterminate, or limited findings when appropriate.
 For program/gene-selected images, you are not told why a patch was retrieved and must not guess its provenance. Indeterminate or limited-quality findings are not contradictions.
-Output exactly one JSON object with these keys: architecture, cytology, stroma, necrosis, invasion_pattern, visible_findings, target_visual_support, image_quality. visible_findings must be a list of short morphology observations. necrosis must be present, absent, or indeterminate; target_visual_support must be supportive, contradictory, or indeterminate; image_quality must be adequate or limited. Do not use answer, diagnosis, or explanations as substitute keys."""
+Output exactly one compact JSON object with these keys: visible_findings and image_quality. visible_findings must be a list of at most five short, directly visible morphology observations; image_quality must be adequate or limited. Do not add prose outside the JSON object and do not use answer, diagnosis, or explanation as substitute keys."""
 
 
 MOLECULAR_OR_DIAGNOSTIC_PATTERN = re.compile(
@@ -86,20 +86,12 @@ class PathologyAgent:
                     "and must not be guessed."
                 ),
                 "output_schema": {
-                    "architecture": "short visible morphology or indeterminate",
-                    "cytology": "short visible morphology or indeterminate",
-                    "stroma": "short visible morphology or indeterminate",
-                    "necrosis": "present|absent|indeterminate",
-                    "invasion_pattern": "short visible morphology or indeterminate",
                     "visible_findings": ["short directly visible morphology"],
-                    "target_visual_support": (
-                        "supportive|contradictory|indeterminate"
-                    ),
                     "image_quality": "adequate|limited",
                 },
                 "format_retry": (
-                    "The previous response did not use the required morphology "
-                    "schema. Return only the exact schema now."
+                    "The previous response was not valid compact JSON. Return only "
+                    "visible_findings and image_quality using the exact schema now."
                     if failures else None
                 ),
             }, ensure_ascii=False)
@@ -165,10 +157,16 @@ class PathologyAgent:
         if not isinstance(parsed, dict):
             return None
 
-        normalized_keys = {
-            re.sub(r"[^a-z0-9]+", "_", str(key).strip().lower()).strip("_"): value
-            for key, value in parsed.items()
+        key_aliases = {
+            "visiblefindings": "visible_findings",
+            "imagequality": "image_quality",
         }
+        normalized_keys = {}
+        for key, value in parsed.items():
+            normalized = re.sub(
+                r"[^a-z0-9]+", "_", str(key).strip().lower()
+            ).strip("_")
+            normalized_keys[key_aliases.get(normalized, normalized)] = value
         expected = {
             "architecture", "cytology", "stroma", "necrosis",
             "invasion_pattern", "visible_findings", "target_visual_support",

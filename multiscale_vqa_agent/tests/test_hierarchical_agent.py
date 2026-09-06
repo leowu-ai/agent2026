@@ -634,6 +634,33 @@ class PathologyIsolationTest(unittest.TestCase):
         self.assertIn("not what is present", payload["evidence_rule"])
         self.assertIn("not patient evidence", PATHOLOGY_SYSTEM_PROMPT.lower())
 
+    def test_request_uses_compact_morphology_schema(self):
+        class CompactClient(self.Client):
+            def chat(self, system, user, **kwargs):
+                self.user = user
+                return json.dumps({
+                    "visiblefindings": ["Cohesive epithelial nests are visible."],
+                    "imagequality": "adequate",
+                    "diagnosis": "This extra model field must be ignored.",
+                })
+
+        client = CompactClient()
+        result = PathologyAgent(client).describe(
+            "question", "field", [self.group()], hide_provenance=True
+        )
+
+        payload = json.loads(client.user)
+        self.assertEqual(
+            set(payload["output_schema"]),
+            {"visible_findings", "image_quality"},
+        )
+        self.assertEqual(result["backend"], "pathor1")
+        self.assertEqual(
+            result["morphology_observation"]["visible_findings"],
+            ["Cohesive epithelial nests are visible."],
+        )
+        self.assertNotIn("diagnosis", result["morphology_observation"])
+
     def test_parser_sanitizes_molecular_claim(self):
         parsed = PathologyAgent._normalize_morphology(json.dumps({
             "architecture": "single cell pattern",
