@@ -47,6 +47,14 @@ def main():
     parser.add_argument("--no_crop", action="store_true")
     parser.add_argument("--no_resume", action="store_true")
     parser.add_argument(
+        "--single_dx_slide",
+        action="store_true",
+        help=(
+            "Use exactly one diagnostic DX slide per patient across G2P, "
+            "retrieval, and visual overview input."
+        ),
+    )
+    parser.add_argument(
         "--agent_mode",
         choices=("legacy", "hierarchical_rag"),
         default="legacy",
@@ -97,6 +105,7 @@ def main():
         direct_retrieval_mode=args.direct_retrieval_mode,
         agent_mode=args.agent_mode,
         knowledge_base=args.knowledge_base,
+        single_dx_slide=args.single_dx_slide,
     )
     output = pipeline.run_multiple_choice(
         vqa_path=args.vqa_json,

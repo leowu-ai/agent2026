@@ -36,6 +36,7 @@ class MultiScaleVQAPipeline:
         direct_retrieval_mode: Optional[str] = None,
         agent_mode: str = "legacy",
         knowledge_base: Optional[str] = None,
+        single_dx_slide: bool = False,
     ):
         self.config_path = Path(config_path)
         with self.config_path.open(encoding="utf-8") as handle:
@@ -49,6 +50,7 @@ class MultiScaleVQAPipeline:
         )
         self.planner_only = planner_only
         self.answerability_only = answerability_only
+        self.single_dx_slide = bool(single_dx_slide)
         self.agent_mode = str(agent_mode)
         if self.agent_mode not in {"legacy", "hierarchical_rag"}:
             raise ValueError(
@@ -62,7 +64,11 @@ class MultiScaleVQAPipeline:
         self.planner = PrototypeAwarePlanner(self.registry, self.qwen)
         if planner_only:
             return
-        self.g2p = MultiScaleG2PAgent(self.config, self.registry)
+        self.g2p = MultiScaleG2PAgent(
+            self.config,
+            self.registry,
+            single_dx_slide=self.single_dx_slide,
+        )
         self.relation = RelationReasoningAgent(self.registry, self.g2p, self.config["retrieval"])
         self.retrieval = MultiScaleRetrievalAgent(self.registry, self.config["retrieval"])
         self.morphology_retrieval_mode = str(
@@ -135,6 +141,11 @@ class MultiScaleVQAPipeline:
                 )
             self.knowledge_rag = KnowledgeRAG(knowledge_base, self.registry)
             self.verifier = EvidenceVerifierAgent(self.qwen)
+
+    def _overview_thumbnails(self, case_id: str) -> List[str]:
+        if getattr(self, "single_dx_slide", False):
+            return self.cropper.overview_thumbnails(case_id, max_slides=1)
+        return self.cropper.overview_thumbnails(case_id)
 
     def run(
         self,
@@ -411,7 +422,7 @@ class MultiScaleVQAPipeline:
                     evidence_cache[groups_key] = groups
                 overview_key = "__overview_thumbnails__"
                 if overview_key not in evidence_cache:
-                    evidence_cache[overview_key] = self.cropper.overview_thumbnails(
+                    evidence_cache[overview_key] = self._overview_thumbnails(
                         plan.case_id
                     )
                 overview_paths = evidence_cache[overview_key]
@@ -534,7 +545,7 @@ class MultiScaleVQAPipeline:
             groups = evidence_cache[groups_key]
             overview_key = "__overview_thumbnails__"
             if overview_key not in evidence_cache:
-                evidence_cache[overview_key] = self.cropper.overview_thumbnails(
+                evidence_cache[overview_key] = self._overview_thumbnails(
                     plan.case_id
                 )
             overview_paths = evidence_cache[overview_key]
@@ -774,7 +785,7 @@ class MultiScaleVQAPipeline:
                 if scale == 4096:
                     overview_key = "__overview_thumbnails__"
                     if overview_key not in evidence_cache:
-                        evidence_cache[overview_key] = self.cropper.overview_thumbnails(
+                        evidence_cache[overview_key] = self._overview_thumbnails(
                             plan.case_id
                         )
                     overview_paths = list(evidence_cache[overview_key])

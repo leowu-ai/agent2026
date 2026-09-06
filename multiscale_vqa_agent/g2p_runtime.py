@@ -13,6 +13,7 @@ from .registry import ToolBankRegistry
 
 
 COORD_PATTERN = re.compile(r"(?P<x>\d+)_(?P<y>\d+)_(?P<size>\d+)(?:\.[A-Za-z0-9]+)?$")
+DX_SLIDE_PATTERN = re.compile(r"(?:^|[-_.])DX(?P<number>\d*)(?:[-_.]|$)", re.IGNORECASE)
 
 
 def parse_patch_coordinate(value: Any, default_size: int) -> Tuple[Optional[int], Optional[int], int]:
@@ -37,6 +38,19 @@ def rmst_risk(hazards: np.ndarray, time_bins: List[float]) -> float:
     return -float(np.sum(0.5 * (survival_start + survival_end) * widths))
 
 
+def select_single_dx_row(rows: pd.DataFrame, case_id: str, scale: int) -> pd.DataFrame:
+    ranked = []
+    for index, slide_id in rows["slide_id"].astype(str).items():
+        match = DX_SLIDE_PATTERN.search(slide_id)
+        if match:
+            number = int(match.group("number") or 1)
+            ranked.append((number, slide_id.upper(), index))
+    if not ranked:
+        raise KeyError(f"No diagnostic DX slide found for {case_id} at scale {scale}")
+    selected_index = min(ranked)[2]
+    return rows.loc[[selected_index]]
+
+
 class ScaleRuntime:
     def __init__(
         self,
@@ -45,11 +59,13 @@ class ScaleRuntime:
         registry: ToolBankRegistry,
         device: torch.device,
         manifest_path: Optional[Path] = None,
+        single_dx_slide: bool = False,
     ):
         self.scale = int(scale)
         self.tool_dir = Path(tool_dir)
         self.registry = registry
         self.device = device
+        self.single_dx_slide = bool(single_dx_slide)
         self.ckpt = torch.load(self.tool_dir / "model.pt", map_location="cpu")
         self.relations = {k: v for k, v in np.load(self.tool_dir / "relations.npz").items()}
         self.manifest_path = Path(
@@ -102,6 +118,8 @@ class ScaleRuntime:
         rows = self.manifest[self.manifest["case_id"] == case_id]
         if rows.empty:
             raise KeyError(f"No scale-{self.scale} feature found for {case_id}")
+        if self.single_dx_slide:
+            rows = select_single_dx_row(rows, case_id, self.scale)
         slide_results = []
         for row in rows.to_dict("records"):
             features, raw_coords = load_feature_file(row["feature_path"])
@@ -199,7 +217,12 @@ class ScaleRuntime:
 
 
 class MultiScaleG2PAgent:
-    def __init__(self, config: Dict[str, Any], registry: ToolBankRegistry):
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        registry: ToolBankRegistry,
+        single_dx_slide: bool = False,
+    ):
         requested = str(config.get("device", "auto"))
         if requested == "auto":
             requested = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -215,6 +238,7 @@ class MultiScaleG2PAgent:
                 registry,
                 self.device,
                 Path(manifest_path) if manifest_path else None,
+                single_dx_slide=single_dx_slide,
             )
         self.fusion_weights = config["fusion_weights"]
 
