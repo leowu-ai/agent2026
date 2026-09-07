@@ -14,6 +14,14 @@ For program/gene-selected images, you are not told why a patch was retrieved and
 Output exactly one compact JSON object with these keys: visible_findings and image_quality. visible_findings must be a list of at most five short, directly visible morphology observations; image_quality must be adequate or limited. Do not add prose outside the JSON object and do not use answer, diagnosis, or explanation as substitute keys."""
 
 
+MOLECULAR_OR_DIAGNOSTIC_PATTERN = re.compile(
+    r"\b(?:er|pr|her2|triple[- ]negative|gene|pathway|rna|mutation|ihc|fish|ish|"
+    r"amplification|copy number|protein|treatment|clinical record|diagnosis|"
+    r"carcinoma|sarcoma|lymphoma|cancer)\b",
+    re.I,
+)
+
+
 class PathologyAgent:
     def __init__(self, client: OpenAICompatibleClient):
         self.client = client
@@ -169,18 +177,15 @@ class PathologyAgent:
         parsed = normalized_keys
 
         def clean(value: Any, limit: int = 320) -> str:
-            text = " ".join(str(value or "").split())
-            return text[:limit] or "indeterminate"
+            text = " ".join(str(value or "").split())[:limit]
+            if MOLECULAR_OR_DIAGNOSTIC_PATTERN.search(text):
+                return "indeterminate"
+            return text or "indeterminate"
 
         visible = parsed.get("visible_findings", [])
         if not isinstance(visible, list):
-            visible = [visible]
-        visible_sentences = []
-        for value in visible[:12]:
-            visible_sentences.extend(
-                re.split(r"(?<=[.!?])\s+", str(value))
-            )
-        visible = [clean(value, 220) for value in visible_sentences[:24]]
+            visible = re.split(r"(?<=[.!?])\s+", str(visible))
+        visible = [clean(value, 220) for value in visible[:12]]
         visible = [value for value in visible if value != "indeterminate"]
         visible = visible[:6]
         necrosis = str(parsed.get("necrosis", "indeterminate")).lower()

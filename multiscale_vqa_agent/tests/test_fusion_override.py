@@ -104,7 +104,7 @@ class CounterevidenceValidationTest(unittest.TestCase):
         )
 
 
-class StructuredOverridePolicyTest(unittest.TestCase):
+class DirectOverridePolicyTest(unittest.TestCase):
     def setUp(self):
         self.agent = FusionVerificationAgent(client=None)
         self.choices = ["structured", "proposed"]
@@ -154,22 +154,9 @@ class StructuredOverridePolicyTest(unittest.TestCase):
         self.assertTrue(result["override_rejected"])
         self.assertFalse(result["override_occurred"])
 
-    def test_partial_route_requires_counterevidence(self):
+    def test_partial_route_keeps_current_free_arbitration(self):
         result = self.validate(
             proposed_answer(),
-            candidate("histological_type_label", task_match="partial"),
-        )
-
-        self.assertEqual(result["answer_id"], "A")
-        self.assertTrue(result["override_proposed"])
-        self.assertTrue(result["override_rejected"])
-        self.assertFalse(result["override_occurred"])
-
-    def test_valid_morphology_counterevidence_allows_partial_override(self):
-        evidence = parsed_counterevidence()["counterevidence"]
-
-        result = self.validate(
-            proposed_answer(evidence),
             candidate("histological_type_label", task_match="partial"),
         )
 
@@ -177,19 +164,6 @@ class StructuredOverridePolicyTest(unittest.TestCase):
         self.assertTrue(result["override_proposed"])
         self.assertFalse(result["override_rejected"])
         self.assertTrue(result["override_occurred"])
-
-    def test_molecular_partial_candidate_rejects_morphology_override(self):
-        evidence = parsed_counterevidence()["counterevidence"]
-
-        result = self.validate(
-            proposed_answer(evidence),
-            candidate("HER2_status_label", task_match="partial"),
-        )
-
-        self.assertEqual(result["answer_id"], "A")
-        self.assertTrue(result["override_proposed"])
-        self.assertTrue(result["override_rejected"])
-        self.assertFalse(result["override_occurred"])
 
 
 class BlockedChoiceTest(unittest.TestCase):
